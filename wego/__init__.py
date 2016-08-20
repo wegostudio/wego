@@ -6,7 +6,7 @@ Wego is a dead simple wechat sdk
 usage: ::
 
     import wego
-    w = wego(
+    w = wego.init(
         # 应用ID
         APP_ID = '',
 
@@ -42,3 +42,5 @@ usage: ::
         def get(self):
             return 'Hello {nickname}!'.format(nickname=request.wx_user.nickname)
 """
+
+from settings import init

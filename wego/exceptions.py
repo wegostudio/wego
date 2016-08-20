@@ -6,5 +6,6 @@ wego.exceptions
 This module contains the set of wego' exceptions.
 """
 
-class AppIdErr:
-    """test"""
+
+class InitError(Exception):
+    u"""Missing required parameters(缺少必须的参数)"""

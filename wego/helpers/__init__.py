@@ -16,4 +16,3 @@ def redirect(request, url):
     return redirect(url)
 
 """
-
