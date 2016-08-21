@@ -3,20 +3,21 @@
 """
 wego.helpers is compatibility for web framework such as tornado, django and flask
 
-Each file must contain the following functions:
+Each helper must contain the following functions:
 
-def set_session(request, key, value):
-    # request.session[key] = value
-    pass
+class YourHelper(wego.helper.BaseHelper):
 
-def get_session(request, key):
-    # return request.session[key]
-    pass
+    def wego_get_current_url(self, request):
+        pass
 
-# from django import redirect
-def redirect(request, url):
-    # return redirect(url)
-    pass
+    def wego_set_session(self, request, key, value):
+        pass
+
+    def wego_get_session(self, request, key):
+        pass
+
+    def wego_redirect(self, request, url):
+        pass
 
 """
 
