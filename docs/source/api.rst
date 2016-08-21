@@ -9,7 +9,21 @@ Main Interface
 .. automodule:: wego
 
 
+Wechat Interface
+----------------
+
+.. automodule:: wego.wechat
+    :members:
+
+
+Settings Interface
+------------------
+
+.. automodule:: wego.settings
+    :members:
+
+
 Exceptions
 ----------
 
-.. autoexception:: wego.exceptions.AppIdErr
+.. autoexception:: wego.exceptions.InitError

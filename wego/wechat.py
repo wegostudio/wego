@@ -7,21 +7,25 @@ import time
 
 # TODO 返回数据 sign 验证
 
-class wechat_api(object):
+
+class WechatApi(object):
+    """
+    Wechat Api
+    """
 
     def __init__(self, settings):
 
         self.settings = settings
 
-    def login_required(func):
+    def login_required(self, func):
         """
         修饰器：在需要获取微信用户数据的函数使用
         """
 
-        def wrapper(self, *args, **kv):
+        def wrapper(request, *args, **kv):
 
-            if self.session.get('openid', False):
-                openid = self.session['openid']
+            if request.session.get('openid', False):
+                openid = request.session['openid']
                 # self.wx_user = WX_User.objects.get(openid=openid)
                 self.openid = openid
                 return func(self, *args, **kv)

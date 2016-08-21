@@ -8,4 +8,8 @@ This module contains the set of wego' exceptions.
 
 
 class InitError(Exception):
-    u"""Missing required parameters(缺少必须的参数)"""
+    u"""An init error occurred."""
+
+
+class HelperError(Exception):
+    u"""An helper error occurred."""
