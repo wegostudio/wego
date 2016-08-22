@@ -27,6 +27,17 @@ class TestSettingsInit(unittest.TestCase):
                 HELPER='wego.helpers.official.DjangoHelper'
             )
 
+        with self.assertRaises(AttributeError):
+            settings.init(
+                APP_ID='1',
+                APP_SECRET='1',
+                REGISTER_URL='/',
+                REDIRECT_PATH='1',
+                MCH_ID='1',
+                MCH_SECRET='1',
+                HELPER='wego.helpers.official.ErrorHelper'
+            )
+
 
 if __name__ == '__main__':
     unittest.main()

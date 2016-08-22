@@ -13,3 +13,7 @@ class InitError(Exception):
 
 class HelperError(Exception):
     u"""An helper error occurred."""
+
+
+class WechatApiError(Exception):
+    u"""An wechat api error occurred."""

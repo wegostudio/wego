@@ -2,7 +2,9 @@
 
 """
 Wego is a dead simple wechat sdk
-
+.. todo :: 在线文档对一些错误进行相信说明
+.. todo :: 设置初始化的检查应该同微信一样严格
+.. todo :: 全局 access token 多次获取只有最后一次有效, 考虑分布式怎么处理这个冲突(允许定制获取access_token的方法)
 usage: ::
 
     import wego

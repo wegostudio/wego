@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from exceptions import WechatApiError
 import requests
 import random
 import re
@@ -16,6 +17,14 @@ class WechatApi(object):
     def __init__(self, settings):
 
         self.settings = settings
+        self.global_access_token = {}
+
+        # TODO for loop
+        self.wego_get_current_path = settings['HELPER'].wego_get_current_path
+        self.wego_get_params = settings['HELPER'].wego_get_params
+        self.wego_set_session = settings['HELPER'].wego_set_session
+        self.wego_get_session = settings['HELPER'].wego_get_session
+        self.wego_redirect = settings['HELPER'].wego_redirect
 
     def login_required(self, func):
         """
@@ -24,94 +33,72 @@ class WechatApi(object):
 
         def wrapper(request, *args, **kv):
 
-            if request.session.get('openid', False):
-                openid = request.session['openid']
-                # self.wx_user = WX_User.objects.get(openid=openid)
-                self.openid = openid
+            if 'code' in request.wego_get_params():
+                request.get_openid(self.wego_get_params(request)['code'])
+
+            openid = self.wego_set_session('openid')
+            if openid:
+                request.openid = openid
+                request.wx_user = self.get_userinfo()
                 return func(self, *args, **kv)
-            # else:
-            #     return get_code('/promotion')
+            else:
+                return self.get_code(self.wego_get_current_path())
 
         return wrapper
 
+    def get_code(self, redirect_url=None, state='STATE'):
+        """
+        引导用户到网页授权页面
+        """
 
-# def get_code(jump, api=True, redirect_url=WechatRedirectUrl):
-#     """
-#     引导用户到网页授权页面
-#     """
-#
-#     url = ('https://open.weixin.qq.com/connect/oauth2/authorize?' +
-#            'appid=%s&redirect_uri=%s' +
-#            '&response_type=code' +
-#            '&scope=snsapi_userinfo' +
-#            '&state=%s#wechat_redirect') % (AppID, redirect_url, jump)
-#
-#     if not api:
-#         return redirect(url)
-#
-#     data = {
-#         'status': '302',
-#         'url': url
-#     }
-#     return HttpResponse(json.dumps(data), content_type="application/json")
-#
-#
-# def get_openid(code, request):
-#     """
-#     网页授权页面同意后会带上 code 参数跳转至此
-#     通过 code 参数可以获取 openid
-#     """
-#
-#     # 以下是微信网页授权后的回调处理
-#     # 获取 openid 和 access_token
-#     data = requests.get('https://api.weixin.qq.com/sns/oauth2/access_token', params={
-#         'appid': AppID,
-#         'secret': AppSecret,
-#         'code': code,
-#         'grant_type': 'authorization_code'
-#     }).json()
-#
-#     access_token = data['access_token']
-#     refresh_token = data['refresh_token']
-#     openid = data['openid']
-#
-#     # 保存 openid 至 session 由于是在线程中操作所以只能操作覆盖数据库，且需设置过 session
-#     request.session['openid'] = openid
-#     # s = SessionStore(session_key=request.session.session_key)
-#     # s['openid'] = openid
-#     # s.save()
-#
-#     return get_userinfo(openid, access_token, refresh_token)
-#
-#
-# def get_userinfo(openid, access_token, refresh_token):
-#     """
-#     通过 openid 与 access_token 获取用户具体信息
-#     """
-#
-#     # 拉取用户信息
-#     data = requests.get('https://api.weixin.qq.com/sns/userinfo', params={
-#         'access_token': access_token,
-#         'openid': openid,
-#         'lang': 'zh_CN'
-#     })
-#     data.encoding = 'utf-8'
-#     data = data.json()
-#
-#     """
-#     # 修复编码问题
-#     for k in ['nickname', 'province', 'city', 'country']:
-#         data[k] = data[k].encode('iso8859-1').decode('utf-8')
-#     """
-#
-#     data['refresh_token'] = refresh_token
-#
-#     # if data['errcode'] == 40001:
-#     if 'errcode' in data.keys():
-#         print '40001!!!!!!!!!!!!!!!!!!'
-#         return
-#
-#     return set_userinfo(data)
+        if not redirect_url:
+            redirect_url = self.settings['REDIRECT_URL']
+
+        url = ('https://open.weixin.qq.com/connect/oauth2/authorize?' +
+               'appid=%s&redirect_uri=%s' +
+               '&response_type=code' +
+               '&scope=snsapi_userinfo' +
+               '&state=%s#wechat_redirect') % (self.settings['APP_ID'], redirect_url, state)
+
+        return self.wego_redirect(url)
+
+    def get_openid(self, code):
+        """
+        网页授权页面同意后会带上 code 参数跳转至此
+        通过 code 参数可以获取 openid
+        """
+
+        # 以下是微信网页授权后的回调处理
+        # 获取 openid 和 access_token
+        data = requests.get('https://api.weixin.qq.com/sns/oauth2/access_token', params={
+            'appid': self.settings['APP_ID'],
+            'secret': self.settings['APP_SECRET'],
+            'code': code,
+            'grant_type': 'authorization_code'
+        }).json()
+
+        access_token = data['access_token']
+        refresh_token = data['refresh_token']
+
+        self.wego_set_session['openid'] = data['openid']
+
+    def get_userinfo(self, openid):
+        """
+        通过 openid 与 global_access_token 获取用户具体信息
+        :return: :class:`WechatUser <wego.wechat.WechatUser>` object
+        """
+
+        access_token = self.settings['GET_ACCESS_TOKEN'](self)
+        data = {
+            'access_token': access_token,
+            'openid': openid,
+            'lang': 'zh_CN'
+        }
+        data = requests.get('https://api.weixin.qq.com/cgi-bin/user/info', params=data).json()
+        if 'errcode' in data.keys():
+            raise WechatApiError('errcode: {}, msg: {}'.format(data['errcode'], data['errmsg']))
+
+        return data
 #
 #
 # def refresh_userinfo(openid, request):
@@ -267,35 +254,6 @@ class WechatApi(object):
 #         'return_code': 'FAIL',
 #         'return_msg': 'ERROR'
 #     }))
-#
-#
-# def get_token():
-#     """
-#     获取token
-#     """
-#
-#     mytoken = AccessToken.objects.all()
-#     if len(mytoken):
-#         mytoken = mytoken[0]
-#         if mytoken.expires_in > int(time.time()):
-#             return mytoken.access_token
-#     else:
-#         # TODO create AccessToken
-#         pass
-#
-#     rep = requests.get("https://api.weixin.qq.com/cgi-bin/token", params={
-#         'grant_type': 'client_credential',
-#         'appid': AppID,
-#         'secret': AppSecret
-#     })
-#     access_token = rep.json()
-#
-#     mytoken.access_token = access_token['access_token']
-#     mytoken.expires_in = int(time.time()) + int(access_token['expires_in']) - 180
-#
-#     mytoken.save()
-#
-#     return mytoken.access_token
 #
 #
 # def get_spread_brcode(scene_str):
