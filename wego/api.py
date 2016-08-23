@@ -10,13 +10,13 @@ class WegoWrapper(object):
     def __init__(self, settings):
 
         self.settings = settings
-        self.wechat = wego.wechat.WeChatApi(settings)
 
     def login_required(self, func):
         """
         修饰器：在需要获取微信用户数据的函数使用
         """
-        wrapper = WegoApi(self.wechat, func)
+        wechat = wego.wechat.WeChatApi(self.settings)
+        wrapper = WegoApi(wechat, func)
         return wrapper.get_wx_user
 
 class WegoApi(object):
@@ -81,7 +81,7 @@ class WegoApi(object):
 
         if self.helper.get_session('wx_access_token_expires_at') < time.time():
             refresh_token = self.helper.get_session('wx_refresh_token')
-            new_token = self.wecaht.refresh_access_token(refresh_token)
+            new_token = self.wechat.refresh_access_token(refresh_token)
             if new_token == 'error':
                 return 'error'
             self.set_user_tokens(new_token)
