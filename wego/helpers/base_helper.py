@@ -7,14 +7,17 @@ class BaseHelper(object):
     wego base helper, any helper have to inherit this.
     """
 
-    def wego_get_current_url(self, request):
-        raise HelperError('you have to customized wego_get_current_url')
+    def __init__(self, request):
+        self.request = request
 
-    def wego_set_session(self, request, key, value):
-        raise HelperError('you have to customized wego_set_session')
+    def get_current_url(self, request):
+        raise HelperError('you have to customized YourHelper.get_current_url')
 
-    def wego_get_session(self, request, key):
-        raise HelperError('you have to customized wego_get_session')
+    def set_session(self, request, key, value):
+        raise HelperError('you have to customized YourHelper.set_session')
 
-    def wego_redirect(self, request, url):
-        raise HelperError('you have to customized wego_redirect')
+    def get_session(self, request, key):
+        raise HelperError('you have to customized YourHelper.get_session')
+
+    def redirect(self, request, url):
+        raise HelperError('you have to customized YourHelper.redirect')

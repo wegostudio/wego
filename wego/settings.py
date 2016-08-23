@@ -13,29 +13,6 @@ import logging
 import requests
 import time
 
-# 应用ID
-APP_ID = 'wxe5c3ac08524f5c0f'
-
-# 应用密钥
-APP_SECRET = '8e9f505c1764d17c78957f19437065d2'
-
-# 微信公众平台左侧: 接口权限-> 网页授权获取用户基本信息内配置
-REGISTER_URL = 'http://wx.midoull.com/'
-
-# 微信用户授权登录强制跳转地址，无特殊情况请勿修改
-REDIRECT_URL = quote(REGISTER_URL + '')
-
-# 商户号
-MCH_ID = '1341134601'
-
-# 商户密钥
-MCH_SECRET = 'f093cdd18482fc57ef9755a81073cde3'
-
-# 基本配置 -> 微信事件推送配置
-# EVENT_NOTIFY_URL = 'wechat/event-notify'
-# EVENT_TOKEN = 'wechat/event-notify'
-# EVENT_ENCODING_AES_KEY = 'wechat/event-notify'
-
 
 def init(**kwargs):
     """
@@ -58,8 +35,8 @@ def init(**kwargs):
 
     :param DEBUG: (optional) Default is True,
             When Debug equal True it will log all information and wechat payment only spend a penny(0.01 yuan).
-    :return: :class:`WechatApi <wego.wechat.WechatApi>` object
-    :rtype: WechatApi
+    :return: :class:`WegoApi <wego.api.WegoApi>` object
+    :rtype: WegoApi
     """
 
     check_settings(kwargs)
@@ -76,13 +53,14 @@ def init(**kwargs):
         logger.setLevel(logging.DEBUG)
         logger.warn(u'\033[1;31mWEGO 运行在 DEBUG 模式, 微信支付付款金额将固定在 1 分钱.\033[0m')
 
+    kwargs['LOGGER'] = logger
     # logger.debug('debug message')
     # logger.info('info message')
     # logger.warn('warn message')
     # logger.error('error message')
     # logger.critical('critical message')
 
-    return wego.wechat.WechatApi(kwargs)
+    return wego.api.WegoWraper(WegoSettings(kwargs))
 
 
 def check_settings(settings):
@@ -119,8 +97,8 @@ def check_settings(settings):
     if not settings['REGISTER_URL'].endswith('/'):
         raise InitError('REGISTER_URL has to ends with "/"(REGISTER_URL 需以 "/" 结尾)')
 
-    if settings['REDIRECT_PATH'].startswith('/'):
-        raise InitError('REDIRECT_PATH can not starts with "/"(REDIRECT_PATH 不能以 "/" 打头)')
+    if not settings['REDIRECT_PATH'].startswith('/'):
+        raise InitError('REDIRECT_URL have to starts with "/"(REDIRECT_URL 需以 "/" 开始)')
 
     if type(settings['HELPER']) is str:
         modules = settings['HELPER'].split('.')
@@ -140,6 +118,7 @@ def check_settings(settings):
         settings['DEBUG'] = not not settings['DEBUG']
 
 
+# TODO 更方便定制
 def get_access_token(self):
     """
     获取全局 access token
@@ -148,9 +127,23 @@ def get_access_token(self):
     if not self.global_access_token or self.global_access_token['expires_in'] <= int(time.time()):
         self.global_access_token = requests.get("https://api.weixin.qq.com/cgi-bin/token", params={
             'grant_type': 'client_credential',
-            'appid': self.settings['APP_ID'],
-            'secret': self.settings['APP_SECRET']
+            'appid': self.settings.APP_ID,
+            'secret': self.settings.APP_SECRET
         }).json()
         self.global_access_token['expires_in'] += int(time.time()) - 180
 
     return self.global_access_token['access_token']
+
+
+class WegoSettings(object):
+    """
+    Wego settings
+    """
+
+    def __init__(self, data):
+        
+        self.data = data
+
+    def __getattr__(self, key):
+        return self.data[key]
+

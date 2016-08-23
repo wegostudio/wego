@@ -46,3 +46,5 @@ usage: ::
 """
 
 from settings import init
+import wechat
+import api
