@@ -2,9 +2,9 @@
 import wego
 import time
 
-class WegoWraper(object):
+class WegoWrapper(object):
     """
-    WegoWraper
+    WegoWrpper
     """
 
     def __init__(self, settings):

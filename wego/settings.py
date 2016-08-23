@@ -60,7 +60,7 @@ def init(**kwargs):
     # logger.error('error message')
     # logger.critical('critical message')
 
-    return wego.api.WegoWraper(WegoSettings(kwargs))
+    return wego.api.WegoWrapper(WegoSettings(kwargs))
 
 
 def check_settings(settings):

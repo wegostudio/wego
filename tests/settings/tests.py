@@ -1,4 +1,4 @@
-from wego import settings, wechat, exceptions
+from wego import settings, api, exceptions
 import unittest
 
 
@@ -8,13 +8,13 @@ class TestSettingsInit(unittest.TestCase):
         a = settings.init(
             APP_ID='1',
             APP_SECRET='1',
-            REGISTER_URL='/',
-            REDIRECT_PATH='1',
+            REGISTER_URL='www.quseit.com/',
+            REDIRECT_PATH='/',
             MCH_ID='1',
             MCH_SECRET='1',
             HELPER='wego.helpers.official.DjangoHelper'
         )
-        self.assertTrue(isinstance(a, wechat.WechatApi))
+        self.assertTrue(isinstance(a, api.WegoWrapper))
 
     def test_error(self):
         with self.assertRaises(exceptions.InitError):
@@ -32,7 +32,7 @@ class TestSettingsInit(unittest.TestCase):
                 APP_ID='1',
                 APP_SECRET='1',
                 REGISTER_URL='/',
-                REDIRECT_PATH='1',
+                REDIRECT_PATH='/',
                 MCH_ID='1',
                 MCH_SECRET='1',
                 HELPER='wego.helpers.official.ErrorHelper'
