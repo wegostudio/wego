@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import wego
+import json
 import time
 
 class WegoWrapper(object):
@@ -26,12 +27,13 @@ class WegoApi(object):
 
     def __init__(self, wechat, func):
         self.wechat = wechat
+        self.settings = wechat.settings
         self.func = func
 
 
     def get_wx_user(self, request, *args, **kwargs):
 
-        self.helper = self.wechat.settings.HELPER(request)
+        self.helper = self.settings.HELPER(request)
 
         if 'code' in self.helper.get_params():
             code = self.helper.get_params().get('code', '')
@@ -79,6 +81,13 @@ class WegoApi(object):
         :return: :class:`WeChatUser <wego.wechat.WeChatUser>` object
         """
 
+        if self.settings.USERINFO_EXPIRE:
+            wx_userinfo = self.helper.get_session('wx_userinfo')
+            if wx_userinfo:
+                wx_userinfo = dict({'expires_at': 0} ,**json.loads(wx_userinfo))
+                if wx_userinfo['expires_at'] > time.time():
+                    return wego.wechat.WeChatUser(self, wx_userinfo)
+
         if self.helper.get_session('wx_access_token_expires_at') < time.time():
             refresh_token = self.helper.get_session('wx_refresh_token')
             new_token = self.wechat.refresh_access_token(refresh_token)
@@ -88,8 +97,13 @@ class WegoApi(object):
 
         access_token = self.helper.get_session('wx_access_token')
         data = self.wechat.get_userinfo_by_token(self.openid, access_token)
+        self.set_userinfo(data)
 
         return wego.wechat.WeChatUser(self, data)
+
+    def set_userinfo(self, data):
+        data['expires_at'] = time.time() + self.settings.USERINFO_EXPIRE
+        self.helper.set_session('wx_userinfo', json.dumps(data))
 
     def set_user_tokens(self, data):
 

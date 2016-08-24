@@ -59,7 +59,7 @@ class WeChatApi(object):
 
     def get_userinfo(self, openid):
 
-        access_token = self.settings.GET_ACCESS_TOKEN(self)
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {
             'access_token': access_token,
             'openid': openid,
@@ -74,7 +74,7 @@ class WeChatApi(object):
 
     def set_user_remark(self, openid, remark):
 
-        access_token = self.settings.GET_ACCESS_TOKEN(self)
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {
             'openid': openid,
             'remark': remark
@@ -95,6 +95,28 @@ class WeChatApi(object):
 
         data.encoding = 'utf-8'
         return data.json()
+
+    def get_global_access_token(self):
+
+        data = global_access_token = requests.get("https://api.weixin.qq.com/cgi-bin/token", params={
+            'grant_type': 'client_credential',
+            'appid': self.settings.APP_ID,
+            'secret': self.settings.APP_SECRET
+        }).json()
+
+        return data
+
+# TODO 更方便定制
+def get_global_access_token(self):
+    """
+    获取全局 access token
+    """
+
+    if not self.global_access_token or self.global_access_token['expires_in'] <= int(time.time()):
+        self.global_access_token = self.get_global_access_token()
+        self.global_access_token['expires_in'] += int(time.time()) - 180
+
+    return self.global_access_token['access_token']
 
 
 class WeChatUser(object):

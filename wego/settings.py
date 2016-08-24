@@ -29,9 +29,12 @@ def init(**kwargs):
     :param MCH_ID: (optional) Mac ID get it at https://pay.weixin.qq.com/ (商户号)
     :param MCH_SECRET: (optional) MCH SECRET As same as you set at https://pay.weixin.qq.com/ (API 密钥)
 
-    :param GET_ACCESS_TOKEN: (optional) A function that return a global access token, if your application run at
-            multiple servers it required. How to customized your GET_ACCESS_TOKEN:
-            http://wego.quseit.com/customized/GET_ACCESS_TOKEN(building)
+    :param GET_GLOBAL_ACCESS_TOKEN: (optional) A function that return a global access token, if your application run at
+            multiple servers it required. How to customized your GET_GLOBAL_ACCESS_TOKEN:
+            http://wego.quseit.com/customized/GET_GLOBAL_ACCESS_TOKEN(building)
+
+    :param USERINFO_EXPIRE: (optional) Set number of seconds expired, default is 0. subscribe, language, remark and groupid
+            still is real time.
 
     :param DEBUG: (optional) Default is True,
             When Debug equal True it will log all information and wechat payment only spend a penny(0.01 yuan).
@@ -39,26 +42,28 @@ def init(**kwargs):
     :rtype: WegoApi
     """
 
+    default_settings = {
+        'GET_GLOBAL_ACCESS_TOKEN': wego.wechat.get_global_access_token,
+        'USERINFO_EXPIRE': 0,
+        'DEBUG': False
+    }
+    kwargs = dict(default_settings, **kwargs)
+
     check_settings(kwargs)
 
     kwargs['REDIRECT_URL'] = quote(kwargs['REGISTER_URL'] + kwargs['REDIRECT_PATH'])
 
     logger = logging.getLogger('wego')
-    formatter = logging.Formatter('%(asctime)s - WEGO - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s WEGO %(levelname)s: %(message)s', datefmt='%Y/%m/%d %I:%M:%S')
     ch = logging.StreamHandler()
     ch.setFormatter(formatter)
     logger.addHandler(ch)
     logger.setLevel(logging.INFO)
+    logger.warn = lambda x: logging.Logger.warn(logger, u'\033[1;31m%s\033[0m' % x)
     if kwargs['DEBUG']:
         logger.setLevel(logging.DEBUG)
-        logger.warn(u'\033[1;31mWEGO 运行在 DEBUG 模式, 微信支付付款金额将固定在 1 分钱.\033[0m')
-
+        logger.warn(u'WEGO 运行在 DEBUG 模式, 微信支付付款金额将固定在 1 分钱.')
     kwargs['LOGGER'] = logger
-    # logger.debug('debug message')
-    # logger.info('info message')
-    # logger.warn('warn message')
-    # logger.error('error message')
-    # logger.critical('critical message')
 
     return wego.api.WegoWrapper(WegoSettings(kwargs))
 
@@ -107,32 +112,10 @@ def check_settings(settings):
     if not issubclass(settings['HELPER'], wego.helpers.BaseHelper):
         raise InitError('Helper have to inherit the wego.helper.BaseHelper(Helper 必须继承至 wego.helper.BaseHelper)')
 
-    if 'GET_ACCESS_TOKEN' not in settings.keys():
-        settings['GET_ACCESS_TOKEN'] = get_access_token
-    elif not hasattr(settings['GET_ACCESS_TOKEN'], '__call__'):
-        raise InitError('GET_ACCESS_TOKEN is not a function(GET_ACCESS_TOKEN 不是一个函数)')
+    if not hasattr(settings['GET_GLOBAL_ACCESS_TOKEN'], '__call__'):
+        raise InitError('GET_GLOBAL_ACCESS_TOKEN is not a function(GET_ACCESS_TOKEN 不是一个函数)')
 
-    if 'DEBUG' not in settings.keys():
-        settings['DEBUG'] = True
-    else:
-        settings['DEBUG'] = not not settings['DEBUG']
-
-
-# TODO 更方便定制
-def get_access_token(self):
-    """
-    获取全局 access token
-    """
-
-    if not self.global_access_token or self.global_access_token['expires_in'] <= int(time.time()):
-        self.global_access_token = requests.get("https://api.weixin.qq.com/cgi-bin/token", params={
-            'grant_type': 'client_credential',
-            'appid': self.settings.APP_ID,
-            'secret': self.settings.APP_SECRET
-        }).json()
-        self.global_access_token['expires_in'] += int(time.time()) - 180
-
-    return self.global_access_token['access_token']
+    settings['DEBUG'] = not not settings['DEBUG']
 
 
 class WegoSettings(object):
@@ -141,7 +124,6 @@ class WegoSettings(object):
     """
 
     def __init__(self, data):
-        
         self.data = data
 
     def __getattr__(self, key):
