@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from exceptions import WegoApiError
 import wego
 import json
 import time
@@ -17,8 +18,12 @@ class WegoWrapper(object):
         修饰器：在需要获取微信用户数据的函数使用
         """
         wechat = wego.wechat.WeChatApi(self.settings)
-        wrapper = WegoApi(wechat, func)
-        return wrapper.get_wx_user
+        self.wego_api = WegoApi(wechat, func)
+        return self.wego_api.get_wx_user
+
+    def __getattr__(self, key):
+        if hasattr(self.wego_api, key):
+            return getattr(self.wego_api, key)
 
 class WegoApi(object):
     """
@@ -110,4 +115,60 @@ class WegoApi(object):
         self.helper.set_session('wx_access_token', data['access_token'])
         self.helper.set_session('wx_access_token_expires_at', time.time() + data['expires_in'] - 180)
         self.helper.set_session('wx_refresh_token', data['refresh_token'])
+
+    def create_group(self, name):
+        """
+        :return: :dict: {'id': 'int', 'name':'str'}
+        """
+
+        return self.wechat.create_group(name)['group']
+
+
+    def get_groups(self):
+        """
+        :return: :dict: {'your_group_id': {'name':'str', 'count':'int'}}
+        """
+
+        data = self.wechat.get_all_groups()
+        return {i.pop('id'): i for i in data['groups']}
+
+    def _get_groupid(self, group):
+        """
+        int 类型会当成 id，str 类型会当成 name
+        """
+
+        groups = self.get_groups()
+        if type(group) is int:
+            groupid = int(group)
+        else:
+            group = str(group)
+            for i in groups:
+                if groups[i]['name'] == group:
+                    groupid = i
+                    break;
+            else:
+                raise WegoApiError(u'Without this group(没有这个群组)')
+
+        if not groups.has_key(groupid):
+            raise WegoApiError(u'Without this group(没有这个群组)')
+
+        return groupid
+
+    def change_group_name(self, group, name):
+
+        groupid = self._get_groupid(group)
+        data = self.wechat.change_group_name(groupid, name)
+        return not data['errcode']
+    
+    def change_user_group(self, group):
+
+        groupid = self._get_groupid(group)
+        data = self.wechat.change_user_group(self.openid, groupid)
+        return not data['errcode']
+
+    def del_group(self, group):
+
+        groupid = self._get_groupid(group)
+        data = self.wechat.del_group(groupid)
+        return not data['errcode']
 
