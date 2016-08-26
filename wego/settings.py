@@ -10,8 +10,6 @@ from urllib import quote
 from exceptions import InitError
 import wego
 import logging
-import requests
-import time
 
 
 def init(**kwargs):
@@ -24,22 +22,22 @@ def init(**kwargs):
             >> authorized users obtain basic information page(网页授权获取用户基本信息).
     :param REDIRECT_PATH: Default redirect path, redirect when we get user`s authorize.
     :param HELPER: Official helper 'wego.helpers.django_helper' and 'wego.helpers.tornado_helper' or you can customized
-            yourself helper with http://wego.quseit.com/customized/helper(building)
+            yourself helper with http://wego.quseit.com/customized/helper(building).
 
-    :param MCH_ID: (optional) Mac ID get it at https://pay.weixin.qq.com/ (商户号)
-    :param MCH_SECRET: (optional) MCH SECRET As same as you set at https://pay.weixin.qq.com/ (API 密钥)
+    :param MCH_ID: (optional) Mac ID get it at https://pay.weixin.qq.com/ (商户号).
+    :param MCH_SECRET: (optional) MCH SECRET As same as you set at https://pay.weixin.qq.com/ (API 密钥).
 
     :param GET_GLOBAL_ACCESS_TOKEN: (optional) A function that return a global access token, if your application run at
             multiple servers it required. How to customized your GET_GLOBAL_ACCESS_TOKEN:
-            http://wego.quseit.com/customized/GET_GLOBAL_ACCESS_TOKEN(building)
+            http://wego.quseit.com/customized/GET_GLOBAL_ACCESS_TOKEN(building).
 
     :param USERINFO_EXPIRE: (optional) Set number of seconds expired, default is 0. subscribe, language, remark and groupid
             still is real time.
 
     :param DEBUG: (optional) Default is True,
             When Debug equal True it will log all information and wechat payment only spend a penny(0.01 yuan).
-    :return: :class:`WegoApi <wego.api.WegoApi>` object
-    :rtype: WegoApi
+    :return: :class:`WegoApi <wego.api.WegoApi>` object.
+    :rtype: WegoApi.
     """
 
     default_settings = {
@@ -72,7 +70,7 @@ def check_settings(settings):
     """
     check if settings is available
 
-    :param settings: dict for settings
+    :param settings: a dict.
     :return: None
     """
 

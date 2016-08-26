@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-from exceptions import WegoApiError
+from exceptions import WegoApiError, WeChatUserError
 import wego
 import json
 import time
 
+
 class WegoWrapper(object):
     """
-    WegoWrpper
+    Wego wrapper that settings.init() returns.
     """
 
     def __init__(self, settings):
@@ -15,7 +16,7 @@ class WegoWrapper(object):
 
     def login_required(self, func):
         """
-        修饰器：在需要获取微信用户数据的函数使用
+        Decorator：use for request function, and it will init an independent WegoApi instance.
         """
         wechat = wego.wechat.WeChatApi(self.settings)
         self.wego_api = WegoApi(wechat, func)
@@ -25,9 +26,10 @@ class WegoWrapper(object):
         if hasattr(self.wego_api, key):
             return getattr(self.wego_api, key)
 
+
 class WegoApi(object):
     """
-    WegoApi
+    Wego api dead simple for humans.
     """
 
     def __init__(self, wechat, func):
@@ -35,8 +37,13 @@ class WegoApi(object):
         self.settings = wechat.settings
         self.func = func
 
-
     def get_wx_user(self, request, *args, **kwargs):
+        """
+        Called by login_required, it will set some attributes to function`s first param.
+
+        :param request: Function`s first param.
+        :return: Subject to availability.
+        """
 
         self.helper = self.settings.HELPER(request)
 
@@ -60,7 +67,9 @@ class WegoApi(object):
 
     def redirect_for_code(self):
         """
-        引导用户到网页授权页面
+        Let user jump to wechat authorization page.
+
+        :return: Redirect object
         """
 
         redirect_url = self.helper.get_current_path()
@@ -70,47 +79,75 @@ class WegoApi(object):
 
     def get_openid(self, code):
         """
-        网页授权页面同意后会带上 code 参数跳转至此
-        通过 code 参数可以获取 openid
+        Get user openid.
+
+        :param code: A code that user redirect back will bring.
+        :return: openid
         """
 
         data = self.wechat.get_access_token(code)
 
-        self.set_user_tokens(data)
+        self._set_user_tokens(data)
 
         return data['openid']
 
     def get_userinfo(self):
         """
-        通过 openid 与 global_access_token 获取用户具体信息
+        Get user info.
+
         :return: :class:`WeChatUser <wego.api.WeChatUser>` object
         """
 
-        if self.settings.USERINFO_EXPIRE:
-            wx_userinfo = self.helper.get_session('wx_userinfo')
-            if wx_userinfo:
-                wx_userinfo = dict({'expires_at': 0} ,**json.loads(wx_userinfo))
-                if wx_userinfo['expires_at'] > time.time():
-                    return WeChatUser(self, wx_userinfo)
+        wechat_user = self._get_userinfo_from_session()
+        if wechat_user:
+            return wechat_user
 
         if self.helper.get_session('wx_access_token_expires_at') < time.time():
             refresh_token = self.helper.get_session('wx_refresh_token')
             new_token = self.wechat.refresh_access_token(refresh_token)
             if new_token == 'error':
                 return 'error'
-            self.set_user_tokens(new_token)
+            self._set_user_tokens(new_token)
 
         access_token = self.helper.get_session('wx_access_token')
         data = self.wechat.get_userinfo_by_token(self.openid, access_token)
-        self.set_userinfo(data)
+        self._set_userinfo_to_session(data)
 
         return WeChatUser(self, data)
 
-    def set_userinfo(self, data):
+    def _get_userinfo_from_session(self):
+        """
+        Get user info from session.
+
+        :return: None or :class:`WeChatUser <wego.api.WeChatUser>` object
+        """
+
+        if self.settings.USERINFO_EXPIRE:
+            wx_userinfo = self.helper.get_session('wx_userinfo')
+            if wx_userinfo:
+                wx_userinfo = dict({'expires_at': 0}, **json.loads(wx_userinfo))
+                if wx_userinfo['expires_at'] > time.time():
+                    return WeChatUser(self, wx_userinfo)
+        return None
+
+    def _set_userinfo_to_session(self, data):
+        """
+        Set user info into session.
+
+        :param data: user info.
+        :return: None
+        """
+
         data['expires_at'] = time.time() + self.settings.USERINFO_EXPIRE
         self.helper.set_session('wx_userinfo', json.dumps(data))
 
-    def set_user_tokens(self, data):
+    def _set_user_tokens(self, data):
+        """
+        Set user all tokens to sessions.
+
+        :param data: Tokens.
+        :return: None
+        """
 
         self.helper.set_session('wx_access_token', data['access_token'])
         self.helper.set_session('wx_access_token_expires_at', time.time() + data['expires_in'] - 180)
@@ -118,14 +155,18 @@ class WegoApi(object):
 
     def create_group(self, name):
         """
+        Create a new group.
+
+        :param name: Group name.
         :return: :dict: {'id': 'int', 'name':'str'}
         """
 
         return self.wechat.create_group(name)['group']
 
-
     def get_groups(self):
         """
+        Get all groups.
+
         :return: :dict: {'your_group_id': {'name':'str', 'count':'int'}}
         """
 
@@ -134,7 +175,10 @@ class WegoApi(object):
 
     def _get_groupid(self, group):
         """
-        int 类型会当成 id，str 类型会当成 name
+        Input group id or group name and return group id.
+
+        :param group: Group name or group id.
+        :return: group id
         """
 
         groups = self.get_groups()
@@ -145,7 +189,7 @@ class WegoApi(object):
             for i in groups:
                 if groups[i]['name'] == group:
                     groupid = i
-                    break;
+                    break
             else:
                 raise WegoApiError(u'Without this group(没有这个群组)')
 
@@ -155,18 +199,37 @@ class WegoApi(object):
         return groupid
 
     def change_group_name(self, group, name):
+        """
+        Change group name.
+
+        :param group: Group id or group name.
+        :param name: New group name
+        :return: :Bool: .
+        """
 
         groupid = self._get_groupid(group)
         data = self.wechat.change_group_name(groupid, name)
         return not data['errcode']
     
     def change_user_group(self, group):
+        """
+        Change user group.
+
+        :param group: Group id or group name.
+        :return: :Bool: .
+        """
 
         groupid = self._get_groupid(group)
         data = self.wechat.change_user_group(self.openid, groupid)
         return not data['errcode']
 
     def del_group(self, group):
+        """
+        Delete group.
+
+        :param group: Group id or group name.
+        :return: :Bool:
+        """
 
         groupid = self._get_groupid(group)
         data = self.wechat.del_group(groupid)
@@ -175,7 +238,8 @@ class WegoApi(object):
 
 class WeChatUser(object):
     """
-    WeChat user https://mp.weixin.qq.com/wiki/1/8a5ce6257f1d3b2afb20f83e72b72ce9.html
+    A lazy and smart wechat user object. You can set user remark, group, groupid direct,
+    because of group name can be repeated, so if you set the group by group name, it may not be accurate.
     """
 
     def __init__(self, wego, data):
@@ -185,7 +249,6 @@ class WeChatUser(object):
         self.is_upgrade = False
 
     def __getattr__(self, key):
-        
 
         ext_userinfo = ['subscribe', 'language', 'remark', 'groupid']
         if key in ext_userinfo and not self.is_upgrade:
@@ -199,9 +262,6 @@ class WeChatUser(object):
         return ''
 
     def __setattr__(self, key, value):
-        """
-        支持直接设置 remark 和 group，group 通过名称设置用户组，将匹配第一个同名的组，通过 groupid 设置会更准确。
-        """
         
         if key == 'remark':
             if self.subscribe != 1:
@@ -217,7 +277,7 @@ class WeChatUser(object):
                 for i in groups:
                     if groups[i]['name'] == value:
                         value = i
-                        break;
+                        break
                 else:
                     raise WeChatUserError(u'Without this group(没有这个群组)')
 
@@ -231,7 +291,9 @@ class WeChatUser(object):
 
     def get_ext_userinfo(self):
         """
-        groupid subscribe language remark
+        Get user extra info, such as subscribe, language, remark and groupid.
+
+        :return: :dict: User data
         """
 
         self.data['remark'] = ''
@@ -247,7 +309,10 @@ class WeChatUser(object):
 # TODO 更方便定制
 def official_get_global_access_token(self):
     """
-    获取全局 access token
+    Get global access token.
+
+    :param self: Call self.get_global_access_token() for get global access token.
+    :return: :str: Global access token
     """
 
     if not self.global_access_token or self.global_access_token['expires_in'] <= int(time.time()):

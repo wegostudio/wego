@@ -8,18 +8,18 @@ This module contains the set of wego' exceptions.
 
 
 class InitError(Exception):
-    u"""An init error occurred."""
+    """An init error occurred."""
 
 
 class HelperError(Exception):
-    u"""An helper error occurred."""
+    """An helper error occurred."""
 
 
 class WeChatApiError(Exception):
-    u"""An wechat api error occurred."""
+    """An wechat api error occurred."""
 
 class WegoApiError(Exception):
-    u"""An wego api error occurred."""
+    """An wego api error occurred."""
 
 class WeChatUserError(Exception):
-    u"""An wechat user error occurred."""
+    """An wechat user error occurred."""
