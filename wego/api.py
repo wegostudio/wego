@@ -83,7 +83,7 @@ class WegoApi(object):
     def get_userinfo(self):
         """
         通过 openid 与 global_access_token 获取用户具体信息
-        :return: :class:`WeChatUser <wego.wechat.WeChatUser>` object
+        :return: :class:`WeChatUser <wego.api.WeChatUser>` object
         """
 
         if self.settings.USERINFO_EXPIRE:
@@ -91,7 +91,7 @@ class WegoApi(object):
             if wx_userinfo:
                 wx_userinfo = dict({'expires_at': 0} ,**json.loads(wx_userinfo))
                 if wx_userinfo['expires_at'] > time.time():
-                    return wego.wechat.WeChatUser(self, wx_userinfo)
+                    return WeChatUser(self, wx_userinfo)
 
         if self.helper.get_session('wx_access_token_expires_at') < time.time():
             refresh_token = self.helper.get_session('wx_refresh_token')
@@ -104,7 +104,7 @@ class WegoApi(object):
         data = self.wechat.get_userinfo_by_token(self.openid, access_token)
         self.set_userinfo(data)
 
-        return wego.wechat.WeChatUser(self, data)
+        return WeChatUser(self, data)
 
     def set_userinfo(self, data):
         data['expires_at'] = time.time() + self.settings.USERINFO_EXPIRE
@@ -171,4 +171,88 @@ class WegoApi(object):
         groupid = self._get_groupid(group)
         data = self.wechat.del_group(groupid)
         return not data['errcode']
+
+
+class WeChatUser(object):
+    """
+    WeChat user https://mp.weixin.qq.com/wiki/1/8a5ce6257f1d3b2afb20f83e72b72ce9.html
+    """
+
+    def __init__(self, wego, data):
+        
+        self.wego = wego
+        self.data = data
+        self.is_upgrade = False
+
+    def __getattr__(self, key):
+        
+
+        ext_userinfo = ['subscribe', 'language', 'remark', 'groupid']
+        if key in ext_userinfo and not self.is_upgrade:
+            self.get_ext_userinfo()
+
+        if key == 'group' and not self.data.has_key(key):
+            self.data['group'] = self.wego.get_groups()[self.groupid]
+
+        if self.data.has_key(key):
+            return self.data[key]
+        return ''
+
+    def __setattr__(self, key, value):
+        """
+        支持直接设置 remark 和 group，group 通过名称设置用户组，将匹配第一个同名的组，通过 groupid 设置会更准确。
+        """
+        
+        if key == 'remark':
+            if self.subscribe != 1:
+                raise WeChatUserError('The user does not subscribe you')
+
+            if self.data['remark'] != value:
+                self.wego.wechat.set_user_remark(self.wego.openid, value)
+                self.data[key] = value
+
+        if key in ['group', 'groupid']:
+            groups = self.wego.get_groups()
+            if key == 'group':
+                for i in groups:
+                    if groups[i]['name'] == value:
+                        value = i
+                        break;
+                else:
+                    raise WeChatUserError(u'Without this group(没有这个群组)')
+
+            groupid = value 
+            if not groups.has_key(groupid):
+                raise WeChatUserError(u'Without this group(没有这个群组)')
+
+            self.wego.change_user_group(groupid)
+        
+        super(WeChatUser, self).__setattr__(key, value)
+
+    def get_ext_userinfo(self):
+        """
+        groupid subscribe language remark
+        """
+
+        self.data['remark'] = ''
+        self.data['groupid'] = ''
+
+        data = self.wego.wechat.get_userinfo(self.wego.openid)
+        self.data = dict(self.data, **data)
+        self.is_upgrade = True
+
+        return self.data
+
+
+# TODO 更方便定制
+def official_get_global_access_token(self):
+    """
+    获取全局 access token
+    """
+
+    if not self.global_access_token or self.global_access_token['expires_in'] <= int(time.time()):
+        self.global_access_token = self.get_global_access_token()
+        self.global_access_token['expires_in'] += int(time.time()) - 180
+
+    return self.global_access_token['access_token']
 

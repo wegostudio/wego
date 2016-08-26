@@ -43,7 +43,7 @@ def init(**kwargs):
     """
 
     default_settings = {
-        'GET_GLOBAL_ACCESS_TOKEN': wego.wechat.official_get_global_access_token,
+        'GET_GLOBAL_ACCESS_TOKEN': wego.api.official_get_global_access_token,
         'USERINFO_EXPIRE': 0,
         'DEBUG': False
     }
