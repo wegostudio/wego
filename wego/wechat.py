@@ -3,6 +3,8 @@ from exceptions import WeChatApiError, WeChatUserError
 from urllib import quote
 import requests
 import json
+import hashlib
+import re
 
 
 class WeChatApi(object):
@@ -150,25 +152,25 @@ class WeChatApi(object):
     def get_unifiedorder(self, order_info):
 
         data = {
-            'appid': self.settinfs.APP_ID,
+            'appid': self.settings.APP_ID,
             'mch_id': self.settings.MCH_ID,
         }
         data = dict(data, **order_info)
-        data['sign'] = _make_sign(data)
-        xml = _make_xml(data).encode('utf-8')
+        data['sign'] = self._make_sign(data)
+        xml = self._make_xml(data).encode('utf-8')
         data = requests.post('https://api.mch.weixin.qq.com/pay/unifiedorder', data=xml).content
-        return _analysis_xml(data)
+        return self._analysis_xml(data)
 
     def _make_sign(self, data):
         """
         generate wechat pay for signature
         """
-        temp = ['%s=%s' % (k, data[k]) for k in sorted(data)]
-        temp.append('key=' + self.setings.MCH_SECRET)
+        temp = ['%s=%s' % (k, data[k]) for k in sorted(data.keys())]
+        temp.append('key=' + self.settings.MCH_SECRET)
         temp = '&'.join(temp)
         md5 = hashlib.md5()
         md5.update(temp.encode('utf-8'))
-        return md5.hexgigest().upper()
+        return md5.hexdigest().upper()
 
     def _make_xml(self, k, v=None):
     
@@ -179,8 +181,8 @@ class WeChatApi(object):
             v = k
             k = 'xml'
         if type(v) is dict:
-            v = ''.join([make_xml(key, val) for key, val in v.iteritems()])
-            return '<%s>%s</%s>' % (k, v, k)
+            v = ''.join([self._make_xml(key, val) for key, val in v.iteritems()])
+        return '<%s>%s</%s>' % (k, v, k)
 
     def _analysis_xml(self, xml):
     

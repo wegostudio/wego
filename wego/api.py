@@ -169,9 +169,17 @@ class WegoApi(object):
         :return: :class:`WegoApi <wego.api.WegoApi>` object
         :rtype: WegoApi
         """
-        kwargs['nonce_str'] = _get_random_code()
-        return wechat.get_unifiedorder(kwargs)
-
+        kwargs['nonce_str'] = self._get_random_code()
+        kwargs['openid'] = self.openid
+        info = {}
+        order_info = self.wechat.get_unifiedorder(kwargs)
+        info['appId'] = order_info['appid']
+        info['timeStamp'] = str(int(time.time()))
+        info['nonceStr'] = order_info['nonce_str']
+        info['package'] = 'prepay_id=' + order_info['prepay_id']
+        info['signType'] = 'MD5'
+        info['paySign'] = self.wechat._make_sign(info)
+        return info
 
 
 
