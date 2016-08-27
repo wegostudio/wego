@@ -142,7 +142,7 @@ class WegoApi(object):
 
     def get_unifiedorder_info(self, **kwargs):
         """ 
-        unifiedorder settings, get wechat config at https://api.mch.weixin.qq.com/pay/unifiedorder
+        Unifiedorder settings, get wechat config at https://api.mch.weixin.qq.com/pay/unifiedorder
         You can take return value as wechat api onBridgeReady's parameters directly
 
         You don't need to include appid, mch_id, nonce_str, sign, openid
@@ -174,25 +174,19 @@ class WegoApi(object):
                 'paySign': value,}
         """
 
-        # invoking get_unifiedorder to obtain the return value
         kwargs['openid'] = self.openid
         order_info = self.wechat.get_unifiedorder(kwargs)
 
-        # packaged in a dict
-        data = dict()
-        data['appId'] = order_info['appid']
-        data['timeStamp'] = str(int(time.time()))
-        data['nonceStr'] = order_info['nonce_str']
-        data['package'] = 'prepay_id=' + order_info['prepay_id']
-        data['signType'] = 'MD5'
+        data = {
+            'appId': order_info['appid']
+            'timeStamp': str(int(time.time()))
+            'nonceStr': order_info['nonce_str']
+            'package': 'prepay_id=' + order_info['prepay_id']
+            'signType': 'MD5'
+        }
         data['paySign'] = self.wechat._make_sign(data)
 
         return data     
-
-
-
-
-
    
     def create_group(self, name):
         """
@@ -290,6 +284,7 @@ class WegoApi(object):
         data = self.wechat.create_menu(data)
 
         return not data['errcode']
+
 
 class WeChatUser(object):
     """
