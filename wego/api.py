@@ -155,39 +155,57 @@ class WegoApi(object):
         self.helper.set_session('wx_access_token_expires_at', time.time() + data['expires_in'] - 180)
         self.helper.set_session('wx_refresh_token', data['refresh_token'])
 
-     
     def get_unifiedorder_info(self, **kwargs):
         """ 
         unifiedorder settings, get wechat config at https://api.mch.weixin.qq.com/pay/unifiedorder
+        You can take return value as wechat api onBridgeReady's parameters directly
 
-        :param body: BODY is order infos
-        :param out_trade_no: (商户订单号)
-        :param total_fee: (总金额)
-        :param spbill_create_ip: (客户段ip)
-        :param notify_url: (通知地址)
-        :param trade_type: (交易类型)
-        :return: :class:`WegoApi <wego.api.WegoApi>` object
-        :rtype: WegoApi
+        You don't need to include appid, mch_id, nonce_str, sign, openid
+        because these four parameters set by WeChatApi,
+        but the following parameters are necessary, you must be included in the kwargs
+        and you must follow the format below as the parameters's key
+
+        :param body: Goods are simply described, the field must be in strict accordance with the
+         specification, specific see parameters
+
+        :param out_trade_no: Merchants system internal order number, within 32 characters,
+         can include letters, other see merchant order number
+
+        :param total_fee: Total amount of orders, the unit for points, as shown in the payment amount
+
+        :param spbill_create_ip: APP and web payment submitted to client IP, Native fill call
+         WeChat payment API machine IP.
+
+        :param notify_url: Receive pay WeChat asynchronous notification callback address,
+         notify the url must be accessible url directly, cannot carry parameters.
+
+        :param trade_type: Values are as follows: the JSAPI, NATIVE APP, details see parameter regulation
+
+        :return: {'appId': string,
+                'timeStamp': value,
+                'nonceStr': value,
+                'package': value,
+                'signType': value,
+                'paySign': value,}
         """
-        kwargs['nonce_str'] = self._get_random_code()
+
+        # invoking get_unifiedorder to obtain the return value
         kwargs['openid'] = self.openid
-        info = {}
         order_info = self.wechat.get_unifiedorder(kwargs)
-        info['appId'] = order_info['appid']
-        info['timeStamp'] = str(int(time.time()))
-        info['nonceStr'] = order_info['nonce_str']
-        info['package'] = 'prepay_id=' + order_info['prepay_id']
-        info['signType'] = 'MD5'
-        info['paySign'] = self.wechat._make_sign(info)
-        return info
+
+        # packaged in a dict
+        data = dict()
+        data['appId'] = order_info['appid']
+        data['timeStamp'] = str(int(time.time()))
+        data['nonceStr'] = order_info['nonce_str']
+        data['package'] = 'prepay_id=' + order_info['prepay_id']
+        data['signType'] = 'MD5'
+        data['paySign'] = self.wechat._make_sign(data)
+
+        return data     
 
 
 
-    def _get_random_code(self, length=6):
-        """
-        get random code
-        """
-        return ''.join(random.sample('0123456789', length))
 
 
    
