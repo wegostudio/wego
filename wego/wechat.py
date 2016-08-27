@@ -3,6 +3,9 @@ from exceptions import WeChatApiError, WeChatUserError
 from urllib import quote
 import requests
 import json
+import hashlib
+import re
+import random
 
 
 class WeChatApi(object):
@@ -147,6 +150,86 @@ class WeChatApi(object):
 
         return data
 
+    def get_unifiedorder(self, order_info):
+
+        default_settings = {
+            'appid': self.settings.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+            'nonce_str': self._get_random_code(),
+        }
+        data = dict(default_settings, **order_info)
+        data['sign'] = self._make_sign(data)
+        self._check_unifiedorder_params(data)
+        xml = self._make_xml(data).encode('utf-8')
+        data = requests.post('https://api.mch.weixin.qq.com/pay/unifiedorder', data=xml).content
+        return self._analysis_xml(data)
+
+    def _get_random_code(self, length=6):
+        """
+        get random code
+        """
+        return ''.join(random.sample('0123456789', length))
+
+    def _make_sign(self, data):
+        """
+        generate wechat pay for signature
+        """
+        temp = ['%s=%s' % (k, data[k]) for k in sorted(data.keys())]
+        temp.append('key=' + self.settings.MCH_SECRET)
+        temp = '&'.join(temp)
+        md5 = hashlib.md5()
+        md5.update(temp.encode('utf-8'))
+        return md5.hexdigest().upper()
+
+    def _make_xml(self, k, v=None):
+    
+        '''
+        Recursive generate XML
+        '''
+        if not v:
+            v = k
+            k = 'xml'
+        if type(v) is dict:
+            v = ''.join([self._make_xml(key, val) for key, val in v.iteritems()])
+        return '<%s>%s</%s>' % (k, v, k)
+
+    def _analysis_xml(self, xml):
+    
+        '''
+        To convert the XML to dict
+        '''
+        return {k: v for v,k in re.findall('\<.*?\>\<\!\[CDATA\[(.*?)\]\]\>\<\/(.*?)\>', xml)}
+    
+    def _check_unifiedorder_params(self, params):
+        """
+        check if params is available
+
+        :param params: a dict.
+        :return: None
+        """
+        required_list = [
+            'appid',
+            'mch_id',
+            'nonce_str',
+            'sign',
+            'body',
+            'out_trade_no',
+            'total_fee',
+            'spbill_create_ip',
+            'notify_url',
+            'trade_type'
+        ]
+
+        for i in required_list:
+            if i not in params or not params[i]:
+                raise WeChatApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param=i))
+
+
+# TODO 更方便定制
+def get_global_access_token(self):
+    """
+    获取全局 access token
+    """
     def create_group(self, name):
         """
         Create a user group.
