@@ -63,7 +63,7 @@ def init(**kwargs):
         logger.warn(u'WEGO 运行在 DEBUG 模式, 微信支付付款金额将固定在 1 分钱.')
     kwargs['LOGGER'] = logger
 
-    return wego.api.WegoWrapper(WegoSettings(kwargs))
+    return wego.WegoApi(WegoSettings(kwargs))
 
 
 def check_settings(settings):

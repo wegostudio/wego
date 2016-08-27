@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
 
 from settings import init
-import wechat
-import api
+from api import WegoApi, WeChatUser
+from wechat import WeChatApi

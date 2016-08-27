@@ -5,77 +5,62 @@ import json
 import time
 
 
-class WegoWrapper(object):
-    """
-    Wego wrapper that settings.init() returns.
-    """
-
-    def __init__(self, settings):
-
-        self.settings = settings
-
-    def login_required(self, func):
-        """
-        Decorator：use for request function, and it will init an independent WegoApi instance.
-        """
-        wechat = wego.wechat.WeChatApi(self.settings)
-        self.wego_api = WegoApi(wechat, func)
-        return self.wego_api.get_wx_user
-
-    def __getattr__(self, key):
-        if hasattr(self.wego_api, key):
-            return getattr(self.wego_api, key)
-
-
 class WegoApi(object):
     """
     Wego api dead simple for humans.
     """
 
-    def __init__(self, wechat, func):
-        self.wechat = wechat
-        self.settings = wechat.settings
-        self.func = func
+    def __init__(self, settings):
 
-    def get_wx_user(self, request, *args, **kwargs):
+        self.settings = settings
+        self.wechat = wego.WeChatApi(settings)
+
+    def login_required(self, func):
         """
-        Called by login_required, it will set some attributes to function`s first param.
-
-        :param request: Function`s first param.
-        :return: Subject to availability.
+        Decorator：use for request function, and it will init an independent WegoApi instance.
         """
 
-        self.helper = self.settings.HELPER(request)
+        def get_wx_user(request, *args, **kwargs):
+            """
+            Called by login_required, it will set some attributes to function`s first param.
 
-        if 'code' in self.helper.get_params():
-            code = self.helper.get_params().get('code', '')
-            openid = self.get_openid(code)
-            self.helper.set_session('wx_openid', openid)
+            :param request: Function`s first param.
+            :return: Subject to availability.
+            """
 
-        openid = self.helper.get_session('wx_openid')
-        if openid:
-            self.openid = openid
-            request.wego = self
-            request.wx_openid = openid
+            helper = self.settings.HELPER(request)
 
-            wx_user = self.get_userinfo()
-            if wx_user != 'error':
-                request.wx_user = wx_user
-                return self.func(request, *args, **kwargs)
+            code = helper.get_params().get('code', '')
+            if code:
+                openid = self.get_openid(code)
+                helper.set_session('wx_openid', openid)
 
-        return self.redirect_for_code()
+            openid = helper.get_session('wx_openid')
+            if openid:
+                self.openid = openid
+                request.wego = self
+                request.wx_openid = openid
 
-    def redirect_for_code(self):
+                wx_user = self.get_userinfo(helper)
+                if wx_user != 'error':
+                    request.wx_user = wx_user
+                    return func(request, *args, **kwargs)
+
+            return self.redirect_for_code(helper)
+
+        return get_wx_user
+
+    def redirect_for_code(self, helper):
         """
         Let user jump to wechat authorization page.
 
         :return: Redirect object
         """
 
-        redirect_url = self.helper.get_current_path()
+        redirect_url = helper.get_current_path()
         url = self.wechat.get_code_url(redirect_url)
 
-        return self.helper.redirect(url)
+        return helper.redirect(url)
 
     def get_openid(self, code):
         """
@@ -87,35 +72,35 @@ class WegoApi(object):
 
         data = self.wechat.get_access_token(code)
 
-        self._set_user_tokens(data)
+        self._set_user_tokens(helper, data)
 
         return data['openid']
 
-    def get_userinfo(self):
+    def get_userinfo(self, helper):
         """
         Get user info.
 
         :return: :class:`WeChatUser <wego.api.WeChatUser>` object
         """
 
-        wechat_user = self._get_userinfo_from_session()
+        wechat_user = self._get_userinfo_from_session(helper)
         if wechat_user:
             return wechat_user
 
-        if self.helper.get_session('wx_access_token_expires_at') < time.time():
-            refresh_token = self.helper.get_session('wx_refresh_token')
+        if helper.get_session('wx_access_token_expires_at') < time.time():
+            refresh_token = helper.get_session('wx_refresh_token')
             new_token = self.wechat.refresh_access_token(refresh_token)
             if new_token == 'error':
                 return 'error'
-            self._set_user_tokens(new_token)
+            self._set_user_tokens(helper, new_token)
 
-        access_token = self.helper.get_session('wx_access_token')
+        access_token = helper.get_session('wx_access_token')
         data = self.wechat.get_userinfo_by_token(self.openid, access_token)
-        self._set_userinfo_to_session(data)
+        self._set_userinfo_to_session(helper,data)
 
         return WeChatUser(self, data)
 
-    def _get_userinfo_from_session(self):
+    def _get_userinfo_from_session(self, helper):
         """
         Get user info from session.
 
@@ -123,14 +108,14 @@ class WegoApi(object):
         """
 
         if self.settings.USERINFO_EXPIRE:
-            wx_userinfo = self.helper.get_session('wx_userinfo')
+            wx_userinfo = helper.get_session('wx_userinfo')
             if wx_userinfo:
                 wx_userinfo = dict({'expires_at': 0}, **json.loads(wx_userinfo))
                 if wx_userinfo['expires_at'] > time.time():
                     return WeChatUser(self, wx_userinfo)
         return None
 
-    def _set_userinfo_to_session(self, data):
+    def _set_userinfo_to_session(self, helper, data):
         """
         Set user info into session.
 
@@ -139,9 +124,9 @@ class WegoApi(object):
         """
 
         data['expires_at'] = time.time() + self.settings.USERINFO_EXPIRE
-        self.helper.set_session('wx_userinfo', json.dumps(data))
+        helper.set_session('wx_userinfo', json.dumps(data))
 
-    def _set_user_tokens(self, data):
+    def _set_user_tokens(self, helper, data):
         """
         Set user all tokens to sessions.
 
@@ -149,9 +134,9 @@ class WegoApi(object):
         :return: None
         """
 
-        self.helper.set_session('wx_access_token', data['access_token'])
-        self.helper.set_session('wx_access_token_expires_at', time.time() + data['expires_in'] - 180)
-        self.helper.set_session('wx_refresh_token', data['refresh_token'])
+        helper.set_session('wx_access_token', data['access_token'])
+        helper.set_session('wx_access_token_expires_at', time.time() + data['expires_in'] - 180)
+        helper.set_session('wx_refresh_token', data['refresh_token'])
 
     def create_group(self, name):
         """
@@ -204,7 +189,7 @@ class WegoApi(object):
 
         :param group: Group id or group name.
         :param name: New group name
-        :return: :Bool: .
+        :return: :Bool
         """
 
         groupid = self._get_groupid(group)
@@ -216,7 +201,7 @@ class WegoApi(object):
         Change user group.
 
         :param group: Group id or group name.
-        :return: :Bool: .
+        :return: :Bool .
         """
 
         groupid = self._get_groupid(group)
@@ -228,13 +213,27 @@ class WegoApi(object):
         Delete group.
 
         :param group: Group id or group name.
-        :return: :Bool:
+        :return: :Bool
         """
 
         groupid = self._get_groupid(group)
         data = self.wechat.del_group(groupid)
         return not data['errcode']
 
+    def create_menu(self, *args):
+        """
+        Create menu by wego.button
+
+        :return: :Bool
+        """
+
+        data = {
+            'button': [i.json for i in args]
+        }
+ 
+        data = self.wechat.create_menu(data)
+
+        return not data['errcode']
 
 class WeChatUser(object):
     """

@@ -221,10 +221,10 @@ class WeChatApi(object):
 
     def del_group(self, groupid):
         """
-        Delete a group
+        Delete a group.
 
         :param groupid: Group id.
-        :return:
+        :return: Raw data that wechat returns.
         """
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
@@ -238,3 +238,16 @@ class WeChatApi(object):
 
         return data
 
+    def create_menu(self, data):
+        """
+        Create a menu.
+
+        :param data: Menu data.
+        :return: Raw data that wechat returns.
+        """
+        
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=%s" % access_token
+        data = requests.post(url, data=json.dumps(data, ensure_ascii=False).encode('utf8')).json()
+
+        return data
