@@ -2,16 +2,12 @@
 from exceptions import WeChatApiError, WeChatUserError
 from urllib import quote
 import requests
-import random
-import re
-import hashlib
 import json
-import time
 
 
 class WeChatApi(object):
     """
-    WeChat Api
+    WeChat Api just do one thing: give params to wechat and get the data what wechat return.
     """
 
     def __init__(self, settings):
@@ -20,6 +16,13 @@ class WeChatApi(object):
         self.global_access_token = {}
 
     def get_code_url(self, redirect_url, state='STATE'):
+        """
+        Get the url which 302 jump back and bring a code.
+
+        :param redirect_url: Jump back url
+        :param state: Jump back state
+        :return: url
+        """
 
         if redirect_url:
             redirect_url = quote(self.settings.REGISTER_URL + redirect_url[1:])
@@ -35,6 +38,12 @@ class WeChatApi(object):
         return url
 
     def get_access_token(self, code):
+        """
+        Use code for get access token, refresh token, openid etc.
+
+        :param code: A code see function get_code_url.
+        :return: Raw data that wechat returns.
+        """
 
         data = requests.get('https://api.weixin.qq.com/sns/oauth2/access_token', params={
             'appid': self.settings.APP_ID,
@@ -46,18 +55,31 @@ class WeChatApi(object):
         return data
 
     def refresh_access_token(self, refresh_token):
-        token = requests.get('https://api.weixin.qq.com/sns/oauth2/refresh_token', params={
+        """
+        Refresh user access token by refresh token.
+
+        :param refresh_token: function get_access_token returns.
+        :return: Raw data that wechat returns.
+        """
+
+        data = requests.get('https://api.weixin.qq.com/sns/oauth2/refresh_token', params={
             'appid': self.settings.APP_ID,
             'grant_type': 'refresh_token',
             'refresh_token': refresh_token
         }).json()
 
-        if 'errcode' in token.keys():
+        if 'errcode' in data.keys():
             return 'error'
 
-        return token
+        return data
 
     def get_userinfo(self, openid):
+        """
+        Get user info with global access token (content subscribe, language, remark and groupid).
+
+        :param openid: User openid.
+        :return: Raw data that wechat returns.
+        """
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {
@@ -73,6 +95,13 @@ class WeChatApi(object):
         return data
 
     def set_user_remark(self, openid, remark):
+        """
+        Set user remark.
+
+        :param openid: User openid.
+        :param remark: The remark you want to set.
+        :return: Raw data that wechat returns.
+        """
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {
@@ -86,6 +115,13 @@ class WeChatApi(object):
             raise WeChatApiError('errcode: {}, msg: {}'.format(data['errcode'], data['errmsg']))
 
     def get_userinfo_by_token(self, openid, access_token):
+        """
+        Get user info with user access token (without subscribe, language, remark and groupid).
+
+        :param openid: User openid.
+        :param access_token: function get_access_token returns.
+        :return: Raw data that wechat returns.
+        """
 
         data = requests.get('https://api.weixin.qq.com/sns/userinfo', params={
             'access_token': access_token,
@@ -97,8 +133,13 @@ class WeChatApi(object):
         return data.json()
 
     def get_global_access_token(self):
+        """
+        Get global access token.
 
-        data = global_access_token = requests.get("https://api.weixin.qq.com/cgi-bin/token", params={
+        :return: Raw data that wechat returns.
+        """
+
+        data = requests.get("https://api.weixin.qq.com/cgi-bin/token", params={
             'grant_type': 'client_credential',
             'appid': self.settings.APP_ID,
             'secret': self.settings.APP_SECRET
@@ -106,6 +147,7 @@ class WeChatApi(object):
 
         return data
 
+<<<<<<< HEAD
     def get_unifiedorder(self, order_info):
 
         data = {
@@ -154,55 +196,96 @@ def get_global_access_token(self):
     """
     获取全局 access token
     """
-
-    if not self.global_access_token or self.global_access_token['expires_in'] <= int(time.time()):
-        self.global_access_token = self.get_global_access_token()
-        self.global_access_token['expires_in'] += int(time.time()) - 180
-
-    return self.global_access_token['access_token']
-
-
-class WeChatUser(object):
-    """
-    WeChat user https://mp.weixin.qq.com/wiki/1/8a5ce6257f1d3b2afb20f83e72b72ce9.html
-    """
-
-    def __init__(self, wego, data):
-        
-        self.wego = wego
-        self.data = data
-        self.is_upgrade = False
-
-    def __getattr__(self, key):
-        
-
-        ext_userinfo = ['subscribe', 'language', 'remark', 'groupid']
-        if key in ext_userinfo and not self.is_upgrade:
-            self.get_ext_userinfo()
-
-        return self.data[key]
-
-    def __setattr__(self, key, value):
-        
-        if key == 'remark':
-            if self.subscribe != 1:
-                raise WeChatUserError('The user does not subscribe you')
-
-            if self.data['remark'] != value:
-                self.wego.wechat.set_user_remark(self.wego.openid, value)
-                self.data[key] = value
-        
-        super(WeChatUser, self).__setattr__(key, value)
-
-    def get_ext_userinfo(self):
+=======
+    def create_group(self, name):
         """
-        groupid subscribe language remark
+        Create a user group.
+
+        :param name: Group name.
+        :return: Raw data that wechat returns.
         """
 
-        self.data['remark'] = ''
-        self.data['groupid'] = ''
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'group': {
+                'name': name
+            }
+        }
+        url = 'https://api.weixin.qq.com/cgi-bin/groups/create?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+>>>>>>> ad44a25418476c9472471858ca20e8a87cd60e8c
 
-        data = self.wego.wechat.get_userinfo(self.wego.openid)
-        self.data = dict(self.data, **data)
-        self.is_upgrade = True
+        return data
+
+    def get_all_groups(self):
+        """
+        Get all user groups.
+
+        :return: Raw data that wechat returns.
+        """
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/cgi-bin/groups/get?access_token=%s" % access_token
+        req = requests.get(url)
+
+        return req.json()
+
+    def change_group_name(self, groupid, name):
+        """
+        Change group name.
+
+        :param groupid: Group ID.
+        :param name: New name.
+        :return: Raw data that wechat returns.
+        """
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'group': {
+                'id': groupid,
+                'name': name
+            }
+        }
+        url = 'https://api.weixin.qq.com/cgi-bin/groups/update?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def change_user_group(self, openid, groupid):
+        """
+        Move user to a new group.
+
+        :param openid: User openid.
+        :param groupid: Group ID.
+        :return: Raw data that wechat returns.
+        """
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'openid': openid,
+            'to_groupid': groupid
+        }
+        url = 'https://api.weixin.qq.com/cgi-bin/groups/members/update?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def del_group(self, groupid):
+        """
+        Delete a group
+
+        :param groupid: Group id.
+        :return:
+        """
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'group': {
+                'id': groupid
+            }
+        }
+        url = 'https://api.weixin.qq.com/cgi-bin/groups/delete?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
 
