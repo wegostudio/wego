@@ -178,10 +178,10 @@ class WegoApi(object):
         order_info = self.wechat.get_unifiedorder(kwargs)
 
         data = {
-            'appId': order_info['appid']
-            'timeStamp': str(int(time.time()))
-            'nonceStr': order_info['nonce_str']
-            'package': 'prepay_id=' + order_info['prepay_id']
+            'appId': order_info['appid'],
+            'timeStamp': str(int(time.time())),
+            'nonceStr': order_info['nonce_str'],
+            'package': 'prepay_id=' + order_info['prepay_id'],
             'signType': 'MD5'
         }
         data['paySign'] = self.wechat._make_sign(data)
