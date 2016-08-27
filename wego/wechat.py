@@ -106,6 +106,49 @@ class WeChatApi(object):
 
         return data
 
+    def get_unifiedorder(self, order_info):
+
+        data = {
+            'appid': self.settinfs.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+        }
+        data = dict(data, **order_info)
+        data['sign'] = _make_sign(data)
+        xml = _make_xml(data).encode('utf-8')
+        data = requests.post('https://api.mch.weixin.qq.com/pay/unifiedorder', data=xml).content
+        return _analysis_xml(data)
+
+    def _make_sign(self, data):
+        """
+        generate wechat pay for signature
+        """
+        temp = ['%s=%s' % (k, data[k]) for k in sorted(data)]
+        temp.append('key=' + self.setings.MCH_SECRET)
+        temp = '&'.join(temp)
+        md5 = hashlib.md5()
+        md5.update(temp.encode('utf-8'))
+        return md5.hexgigest().upper()
+
+    def _make_xml(self, k, v=None):
+    
+        '''
+        递归生成 xml
+        '''
+        if not v:
+            v = k
+            k = 'xml'
+        if type(v) is dict:
+            v = ''.join([make_xml(key, val) for key, val in v.iteritems()])
+            return '<%s>%s</%s>' % (k, v, k)
+
+    def _analysis_xml(self, xml):
+    
+        '''
+        将 xml 转成 dict
+        '''
+        return {k: v for v,k in re.findall('\<.*?\>\<\!\[CDATA\[(.*?)\]\]\>\<\/(.*?)\>', xml)}
+    
+
 # TODO 更方便定制
 def get_global_access_token(self):
     """

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import random
+import hashlib
 import wego
 import json
 import time
@@ -111,3 +113,31 @@ class WegoApi(object):
         self.helper.set_session('wx_access_token_expires_at', time.time() + data['expires_in'] - 180)
         self.helper.set_session('wx_refresh_token', data['refresh_token'])
 
+     
+    def get_unifiedorder_info(self, **kwargs):
+        """ 
+        unifiedorder settings, get wechat config at https://api.mch.weixin.qq.com/pay/unifiedorder
+
+        :param body: BODY is order infos
+        :param out_trade_no: (商户订单号)
+        :param total_fee: (总金额)
+        :param spbill_create_ip: (客户段ip)
+        :param notify_url: (通知地址)
+        :param trade_type: (交易类型)
+        :return: :class:`WegoApi <wego.api.WegoApi>` object
+        :rtype: WegoApi
+        """
+        kwargs['nonce_str'] = _get_random_code()
+        return wechat.get_unifiedorder(kwargs)
+
+
+
+
+    def _get_random_code(self, length=6):
+        """
+        get random code
+        """
+        return ''.join(random.sample('0123456789', length))
+
+
+   
