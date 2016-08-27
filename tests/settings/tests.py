@@ -14,7 +14,7 @@ class TestSettingsInit(unittest.TestCase):
             MCH_SECRET='1',
             HELPER='wego.helpers.official.DjangoHelper'
         )
-        self.assertTrue(isinstance(a, api.WegoWrapper))
+        self.assertTrue(isinstance(a, api.WegoApi))
 
     def test_error(self):
         with self.assertRaises(exceptions.InitError):
