@@ -147,7 +147,6 @@ class WeChatApi(object):
 
         return data
 
-<<<<<<< HEAD
     def get_unifiedorder(self, order_info):
 
         data = {
@@ -196,7 +195,6 @@ def get_global_access_token(self):
     """
     获取全局 access token
     """
-=======
     def create_group(self, name):
         """
         Create a user group.
@@ -213,7 +211,6 @@ def get_global_access_token(self):
         }
         url = 'https://api.weixin.qq.com/cgi-bin/groups/create?access_token=%s' % access_token
         data = requests.post(url, data=json.dumps(data)).json()
->>>>>>> ad44a25418476c9472471858ca20e8a87cd60e8c
 
         return data
 

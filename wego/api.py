@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-<<<<<<< HEAD
 import random
 import hashlib
-=======
 from exceptions import WegoApiError, WeChatUserError
->>>>>>> ad44a25418476c9472471858ca20e8a87cd60e8c
 import wego
 import json
 import time
@@ -158,7 +155,6 @@ class WegoApi(object):
         self.helper.set_session('wx_access_token_expires_at', time.time() + data['expires_in'] - 180)
         self.helper.set_session('wx_refresh_token', data['refresh_token'])
 
-<<<<<<< HEAD
      
     def get_unifiedorder_info(self, **kwargs):
         """ 
@@ -187,7 +183,6 @@ class WegoApi(object):
 
 
    
-=======
     def create_group(self, name):
         """
         Create a new group.
@@ -356,4 +351,3 @@ def official_get_global_access_token(self):
 
     return self.global_access_token['access_token']
 
->>>>>>> ad44a25418476c9472471858ca20e8a87cd60e8c
