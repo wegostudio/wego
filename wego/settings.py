@@ -26,6 +26,7 @@ def init(**kwargs):
 
     :param MCH_ID: (optional) Mac ID get it at https://pay.weixin.qq.com/ (商户号).
     :param MCH_SECRET: (optional) MCH SECRET As same as you set at https://pay.weixin.qq.com/ (API 密钥).
+    :param PAY_NOTIFY_PATH: (optional) Default notify url for wechat pay callback.
 
     :param GET_GLOBAL_ACCESS_TOKEN: (optional) A function that return a global access token, if your application run at
             multiple servers it required. How to customized your GET_GLOBAL_ACCESS_TOKEN:
@@ -50,6 +51,7 @@ def init(**kwargs):
     check_settings(kwargs)
 
     kwargs['REDIRECT_URL'] = quote(kwargs['REGISTER_URL'] + kwargs['REDIRECT_PATH'])
+    kwargs['PAY_NOTIFY_URL'] = quote(kwargs['REGISTER_URL'] + kwargs['PAY_NOTIFY_PATH'])
 
     logger = logging.getLogger('wego')
     formatter = logging.Formatter('%(asctime)s WEGO %(levelname)s: %(message)s', datefmt='%Y/%m/%d %I:%M:%S')
@@ -84,7 +86,7 @@ def check_settings(settings):
 
     # optional_couple
     optional_couple_list = [
-        ['MCH_ID', 'MCH_SECRET'],
+        ['MCH_ID', 'MCH_SECRET', 'PAY_NOTIFY_PATH'],
     ]
 
     for i in optional_couple_list:
@@ -102,6 +104,9 @@ def check_settings(settings):
 
     if not settings['REDIRECT_PATH'].startswith('/'):
         raise InitError('REDIRECT_URL have to starts with "/"(REDIRECT_URL 需以 "/" 开始)')
+
+    if not settings['PAY_NOTIFY_PATH'].startswith('/'):
+        raise InitError('PAY_NOTIFY_PATH have to starts with "/"(PAY_NOTIFY_PATH 需以 "/" 开始)')
 
     if type(settings['HELPER']) is str:
         modules = settings['HELPER'].split('.')

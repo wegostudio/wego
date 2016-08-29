@@ -12,6 +12,7 @@ class TestSettingsInit(unittest.TestCase):
             REDIRECT_PATH='/',
             MCH_ID='1',
             MCH_SECRET='1',
+            PAY_NOTIFY_PATH='/a',
             HELPER='wego.helpers.official.DjangoHelper'
         )
         self.assertTrue(isinstance(a, api.WegoApi))
@@ -24,6 +25,7 @@ class TestSettingsInit(unittest.TestCase):
                 REDIRECT_PATH='1',
                 MCH_ID='1',
                 MCH_SECRET='1',
+                PAY_NOTIFY_PATH='/a',
                 HELPER='wego.helpers.official.DjangoHelper'
             )
 
@@ -35,6 +37,7 @@ class TestSettingsInit(unittest.TestCase):
                 REDIRECT_PATH='/',
                 MCH_ID='1',
                 MCH_SECRET='1',
+                PAY_NOTIFY_PATH='/a',
                 HELPER='wego.helpers.official.ErrorHelper'
             )
 

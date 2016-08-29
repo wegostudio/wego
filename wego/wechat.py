@@ -5,8 +5,6 @@ import requests
 import json
 import hashlib
 import re
-import random
-import string
 
 
 class WeChatApi(object):
@@ -151,44 +149,6 @@ class WeChatApi(object):
 
         return data
 
-    def get_unifiedorder(self, order_info):
-
-        default_settings = {
-            'appid': self.settings.APP_ID,
-            'mch_id': self.settings.MCH_ID,
-            'nonce_str': self._get_random_code(),
-        }
-        data = dict(default_settings, **order_info)
-
-        self._check_unifiedorder_params(data)
-
-        data['sign'] = self._make_sign(data)
-
-        xml = self._make_xml(data).encode('utf-8')
-        data = requests.post('https://api.mch.weixin.qq.com/pay/unifiedorder', data=xml).content
-
-        return self._analysis_xml(data)
-
-    def _get_random_code(self):
-        """
-        Get random code
-        """
-
-        return reduce(lambda x,y: x+y, [random.choice(string.printable[:62]) for i in range(32)])
-
-    def _make_sign(self, data):
-        """
-        Generate wechat pay for signature
-        """
-
-        temp = ['%s=%s' % (k, data[k]) for k in sorted(data.keys())]
-        temp.append('key=' + self.settings.MCH_SECRET)
-        temp = '&'.join(temp)
-        md5 = hashlib.md5()
-        md5.update(temp.encode('utf-8'))
-
-        return md5.hexdigest().upper()
-
     def _make_xml(self, k, v=None):
         """
         Recursive generate XML
@@ -207,29 +167,13 @@ class WeChatApi(object):
         """
 
         return {k: v for v,k in re.findall('\<.*?\>\<\!\[CDATA\[(.*?)\]\]\>\<\/(.*?)\>', xml)}
-    
-    def _check_unifiedorder_params(self, params):
-        """
-        check if params is available
 
-        :param params: a dict.
-        :return: None
-        """
-        required_list = [
-            'appid',
-            'mch_id',
-            'nonce_str',
-            'body',
-            'out_trade_no',
-            'total_fee',
-            'spbill_create_ip',
-            'notify_url',
-            'trade_type'
-        ]
+    def get_unifiedorder(self, data):
 
-        for i in required_list:
-            if i not in params or not params[i]:
-                raise WeChatApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param=i))
+        xml = self._make_xml(data).encode('utf-8')
+        data = requests.post('https://api.mch.weixin.qq.com/pay/unifiedorder', data=xml).content
+
+        return self._analysis_xml(data)
 
     def get_all_groups(self):
         """

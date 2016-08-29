@@ -6,7 +6,8 @@ Developer Interface
 Main Interface
 --------------
 
-.. automodule:: wego
+.. automodule:: wego.api
+    :members:
 
 
 Wechat Interface

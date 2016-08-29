@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-import random
-import hashlib
 from exceptions import WegoApiError, WeChatUserError
 import wego
 import json
 import time
+import random
+import string
+import hashlib
 
 
 class WegoApi(object):
@@ -145,10 +146,11 @@ class WegoApi(object):
         Unifiedorder settings, get wechat config at https://api.mch.weixin.qq.com/pay/unifiedorder
         You can take return value as wechat api onBridgeReady's parameters directly
 
-        You don't need to include appid, mch_id, nonce_str, sign, openid
-        because these four parameters set by WeChatApi,
+        You don't need to include appid, mch_id, nonce_str and sign because these three parameters set by WeChatApi,
         but the following parameters are necessary, you must be included in the kwargs
         and you must follow the format below as the parameters's key
+
+        :param openid: User openid.
 
         :param body: Goods are simply described, the field must be in strict accordance with the
          specification, specific see parameters
@@ -161,7 +163,7 @@ class WegoApi(object):
         :param spbill_create_ip: APP and web payment submitted to client IP, Native fill call
          WeChat payment API machine IP.
 
-        :param notify_url: Receive pay WeChat asynchronous notification callback address,
+        :param notify_url: (optional) Default is what you set at init. Receive pay WeChat asynchronous notification callback address,
          notify the url must be accessible url directly, cannot carry parameters.
 
         :param trade_type: Values are as follows: the JSAPI, NATIVE APP, details see parameter regulation
@@ -174,8 +176,19 @@ class WegoApi(object):
                 'paySign': value,}
         """
 
-        kwargs['openid'] = self.openid
-        order_info = self.wechat.get_unifiedorder(kwargs)
+        default_settings = {
+            'appid': self.settings.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+            'nonce_str': self._get_random_code(),
+            'notify_url': self.settings.PAY_NOTIFY_URL,
+            'trade_type': 'JSAPI',
+        }
+        data = dict(default_settings, **kwargs)
+        data['sign'] = self.make_sign(data)
+
+        self._check_unifiedorder_params(data)
+
+        order_info = self.wechat.get_unifiedorder(data)
 
         data = {
             'appId': order_info['appid'],
@@ -184,9 +197,52 @@ class WegoApi(object):
             'package': 'prepay_id=' + order_info['prepay_id'],
             'signType': 'MD5'
         }
-        data['paySign'] = self.wechat._make_sign(data)
+        data['paySign'] = self.make_sign(data)
 
-        return data     
+        return data
+
+    def _check_unifiedorder_params(self, params):
+        """
+        Check if params is available
+
+        :param params: a dict.
+        :return: None
+        """
+        required_list = [
+            'appid',
+            'mch_id',
+            'nonce_str',
+            'body',
+            'out_trade_no',
+            'total_fee',
+            'spbill_create_ip',
+            'notify_url',
+            'trade_type'
+        ]
+
+        for i in required_list:
+            if i not in params or not params[i]:
+                raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param=i))
+
+    def _get_random_code(self):
+        """
+        Get random code
+        """
+
+        return reduce(lambda x,y: x+y, [random.choice(string.printable[:62]) for i in range(32)])
+
+    def make_sign(self, data):
+        """
+        Generate wechat pay for signature
+        """
+
+        temp = ['%s=%s' % (k, data[k]) for k in sorted(data.keys())]
+        temp.append('key=' + self.settings.MCH_SECRET)
+        temp = '&'.join(temp)
+        md5 = hashlib.md5()
+        md5.update(temp.encode('utf-8'))
+
+        return md5.hexdigest().upper()
    
     def create_group(self, name):
         """
@@ -370,4 +426,3 @@ def official_get_global_access_token(self):
         self.global_access_token['expires_in'] += int(time.time()) - 180
 
     return self.global_access_token['access_token']
-
