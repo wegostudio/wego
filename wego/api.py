@@ -184,6 +184,8 @@ class WegoApi(object):
             'trade_type': 'JSAPI',
         }
         data = dict(default_settings, **kwargs)
+        if self.settings.DEBUG:
+            data['total_fee'] = 1
         data['sign'] = self.make_sign(data)
 
         self._check_unifiedorder_params(data)
