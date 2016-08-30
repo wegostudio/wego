@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from wego.exceptions import WeChatButtonError
 
 '''
 class BaseBtn(object):
@@ -89,3 +90,30 @@ class MediaBtn(object):
             'name': name,
             'media_id': media_id
         }
+
+
+# TODO 文档
+class MatchRule(object):
+
+    def __init__(self, **kwargs):
+        """
+        https://mp.weixin.qq.com/wiki/0/c48ccd12b69ae023159b4bfaa7c39c20.html
+        地区表 https://mp.weixin.qq.com/wiki/static/assets/870a3c2a14e97b3e74fde5e88fa47717.zip
+        """
+
+        # TODO sex 支持 male, Female 不限制大小写，client_platform_type 同样
+        for i in kwargs.keys():
+            if i in ['group_id', 'sex', 'client_platform_type', 'country',
+                    'province', 'city', 'language']:
+                break
+        else:
+            raise WeChatButtonError(u'No valid arguments(没有有效参数)')
+
+        if kwargs.has_key('city') and not kwargs.has_key('province'):
+            raise WeChatButtonError(u'City to be set before setting the provinces(设置城市前需设置省份)')
+
+        if kwargs.has_key('province') and not kwargs.has_key('country'):
+            raise WeChatButtonError(u'Province to be set before setting the country(设置省份前需设置国家)')
+
+        self.json = kwargs
+

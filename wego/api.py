@@ -326,7 +326,7 @@ class WegoApi(object):
         data = self.wechat.del_group(groupid)
         return not data['errcode']
 
-    def create_menu(self, *args):
+    def create_menu(self, *args, **kwargs):
         """
         Create menu by wego.button
 
@@ -336,10 +336,28 @@ class WegoApi(object):
         data = {
             'button': [i.json for i in args]
         }
- 
-        data = self.wechat.create_menu(data)
 
-        return not data['errcode']
+        if kwargs.has_key('match'):
+            data['matchrule'] = kwargs['match'].json
+            data = self.wechat.create_conditional_menu(data)
+        else:
+            data = self.wechat.create_menu(data)
+
+        return not data['errcode'] if data.has_key('errcode') else data['menuid']
+
+    def get_menus(self):
+
+        data = self.wechat.get_menus()
+        if data.has_key('errcode') and data['errcode'] == 46003:
+            return {'menu':{}}
+        return data
+
+    def del_menu(self, target='all'):
+
+        if target == 'all':
+            return not self.wechat.del_all_menus()['errcode']
+
+        return not self.wechat.del_conditional_menu(int(target))['errcode']
 
 
 class WeChatUser(object):

@@ -18,8 +18,14 @@ class HelperError(Exception):
 class WeChatApiError(Exception):
     """An wechat api error occurred."""
 
+
 class WegoApiError(Exception):
     """An wego api error occurred."""
 
+
 class WeChatUserError(Exception):
     """An wechat user error occurred."""
+
+
+class WeChatButtonError(Exception):
+    """An wechat button error occurred."""

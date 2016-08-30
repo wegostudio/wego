@@ -159,6 +159,9 @@ class WeChatApi(object):
             k = 'xml'
         if type(v) is dict:
             v = ''.join([self._make_xml(key, val) for key, val in v.iteritems()])
+        if type(v) is list:
+            l = len(k)+2
+            v = ''.join([make_xml(k, val) for val in v])[l:(l+1)*-1]
         return '<%s>%s</%s>' % (k, v, k)
 
     def _analysis_xml(self, xml):
@@ -261,6 +264,62 @@ class WeChatApi(object):
 
         return data
 
+    def create_conditional_menu(self, data):
+        """
+        Create a conditional menu.
+
+        :param data: Menu data.
+        :return: Raw data that wechat returns.
+        """
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/cgi-bin/menu/addconditional?access_token=%s" % access_token
+        data = requests.post(url, data=json.dumps(data, ensure_ascii=False).encode('utf8')).json()
+
+        return data
+
+    def get_menus(self):
+        """
+        Get all menus.
+
+        :return: Raw data that wechat returns.
+        """
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/cgi-bin/menu/get?access_token=%s" % access_token
+        data = requests.get(url).json()
+
+        return data
+
+    def del_all_menus(self):
+        """
+        Delete all menus, contain conditional menu.
+
+        :return: Raw data that wechat returns.
+        """
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=%s" % access_token
+        data = requests.get(url).json()
+        print data
+
+        return data
+
+    def del_conditional_menu(self, menu_id):
+        """
+        Delete conditional menus, contain conditional menu.
+
+        :return: Raw data that wechat returns.
+        """
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'menuid': menu_id
+        }
+        url = 'https://api.weixin.qq.com/cgi-bin/menu/delconditional?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
 
 # TODO 更方便定制
 def get_global_access_token(self):
