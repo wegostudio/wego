@@ -149,7 +149,8 @@ class WeChatApi(object):
 
         return data
 
-    def _make_xml(self, k, v=None):
+    @staticmethod
+    def _make_xml(k, v=None):
         """
         Recursive generate XML
         """
@@ -158,10 +159,10 @@ class WeChatApi(object):
             v = k
             k = 'xml'
         if type(v) is dict:
-            v = ''.join([self._make_xml(key, val) for key, val in v.iteritems()])
+            v = ''.join([WeChatApi._make_xml(key, val) for key, val in v.iteritems()])
         if type(v) is list:
             l = len(k)+2
-            v = ''.join([make_xml(k, val) for val in v])[l:(l+1)*-1]
+            v = ''.join([WeChatApi._make_xml(k, val) for val in v])[l:(l+1)*-1]
         return '<%s>%s</%s>' % (k, v, k)
 
     def _analysis_xml(self, xml):
@@ -317,6 +318,82 @@ class WeChatApi(object):
             'menuid': menu_id
         }
         url = 'https://api.weixin.qq.com/cgi-bin/menu/delconditional?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def get_materials(self, material_type, offset, count):
+        #TODO
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            "type": material_type,
+            "offset": offset,
+            "count": count
+        }
+
+        url = 'https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def create_scene_qrcode(self, scene_id, expire):
+        
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'expire_seconds': expire, 
+            'action_name': 'QR_SCENE', 
+            'action_info': {
+                'scene': {
+                    'scene_id': scene_id
+                }
+            }
+        }
+        url = 'https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def create_limit_scene_qrcode(self, scene_id):
+        
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'action_name': 'QR_LIMIT_SCENE', 
+            'action_info': {
+                'scene': {
+                    'scene_id': scene_id
+                }
+            }
+        }
+        url = 'https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def create_limit_str_scene_qrcode(self, scene_str):
+        
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'action_name': 'QR_LIMIT_SCENE', 
+            'action_info': {
+                'scene': {
+                    'scene_str': scene_str
+                }
+            }
+        }
+        url = 'https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def create_short_url(self, url):
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'action': 'long2short',
+            'long_url': url
+        }
+        url = 'https://api.weixin.qq.com/cgi-bin/shorturl?access_token=%s' % access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data

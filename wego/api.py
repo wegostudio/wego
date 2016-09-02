@@ -35,7 +35,7 @@ class WegoApi(object):
 
             code = helper.get_params().get('code', '')
             if code:
-                openid = self.get_openid(code)
+                openid = self.get_openid(helper, code)
                 helper.set_session('wx_openid', openid)
 
             openid = helper.get_session('wx_openid')
@@ -65,7 +65,7 @@ class WegoApi(object):
 
         return helper.redirect(url)
 
-    def get_openid(self, code):
+    def get_openid(self, helper, code):
         """
         Get user openid.
 
@@ -360,6 +360,181 @@ class WegoApi(object):
             return not self.wechat.del_all_menus()['errcode']
 
         return not self.wechat.del_conditional_menu(int(target))['errcode']
+
+    def analysis_push(self, raw_xml):
+        """
+        Analysis xml to dict and set wego push type.
+        Wego defind WeChatPush type:
+            -- msg --
+            text ✓
+            image ✓
+            voice ✓
+            video ✓
+            shortvideo ✓
+            location ✓
+            link ✓
+            -- event --
+            subscribe ✓
+            unsubscribe
+            scancode_push
+            scancode_waitmsg ✓
+            scan
+            scan_subscribe
+            user_location ✓
+            click ✓
+            view
+
+        :param raw_xml: Raw xml.
+        :return: :class:`WeChatPush <wego.api.WeChatPush>` object.
+        :rtype: WeChatPush.
+        """
+
+        data = self.wechat._analysis_xml(raw_xml)
+
+        return WeChatPush(data)
+
+    def get_materials(self, material_type, offset, count):
+
+        data = self.wechat.get_materials(material_type, offset, count)
+
+        return data
+
+    def create_qrcode(self, key, expire=None):
+
+        if expire:
+            data = self.wechat.create_scene_qrcode(key, expire)
+
+        elif type(key) is str:
+            data = self.wechat.create_limit_scene_qrcode(key)
+
+        else:
+            data = self.wechat.create_limit_str_scene_qrcode(key)
+
+        # TODO 容错
+        data['code_url'] = 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=' + data['ticket']
+        return data
+
+    def create_short_url(self, url):
+
+        data = self.wechat.create_short_url(url)
+
+        # TODO 容错
+        return data['short_url']
+
+
+class WeChatPush(object):
+    """
+    """
+
+    def __init__(self, data):
+
+        self.data = data
+
+        if data['MsgType'] == 'event':
+            if data['Event'] == 'subscribe' and data.has_key('Ticket'):
+                self.type = 'scan_subcribe'
+            elif data['Event'] == 'LOCATION':
+                self.type = 'user_location'
+            else:
+                self.type = data['Event'].lower()
+        else:
+            self.type = data['MsgType']
+        self.from_user = data['FromUserName']
+        self.to_user = data['ToUserName']
+
+    def reply_text(self, text):
+
+        return wego.wechat.WeChatApi._make_xml({
+            'ToUserName': self.from_user,
+            'FromUserName': self.to_user,
+            'CreateTime': int(time.time()),
+            'MsgType': 'text',
+            'Content': str(text)
+        })
+
+    def reply_image(self, image):
+
+        return wego.wechat.WeChatApi._make_xml({
+            'ToUserName': self.from_user,
+            'FromUserName': self.to_user,
+            'CreateTime': int(time.time()),
+            'MsgType': 'image',
+            'Image': {'MediaId': image}
+        })
+
+    def reply_voice(self, voice):
+
+        return wego.wechat.WeChatApi._make_xml({
+            'ToUserName': self.from_user,
+            'FromUserName': self.to_user,
+            'CreateTime': int(time.time()),
+            'MsgType': 'voice',
+            'Voice': {'MediaId': voice}
+        })
+
+    def reply_video(self, video):
+
+        # TODO 视频要等审核通过才能用, 或者是永久素材
+        data = {
+            'MediaId': video['media_id'] 
+        }
+        if video.has_key('title'):
+            data['Title'] = video['title']
+        if video.has_key('description'):
+            data['Description'] = video['description']
+
+        return wego.wechat.WeChatApi._make_xml({
+            'ToUserName': self.from_user,
+            'FromUserName': self.to_user,
+            'CreateTime': int(time.time()),
+            'MsgType': 'video',
+            'Video': data
+        })
+
+    def reply_music(self, music):
+
+        data  = {
+            'Title': music['title'],
+            'Description': music['description'],
+            'MusicUrl': music['music_url'],
+            'HQMusicUrl': music['hq_music_url'],
+        }
+        if music.has_key('thumb_media_id'):
+            data['ThumbMediaId'] = music['thumb_media_id']
+
+        return wego.wechat.WeChatApi._make_xml({
+            'ToUserName': self.from_user,
+            'FromUserName': self.to_user,
+            'CreateTime': int(time.time()),
+            'MsgType': 'music',
+            'Music': data
+        })
+
+    def reply_news(self, news):
+
+        data = []
+        for i in news:
+            new_dict = {}
+            if i.has_key('title'):
+                new_dict['Title'] = i['title'],
+            if i.has_key('description'):
+                new_dict['Description'] = i['description'],
+            if i.has_key('pic_url'):
+                new_dict['PicUrl'] = i['pic_url'],
+            if i.has_key('url'):
+                new_dict['Url'] = i['url'],
+            data.append(new_dict)
+
+        return wego.wechat.WeChatApi._make_xml({
+            'ToUserName': self.from_user,
+            'FromUserName': self.to_user,
+            'CreateTime': int(time.time()),
+            'MsgType': 'news',
+            'ArticleCount': len(news),
+            'Articles': {
+                'item': data
+            }
+        })
 
 
 class WeChatUser(object):
