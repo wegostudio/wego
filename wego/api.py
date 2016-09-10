@@ -189,7 +189,17 @@ class WegoApi(object):
             data['total_fee'] = 1
         data['sign'] = self.make_sign(data)
 
-        self._check_unifiedorder_params(data)
+        self._check_params(
+            data,
+            'appid',
+            'mch_id',
+            'nonce_str',
+            'body',
+            'out_trade_no',
+            'total_fee',
+            'spbill_create_ip',
+            'notify_url',
+            'trade_type')
 
         order_info = self.wechat.get_unifiedorder(data)
 
@@ -204,34 +214,14 @@ class WegoApi(object):
 
         return data
 
-    def _check_unifiedorder_params(self, params):
-        """
-        Check if params is available
-
-        :param params: a dict.
-        :return: None
-        """
-        required_list = [
-            'appid',
-            'mch_id',
-            'nonce_str',
-            'body',
-            'out_trade_no',
-            'total_fee',
-            'spbill_create_ip',
-            'notify_url',
-            'trade_type'
-        ]
-
-        for i in required_list:
-            if i not in params or not params[i]:
-                raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param=i))
 
     def get_order_query(self, out_trade_no=None, transaction_id=None):
         """
-        Order query setting, choose one in out_trade_no and transaction_id as parameter pass to this function
+        Order query setting, get wechat config at https://api.mch.weixin.qq.com/pay/orderquery
+        Choose one in out_trade_no and transaction_id as parameter pass to this function
 
         :param out_trade_no | transaction_id: WeChat order number, priority in use. Merchants system internal order number, when didn't provide transaction_id need to pass this.
+
         :return: {...}
         """
 
@@ -249,7 +239,95 @@ class WegoApi(object):
 
         default_settings['sign'] = self.make_sign(default_settings)
         data = self.wechat.get_orderquery(default_settings)
-        print data
+
+        return data
+
+    def close_order(self, out_trade_no):
+        """
+        Close order, get wechat config at https://api.mch.weixin.qq.com/pay/closeorder
+
+        :param out_trade_no: Merchant order number within the system
+
+        :return: {...}
+        """
+
+        data = {
+            'appid': self.settings.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+            'nonce_str': self._get_random_code(),
+            'out_trade_no': out_trade_no,
+        }
+        data['sign'] = self.make_sign(data)
+        data = self.wechat.close_order(data)
+
+        return data
+
+    def refund(self, **kwargs):
+        """
+        Merchant order number within the system, get wechat config at https://api.mch.weixin.qq.com/secapi/pay/refund
+
+        Following parameters are necessary, you must be included in the kwargs and you must follow the format below as the parameters's key
+
+        :param out_trade_no | transaction_id: WeChat order number, priority in use. Merchants system internal order number, when didn't provide transaction_id need to pass this.
+
+        :param out_refund_no: Merchants system within the refund number, merchants within the system, only the same refund order request only a back many times
+
+        :param total_fee: Total amount of orders, the unit for points, only as an integer, see the payment amount
+
+        :param refund_fee: Refund the total amount, total amount of the order, the unit for points, only as an integer, see the payment amount
+
+        :param op_user_id: Operator account, the default for the merchants
+
+        :return: {...}
+        """
+
+        default_settings = {
+            'appid': self.settings.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+            'nonce_str': self._get_random_code(),
+        }
+        try:
+            param = kwargs['op_user_id']
+        except:
+            kwargs['op_user_id'] = self.settings.MCH_ID
+ 
+        data = dict(default_settings, **kwargs)
+        if self.settings.DEBUG:
+            data['total_fee'] = 1
+        data['sign'] = self.make_sign(data)
+        self._check_params(
+            data,
+            'appid',
+            'mch_id',
+            'nonce_str',
+            'sign',
+            'out_refund_no',
+            'total_fee',
+            'refund_fee',
+            'op_user_id')
+        try:
+            param1 = kwargs['out_trade_no']
+        except:
+            try:
+                param2 = kwargs['transaction_id']
+            except:
+                raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param='out_trade_on|transaction_id'))
+
+        data = self.wechat.refund(data)
+
+        return data
+ 
+    def _check_params(self, params, *args):
+        """
+        Check if params is available
+
+        :param params: a dict.
+        :return: None
+        """
+
+        for i in args:
+            if i not in params or not params[i]:
+                raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param=i))
 
     def _get_random_code(self):
         """

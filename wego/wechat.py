@@ -191,6 +191,28 @@ class WeChatApi(object):
 
         return self._analysis_xml(data)
 
+    def close_order(self, data):
+        """
+        Get close_order info.
+
+        :return: Raw data that wechat returns.
+        """
+
+        xml = self._make_xml(data).encode('utf-8')
+        data = requests.post('https://api.mch.weixin.qq.com/pay/closeorder', data=xml).content
+
+        return self._analysis_xml(data)
+
+    def refund(self, data):
+        """
+        refund.
+
+        :return: Raw data that wechat returns.
+        """
+        xml = self._make_xml(data).encode('utf-8')
+        data = requests.post('https://api.mch.weixin.qq.com/secapi/pay/refund', data=xml).content
+        return self._analysis_xml(data)
+        
     def get_all_groups(self):
         """
         Get all user groups.
