@@ -179,6 +179,18 @@ class WeChatApi(object):
 
         return self._analysis_xml(data)
 
+    def get_orderquery(self, data):
+        """
+        Get order query.
+
+        :return: Raw data that wechat returns.
+        """
+
+        xml = self._make_xml(data).encode('utf-8')
+        data = requests.post('https://api.mch.weixin.qq.com/pay/orderquery', data=xml).content
+
+        return self._analysis_xml(data)
+
     def get_all_groups(self):
         """
         Get all user groups.

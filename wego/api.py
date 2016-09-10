@@ -183,6 +183,7 @@ class WegoApi(object):
             'notify_url': self.settings.PAY_NOTIFY_URL,
             'trade_type': 'JSAPI',
         }
+
         data = dict(default_settings, **kwargs)
         if self.settings.DEBUG:
             data['total_fee'] = 1
@@ -225,6 +226,30 @@ class WegoApi(object):
         for i in required_list:
             if i not in params or not params[i]:
                 raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param=i))
+
+    def get_order_query(self, out_trade_no=None, transaction_id=None):
+        """
+        Order query setting, choose one in out_trade_no and transaction_id as parameter pass to this function
+
+        :param out_trade_no | transaction_id: WeChat order number, priority in use. Merchants system internal order number, when didn't provide transaction_id need to pass this.
+        :return: {...}
+        """
+
+        default_settings = {
+            'appid': self.settings.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+            'nonce_str': self._get_random_code(),
+        }
+        if transaction_id is None:
+            default_settings['out_trade_no'] = out_trade_no
+        elif out_trade_no is None:
+            default_settings['transaction_id'] = transaction_id
+        else:
+            raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param='out_trade_no|transaction_id'))
+
+        default_settings['sign'] = self.make_sign(default_settings)
+        data = self.wechat.get_orderquery(default_settings)
+        print data
 
     def _get_random_code(self):
         """
