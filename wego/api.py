@@ -346,6 +346,38 @@ class WegoApi(object):
         data = self.wechat.refund_query(data)
 
         return data
+
+    def download_bill(self, **kwargs):
+        """
+        get wechat config at https://api.mch.weixin.qq.com/pay/downloadbill
+
+        :param bill_date:
+
+        :param bill_type:
+
+        :return: dict {...}
+        """
+
+        default_settings = {
+            'appid': self.settings.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+            'nonce_str': self._get_random_code(),
+        }
+
+        data = dict(default_settings, **kwargs)
+        data['sign'] = self.make_sign(data)
+        self._check_params(
+            data,
+            'appid',
+            'mch_id',
+            'nonce_str',
+            'sign',
+            'bill_date',
+            'bill_type')
+
+        data = self.wechat.download_bill(data)
+
+        return data
  
     def _check_params(self, params, *args):
         """

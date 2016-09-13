@@ -220,10 +220,19 @@ class WeChatApi(object):
         :return: Raw data that wechat returns.
         """
         xml = self._make_xml(data).encode('utf-8')
-        print xml
         data = requests.post('https://api.mch.weixin.qq.com/pay/refundquery', data=xml).content
         return self._analysis_xml(data)
 
+    def download_bill(self, data):
+        """
+        download bill
+
+        :return: Raw data that wechat returns.
+        """
+        xml = self._make_xml(data).encode('utf-8')
+        data = requests.post('https://api.mch.weixin.qq.com/pay/downloadbill', data=xml).content
+        return self._analysis_xml(data)
+        
     def get_all_groups(self):
         """
         Get all user groups.
