@@ -316,6 +316,36 @@ class WegoApi(object):
         data = self.wechat.refund(data)
 
         return data
+
+    def refund_query(self, **kwargs):
+        """
+        get wechat config at https://api.mch.weixin.qq.com/pay/refundquery
+
+        :param transaction_id | out_trade_no | out_refund_no | refund_id: One out of four
+        :return: dict {...}
+        """
+
+        default_settings = {
+            'appid': self.settings.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+            'nonce_str': self._get_random_code(),
+        }
+
+        # check param
+        flag = False
+        keys = ['transaction_id', 'out_trade_no', 'out_refund_no', 'refund_id']
+        for k, v in kwargs.items():
+            if k in keys:
+                flag = True
+                break
+        if not flag:
+            raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param='out_trade_on|transaction_id|out_refund_no|refund_id'))
+
+        data = dict(default_settings, **kwargs)
+        data['sign'] = self.make_sign(data)
+        data = self.wechat.refund_query(data)
+
+        return data
  
     def _check_params(self, params, *args):
         """
