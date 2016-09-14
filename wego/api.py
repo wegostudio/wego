@@ -599,6 +599,11 @@ class WegoApi(object):
 
 
 
+    def update_materials(self, **kwargs):
+
+        data = self.wechat.update_materials(**kwargs)
+
+        return data
 
     def get_materials_count(self):
 

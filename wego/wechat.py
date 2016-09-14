@@ -386,6 +386,31 @@ class WeChatApi(object):
         return data
 
 
+
+
+
+    def update_materials(self, **kwargs):
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'media_id': kwargs['media_id'],
+            'index': kwargs['index'],
+            'articles': {
+                'title': kwargs['title'],
+                'thumb_media_id': kwargs['thumb_media_id'],
+                'author': kwargs['author'],
+                'digest': kwargs['digest'],
+                'show_cover_pic': kwargs['show_cover_pic'],
+                'content': kwargs['content'],
+                'content_source_url': kwargs['content_source_url']
+            }
+        }
+
+        url = 'https://api.weixin.qq.com/cgi-bin/material/update_news?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
     def get_materials_count(self):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
@@ -395,10 +420,7 @@ class WeChatApi(object):
 
         return data
 
-
-
     def get_materials(self, material_type, offset, count):
-        #TODO
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {
