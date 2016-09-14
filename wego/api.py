@@ -600,6 +600,14 @@ class WegoApi(object):
 
 
 
+
+
+    def add_material(self, **kwargs):
+
+        data = self.wechat.add_material(**kwargs)
+
+        return data
+
     def get_material(self, media_id):
 
         data = self.wechat.get_material(media_id)

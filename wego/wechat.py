@@ -391,6 +391,27 @@ class WeChatApi(object):
 
 
 
+    def add_material(self, **kwargs):
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            "articles": [{
+                    "title": kwargs['title'],
+                    "thumb_media_id": kwargs['thumb_media_id'],
+                    "author": kwargs['author'],
+                    "digest": kwargs['digest'],
+                    "show_cover_pic": kwargs['show_cover_pic'],
+                    "content": kwargs['content'],
+                    "content_source_url": kwargs['content_source_url']
+                },
+            ]
+        }
+
+        url = 'https://api.weixin.qq.com/cgi-bin/material/add_news?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
     def get_material(self, media_id):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
