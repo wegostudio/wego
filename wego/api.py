@@ -599,6 +599,15 @@ class WegoApi(object):
 
 
 
+
+
+
+    def delete_materials(self, media_id):
+
+        data = self.wechat.delete_materials(media_id)
+
+        return data
+
     def update_materials(self, **kwargs):
 
         data = self.wechat.update_materials(**kwargs)
