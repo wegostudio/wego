@@ -600,17 +600,21 @@ class WegoApi(object):
 
 
 
+    def get_material(self, media_id):
 
-
-    def delete_materials(self, media_id):
-
-        data = self.wechat.delete_materials(media_id)
+        data = self.wechat.get_material(media_id)
 
         return data
 
-    def update_materials(self, **kwargs):
+    def delete_material(self, media_id):
 
-        data = self.wechat.update_materials(**kwargs)
+        data = self.wechat.delete_material(media_id)
+
+        return data
+
+    def update_material(self, **kwargs):
+
+        data = self.wechat.update_material(**kwargs)
 
         return data
 
@@ -620,7 +624,7 @@ class WegoApi(object):
 
         return data
 
-    def get_materials(self, material_type, offset, count):
+    def get_materials_list(self, material_type, offset, count):
 
         data = self.wechat.get_materials(material_type, offset, count)
 

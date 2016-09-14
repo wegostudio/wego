@@ -391,7 +391,19 @@ class WeChatApi(object):
 
 
 
-    def delete_materials(self, media_id):
+    def get_material(self, media_id):
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            "media_id": media_id,
+        }
+
+        url = 'https://api.weixin.qq.com/cgi-bin/material/get_material?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def delete_material(self, media_id):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {
@@ -403,7 +415,7 @@ class WeChatApi(object):
 
         return data
 
-    def update_materials(self, **kwargs):
+    def update_material(self, **kwargs):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {
@@ -434,7 +446,7 @@ class WeChatApi(object):
 
         return data
 
-    def get_materials(self, material_type, offset, count):
+    def get_materials_list(self, material_type, offset, count):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {
