@@ -2,8 +2,8 @@
 from exceptions import WeChatApiError, WeChatUserError
 from urllib import quote
 import requests
-import json
 import hashlib
+import json
 import re
 
 
@@ -384,6 +384,18 @@ class WeChatApi(object):
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
+
+
+    def get_materials_count(self):
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+
+        url = 'https://api.weixin.qq.com/cgi-bin/material/get_materialcount?access_token=%s' % access_token
+        data = requests.post(url).json()
+
+        return data
+
+
 
     def get_materials(self, material_type, offset, count):
         #TODO

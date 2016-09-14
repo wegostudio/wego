@@ -597,6 +597,15 @@ class WegoApi(object):
 
         return WeChatPush(data)
 
+
+
+
+    def get_materials_count(self):
+
+        data = self.wechat.get_materials_count()
+
+        return data
+
     def get_materials(self, material_type, offset, count):
 
         data = self.wechat.get_materials(material_type, offset, count)
