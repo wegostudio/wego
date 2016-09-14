@@ -470,6 +470,16 @@ class WegoApi(object):
         data = self.wechat.get_all_groups()
         return {i.pop('id'): i for i in data['groups']}
 
+    def get_user_groups(self, openid):
+        """
+        Get user groups.
+
+        :return: :dict: {'your_group_id': {'name':'str', 'count':'int'}}
+        """
+
+        data = self.wechat.get_user_groups(openid)
+        return data
+
     def _get_groupid(self, group):
         """
         Input group id or group name and return group id.

@@ -274,6 +274,22 @@ class WeChatApi(object):
 
         return req.json()
 
+    def get_user_groups(self, openid):
+        """
+        Get all a user groups.
+
+        :return: Raw data that wechat returns.
+        """
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'openid': openid
+        }
+        url = "https://api.weixin.qq.com/cgi-bin/groups/getid?access_token=%s" % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
     def change_group_name(self, groupid, name):
         """
         Change group name.
