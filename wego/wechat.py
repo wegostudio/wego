@@ -242,6 +242,25 @@ class WeChatApi(object):
         data = requests.post('https://api.mch.weixin.qq.com/payitil/report', data=xml).content
         return self._analysis_xml(data)
 
+    def create_group(self, name):
+        """
+        Create a user group.
+
+        :param name: Group name.
+        :return: Raw data that wechat returns.
+        """
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'group': {
+                'name': name
+            }
+        }
+        url = 'https://api.weixin.qq.com/cgi-bin/groups/create?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
     def get_all_groups(self):
         """
         Get all user groups.
@@ -542,26 +561,3 @@ class WeChatApi(object):
 
         return data
 
-# TODO 更方便定制
-def get_global_access_token(self):
-    """
-    获取全局 access token
-    """
-    def create_group(self, name):
-        """
-        Create a user group.
-
-        :param name: Group name.
-        :return: Raw data that wechat returns.
-        """
-
-        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        data = {
-            'group': {
-                'name': name
-            }
-        }
-        url = 'https://api.weixin.qq.com/cgi-bin/groups/create?access_token=%s' % access_token
-        data = requests.post(url, data=json.dumps(data)).json()
-
-        return data
