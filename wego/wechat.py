@@ -160,9 +160,11 @@ class WeChatApi(object):
             k = 'xml'
         if type(v) is dict:
             v = ''.join([WeChatApi._make_xml(key, val) for key, val in v.iteritems()])
-        if type(v) is list:
+        elif type(v) is list:
             l = len(k)+2
             v = ''.join([WeChatApi._make_xml(k, val) for val in v])[l:(l+1)*-1]
+        elif type(v) in [str, unicode]:
+            return '<%s><![CDATA[%s]]></%s>' % (k, v, k)
         return '<%s>%s</%s>' % (k, v, k)
 
     def _analysis_xml(self, xml):
