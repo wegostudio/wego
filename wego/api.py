@@ -575,7 +575,7 @@ class WegoApi(object):
 
         return not self.wechat.del_conditional_menu(int(target))['errcode']
 
-    def analysis_push(self, raw_xml):
+    def analysis_push(self, request):
         """
         Analysis xml to dict and set wego push type.
         Wego defind WeChatPush type:
@@ -603,14 +603,25 @@ class WegoApi(object):
         :rtype: WeChatPush.
         """
 
+        helper = self.settings.HELPER(request)
+        raw_xml = helper.get_body()
+        crypto = None
+        nonce = None
+
+        if self.settings.PUSH_TOKEN:
+            if not hasattr(self, 'push_crypto'):
+                from lib.WEGOBizMsgCrypt import WXBizMsgCrypt
+                self.push_crypto = WXBizMsgCrypt(self.settings.PUSH_TOKEN, self.settings.PUSH_ENCODING_AES_KEY, self.settings.APP_ID)
+
+            crypto = self.push_crypto
+            msg_sign = helper.get_params()['msg_signature']
+            timestamp = helper.get_params()['timestamp']
+            nonce = helper.get_params()['nonce']
+            ret, raw_xml = self.push_crypto.DecryptMsg(raw_xml, msg_sign, timestamp, nonce)
+
         data = self.wechat._analysis_xml(raw_xml)
 
-        return WeChatPush(data)
-
-
-
-
-
+        return WeChatPush(data, crypto, nonce)
 
     def add_material(self, **kwargs):
 
@@ -675,9 +686,11 @@ class WeChatPush(object):
     """
     """
 
-    def __init__(self, data):
+    def __init__(self, data, crypto=None, nonce=None):
 
         self.data = data
+        self.crypto = crypto
+        self.nonce = nonce
 
         if data['MsgType'] == 'event':
             if data['Event'] == 'subscribe' and data.has_key('Ticket'):
@@ -688,35 +701,40 @@ class WeChatPush(object):
                 self.type = data['Event'].lower()
         else:
             self.type = data['MsgType']
+
         self.from_user = data['FromUserName']
         self.to_user = data['ToUserName']
 
+    def return_xml(self, data):
+
+        data['ToUserName'] = self.from_user
+        data['FromUserName'] = self.to_user
+        data['CreateTime'] = int(time.time())
+
+        xml = wego.wechat.WeChatApi._make_xml(data)
+
+        if self.nonce:
+            ret, xml = self.crypto.EncryptMsg(xml, self.nonce)
+
+        return xml
+
     def reply_text(self, text):
 
-        return wego.wechat.WeChatApi._make_xml({
-            'ToUserName': self.from_user,
-            'FromUserName': self.to_user,
-            'CreateTime': int(time.time()),
+        return self.return_xml({
             'MsgType': 'text',
             'Content': str(text)
         })
 
     def reply_image(self, image):
 
-        return wego.wechat.WeChatApi._make_xml({
-            'ToUserName': self.from_user,
-            'FromUserName': self.to_user,
-            'CreateTime': int(time.time()),
+        return self.return_xml({
             'MsgType': 'image',
             'Image': {'MediaId': image}
         })
 
     def reply_voice(self, voice):
 
-        return wego.wechat.WeChatApi._make_xml({
-            'ToUserName': self.from_user,
-            'FromUserName': self.to_user,
-            'CreateTime': int(time.time()),
+        return self.return_xml({
             'MsgType': 'voice',
             'Voice': {'MediaId': voice}
         })
@@ -732,10 +750,7 @@ class WeChatPush(object):
         if video.has_key('description'):
             data['Description'] = video['description']
 
-        return wego.wechat.WeChatApi._make_xml({
-            'ToUserName': self.from_user,
-            'FromUserName': self.to_user,
-            'CreateTime': int(time.time()),
+        return self.return_xml({
             'MsgType': 'video',
             'Video': data
         })
@@ -751,10 +766,7 @@ class WeChatPush(object):
         if music.has_key('thumb_media_id'):
             data['ThumbMediaId'] = music['thumb_media_id']
 
-        return wego.wechat.WeChatApi._make_xml({
-            'ToUserName': self.from_user,
-            'FromUserName': self.to_user,
-            'CreateTime': int(time.time()),
+        return self.return_xml({
             'MsgType': 'music',
             'Music': data
         })
@@ -774,10 +786,7 @@ class WeChatPush(object):
                 new_dict['Url'] = i['url'],
             data.append(new_dict)
 
-        return wego.wechat.WeChatApi._make_xml({
-            'ToUserName': self.from_user,
-            'FromUserName': self.to_user,
-            'CreateTime': int(time.time()),
+        return self.return_xml({
             'MsgType': 'news',
             'ArticleCount': len(news),
             'Articles': {

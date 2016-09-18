@@ -10,6 +10,9 @@ class DjangoHelper(BaseHelper):
     def get_params(self):
         return self.request.GET.dict()
 
+    def get_body(self):
+        return self.request.body
+
     def set_session(self, key, value):
         self.request.session[key] = value
 
