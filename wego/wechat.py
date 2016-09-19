@@ -116,6 +116,24 @@ class WeChatApi(object):
         if 'errcode' in data.keys() and data['errcode'] != 0:
             raise WeChatApiError('errcode: {}, msg: {}'.format(data['errcode'], data['errmsg']))
 
+    def is_access_token_has_expired(sele, openid, access_token):
+        """
+        Determine whether the user access token has expired
+ 
+        :param openid: User openid.
+        :param access_token: function get_access_token returns.
+        :return: Raw data that wechat returns.
+        """
+
+        data = {
+            'access_token': access_token,
+            'openid': openid,
+        }
+        url = 'https://api.weixin.qq.com/sns/auth'
+        data = requests.post(url, params=data).json()
+
+        return data
+
     def get_userinfo_by_token(self, openid, access_token):
         """
         Get user info with user access token (without subscribe, language, remark and groupid).
@@ -402,7 +420,6 @@ class WeChatApi(object):
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         url = "https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=%s" % access_token
         data = requests.get(url).json()
-        print data
 
         return data
 

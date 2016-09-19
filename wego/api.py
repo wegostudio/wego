@@ -141,6 +141,19 @@ class WegoApi(object):
         helper.set_session('wx_access_token_expires_at', time.time() + data['expires_in'] - 180)
         helper.set_session('wx_refresh_token', data['refresh_token'])
 
+    def verification_token(self, openid, access_token):
+        """
+        Determine whether the user access token has expired
+
+        :param openid: User openid.
+        :param access_token: function get_access_token returns.
+        :return: Bool.
+        """
+
+        data = self.wechat.is_access_token_has_expired(openid, access_token)
+
+        return data['errmsg'] == 'ok'
+
     def get_unifiedorder_info(self, **kwargs):
         """ 
         Unifiedorder settings, get wechat config at https://api.mch.weixin.qq.com/pay/unifiedorder
