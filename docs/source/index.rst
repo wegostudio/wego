@@ -8,7 +8,7 @@ WEGO:
 
 Wego is a dead simple wechat sdk
 
-usage: ::
+Usage: ::
 
     import wego
     w = wego.init(
@@ -67,8 +67,3 @@ The API Documentation / Guide
    :maxdepth: 2
 
    api
-
-Search
-==================
-
-* :ref:`search`

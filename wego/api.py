@@ -591,24 +591,42 @@ class WegoApi(object):
     def analysis_push(self, request):
         """
         Analysis xml to dict and set wego push type.
-        Wego defind WeChatPush type:
+        Wego defind WeChatPush type (which can reply has checked):
+            
             -- msg --
+
             text ✓
+
             image ✓
+
             voice ✓
+
             video ✓
+
             shortvideo ✓
+
             location ✓
+
             link ✓
+
             -- event --
+
             subscribe ✓
+
             unsubscribe
+
             scancode_push
+
             scancode_waitmsg ✓
+
             scan
+
             scan_subscribe
+            
             user_location ✓
+            
             click ✓
+            
             view
 
         :param raw_xml: Raw xml.
