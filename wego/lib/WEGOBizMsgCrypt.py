@@ -144,24 +144,25 @@ class PKCS7Encoder():
 class Prpcrypt(object):
     """提供接收和推送给公众平台消息的加解密接口"""
 
-    def __init__(self,key):
+    def __init__(self,key,appid):
         #self.key = base64.b64decode(key+"=")
         self.key = key
         # 设置加解密模式为AES的CBC模式
         self.mode = AES.MODE_CBC
+        self.appid = appid
 
 
-    def encrypt(self,text,appid):
+    def encrypt(self,text):
         """对明文进行加密
         @param text: 需要加密的明文
         @return: 加密得到的字符串
         """
         # 16位随机字符串添加到明文开头
         if PY2:
-            text = self.get_random_str() + struct.pack("I",socket.htonl(len(text))) + text + appid
+            text = self.get_random_str() + struct.pack("I",socket.htonl(len(text))) + text + self.appid
         else:
             text = text.encode('utf-8')
-            text = self.get_random_str().encode('utf-8') + struct.pack("I", socket.htonl(len(text))) + text + appid.encode('utf-8')
+            text = self.get_random_str().encode('utf-8') + struct.pack("I", socket.htonl(len(text))) + text + self.appid.encode('utf-8')
         # 使用自定义的填充方式对明文进行补位填充
         pkcs7 = PKCS7Encoder()
         text = pkcs7.encode(text)
@@ -174,7 +175,7 @@ class Prpcrypt(object):
         except Exception:
             return  WXBizMsgCrypt_EncryptAES_Error,None
 
-    def decrypt(self,text,appid):
+    def decrypt(self,text):
         """对解密后的明文进行补位删除
         @param text: 密文
         @return: 删除填充补位后的明文
@@ -201,7 +202,7 @@ class Prpcrypt(object):
             from_appid = content[xml_len+4:].decode("utf8")
         except Exception:
            return  WXBizMsgCrypt_IllegalBuffer,None
-        if  from_appid != appid:
+        if  from_appid != self.appid:
             return WXBizMsgCrypt_ValidateAppid_Error,None
         return 0,xml_content
 
@@ -235,8 +236,8 @@ class WXBizMsgCrypt(object):
         #@param sNonce: 随机串，可以自己生成，也可以用URL参数的nonce
         #sEncryptMsg: 加密后的可以直接回复用户的密文，包括msg_signature, timestamp, nonce, encrypt的xml格式的字符串,
         #return：成功0，sEncryptMsg,失败返回对应的错误码None
-        pc = Prpcrypt(self.key)
-        ret,encrypt = pc.encrypt(sReplyMsg, self.appid)
+        pc = Prpcrypt(self.key, self.appid)
+        ret,encrypt = pc.encrypt(sReplyMsg)
         if ret != 0:
             return ret,None
         if timestamp is None:
@@ -268,7 +269,7 @@ class WXBizMsgCrypt(object):
             return ret, None
         if not signature == sMsgSignature:
             return WXBizMsgCrypt_ValidateSignature_Error, None
-        pc = Prpcrypt(self.key)
-        ret,xml_content = pc.decrypt(encrypt,self.appid)
+        pc = Prpcrypt(self.key, self.appid)
+        ret,xml_content = pc.decrypt(encrypt)
         return ret,xml_content
 
