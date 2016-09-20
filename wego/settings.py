@@ -6,8 +6,11 @@ wego.settings
 default setting
 """
 
-from urllib import quote
-from exceptions import InitError
+try:
+    from urllib import quote
+except ImportError:
+    from urllib.parse import quote
+from .exceptions import InitError
 import wego
 import logging
 
@@ -27,6 +30,9 @@ def init(**kwargs):
     :param MCH_ID: (optional) Mac ID get it at https://pay.weixin.qq.com/ (商户号).
     :param MCH_SECRET: (optional) MCH SECRET As same as you set at https://pay.weixin.qq.com/ (API 密钥).
     :param PAY_NOTIFY_PATH: (optional) Default notify url for wechat pay callback.
+
+    :param PUSH_TOKEN: (optional) Set at basic configuration(基本配置).
+    :param PUSH_ENCODING_AES_KEY: (optional) Set at basic configuration(基本配置).
 
     :param GET_GLOBAL_ACCESS_TOKEN: (optional) A function that return a global access token, if your application run at
             multiple servers it required. How to customized your GET_GLOBAL_ACCESS_TOKEN:
@@ -87,6 +93,7 @@ def check_settings(settings):
     # optional_couple
     optional_couple_list = [
         ['MCH_ID', 'MCH_SECRET', 'PAY_NOTIFY_PATH'],
+        ['PUSH_TOKEN', 'PUSH_ENCODING_AES_KEY'],
     ]
 
     for i in optional_couple_list:
@@ -117,6 +124,8 @@ def check_settings(settings):
 
     if not hasattr(settings['GET_GLOBAL_ACCESS_TOKEN'], '__call__'):
         raise InitError('GET_GLOBAL_ACCESS_TOKEN is not a function(GET_ACCESS_TOKEN 不是一个函数)')
+
+    # TODO 检查推送消息加解密所需依赖是否安装 PUSH_TOKEN PUSH_ENCODING_AES_KEY
 
     settings['DEBUG'] = not not settings['DEBUG']
 

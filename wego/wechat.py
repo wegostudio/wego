@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
-from exceptions import WeChatApiError, WeChatUserError
-from urllib import quote
+from .exceptions import WeChatApiError, WeChatUserError
+try:
+    from urllib import quote
+except ImportError:
+    from urllib.parse import quote
 import requests
-import json
 import hashlib
+import json
 import re
 
 
@@ -116,6 +119,24 @@ class WeChatApi(object):
         if 'errcode' in data.keys() and data['errcode'] != 0:
             raise WeChatApiError('errcode: {}, msg: {}'.format(data['errcode'], data['errmsg']))
 
+    def is_access_token_has_expired(sele, openid, access_token):
+        """
+        Determine whether the user access token has expired
+ 
+        :param openid: User openid.
+        :param access_token: function get_access_token returns.
+        :return: Raw data that wechat returns.
+        """
+
+        data = {
+            'access_token': access_token,
+            'openid': openid,
+        }
+        url = 'https://api.weixin.qq.com/sns/auth'
+        data = requests.post(url, params=data).json()
+
+        return data
+
     def get_userinfo_by_token(self, openid, access_token):
         """
         Get user info with user access token (without subscribe, language, remark and groupid).
@@ -160,9 +181,11 @@ class WeChatApi(object):
             k = 'xml'
         if type(v) is dict:
             v = ''.join([WeChatApi._make_xml(key, val) for key, val in v.iteritems()])
-        if type(v) is list:
+        elif type(v) is list:
             l = len(k)+2
             v = ''.join([WeChatApi._make_xml(k, val) for val in v])[l:(l+1)*-1]
+        elif type(v) in [str, unicode]:
+            return '<%s><![CDATA[%s]]></%s>' % (k, v, k)
         return '<%s>%s</%s>' % (k, v, k)
 
     def _analysis_xml(self, xml):
@@ -170,6 +193,8 @@ class WeChatApi(object):
         Convert the XML to dict
         """
 
+        if not xml:
+            return {}
         return {k: v for v,k in re.findall('\<.*?\>\<\!\[CDATA\[(.*?)\]\]\>\<\/(.*?)\>', xml)}
 
     def get_unifiedorder(self, data):
@@ -178,6 +203,88 @@ class WeChatApi(object):
         data = requests.post('https://api.mch.weixin.qq.com/pay/unifiedorder', data=xml).content
 
         return self._analysis_xml(data)
+
+    def get_orderquery(self, data):
+        """
+        Get order query.
+
+        :return: Raw data that wechat returns.
+        """
+
+        xml = self._make_xml(data).encode('utf-8')
+        data = requests.post('https://api.mch.weixin.qq.com/pay/orderquery', data=xml).content
+
+        return self._analysis_xml(data)
+
+    def close_order(self, data):
+        """
+        Get close_order info.
+
+        :return: Raw data that wechat returns.
+        """
+
+        xml = self._make_xml(data).encode('utf-8')
+        data = requests.post('https://api.mch.weixin.qq.com/pay/closeorder', data=xml).content
+
+        return self._analysis_xml(data)
+
+    def refund(self, data):
+        """
+        refund.
+
+        :return: Raw data that wechat returns.
+        """
+        xml = self._make_xml(data).encode('utf-8')
+        data = requests.post('https://api.mch.weixin.qq.com/secapi/pay/refund', data=xml).content
+        return self._analysis_xml(data)
+
+    def refund_query(self, data):
+        """
+        refund query
+
+        :return: Raw data that wechat returns.
+        """
+        xml = self._make_xml(data).encode('utf-8')
+        data = requests.post('https://api.mch.weixin.qq.com/pay/refundquery', data=xml).content
+        return self._analysis_xml(data)
+
+    def download_bill(self, data):
+        """
+        download bill
+
+        :return: Raw data that wechat returns.
+        """
+        xml = self._make_xml(data).encode('utf-8')
+        data = requests.post('https://api.mch.weixin.qq.com/pay/downloadbill', data=xml).content
+        return self._analysis_xml(data)
+
+    def report(self, data):
+        """
+        report
+
+        :return: Raw data that wechat returns.
+        """
+        data = requests.post('https://api.mch.weixin.qq.com/payitil/report', data=xml).content
+        return self._analysis_xml(data)
+
+    def create_group(self, name):
+        """
+        Create a user group.
+
+        :param name: Group name.
+        :return: Raw data that wechat returns.
+        """
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'group': {
+                'name': name
+            }
+        }
+        url = 'https://api.weixin.qq.com/cgi-bin/groups/create?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
 
     def get_all_groups(self):
         """
@@ -191,6 +298,22 @@ class WeChatApi(object):
         req = requests.get(url)
 
         return req.json()
+
+    def get_user_groups(self, openid):
+        """
+        Get all a user groups.
+
+        :return: Raw data that wechat returns.
+        """
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'openid': openid
+        }
+        url = "https://api.weixin.qq.com/cgi-bin/groups/getid?access_token=%s" % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
 
     def change_group_name(self, groupid, name):
         """
@@ -303,7 +426,6 @@ class WeChatApi(object):
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         url = "https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=%s" % access_token
         data = requests.get(url).json()
-        print data
 
         return data
 
@@ -323,8 +445,89 @@ class WeChatApi(object):
 
         return data
 
-    def get_materials(self, material_type, offset, count):
-        #TODO
+
+
+
+
+
+
+    def add_material(self, **kwargs):
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            "articles": [{
+                    "title": kwargs['title'],
+                    "thumb_media_id": kwargs['thumb_media_id'],
+                    "author": kwargs['author'],
+                    "digest": kwargs['digest'],
+                    "show_cover_pic": kwargs['show_cover_pic'],
+                    "content": kwargs['content'],
+                    "content_source_url": kwargs['content_source_url']
+                },
+            ]
+        }
+
+        url = 'https://api.weixin.qq.com/cgi-bin/material/add_news?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def get_material(self, media_id):
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            "media_id": media_id,
+        }
+
+        url = 'https://api.weixin.qq.com/cgi-bin/material/get_material?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def delete_material(self, media_id):
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            "media_id": media_id,
+        }
+
+        url = 'https://api.weixin.qq.com/cgi-bin/material/del_material?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def update_material(self, **kwargs):
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        data = {
+            'media_id': kwargs['media_id'],
+            'index': kwargs['index'],
+            'articles': {
+                'title': kwargs['title'],
+                'thumb_media_id': kwargs['thumb_media_id'],
+                'author': kwargs['author'],
+                'digest': kwargs['digest'],
+                'show_cover_pic': kwargs['show_cover_pic'],
+                'content': kwargs['content'],
+                'content_source_url': kwargs['content_source_url']
+            }
+        }
+
+        url = 'https://api.weixin.qq.com/cgi-bin/material/update_news?access_token=%s' % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def get_materials_count(self):
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+
+        url = 'https://api.weixin.qq.com/cgi-bin/material/get_materialcount?access_token=%s' % access_token
+        data = requests.get(url).json()
+
+        return data
+
+    def get_materials_list(self, material_type, offset, count):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {

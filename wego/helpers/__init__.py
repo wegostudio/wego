@@ -21,4 +21,4 @@ class YourHelper(wego.helper.BaseHelper):
 
 """
 
-from base_helper import BaseHelper
+from .base_helper import BaseHelper

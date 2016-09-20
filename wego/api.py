@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from exceptions import WegoApiError, WeChatUserError
+from .exceptions import WegoApiError, WeChatUserError
 import wego
 import json
 import time
@@ -141,6 +141,19 @@ class WegoApi(object):
         helper.set_session('wx_access_token_expires_at', time.time() + data['expires_in'] - 180)
         helper.set_session('wx_refresh_token', data['refresh_token'])
 
+    def verification_token(self, openid, access_token):
+        """
+        Determine whether the user access token has expired
+
+        :param openid: User openid.
+        :param access_token: function get_access_token returns.
+        :return: Bool.
+        """
+
+        data = self.wechat.is_access_token_has_expired(openid, access_token)
+
+        return data['errmsg'] == 'ok'
+
     def get_unifiedorder_info(self, **kwargs):
         """ 
         Unifiedorder settings, get wechat config at https://api.mch.weixin.qq.com/pay/unifiedorder
@@ -183,12 +196,23 @@ class WegoApi(object):
             'notify_url': self.settings.PAY_NOTIFY_URL,
             'trade_type': 'JSAPI',
         }
+
         data = dict(default_settings, **kwargs)
         if self.settings.DEBUG:
             data['total_fee'] = 1
         data['sign'] = self.make_sign(data)
 
-        self._check_unifiedorder_params(data)
+        self._check_params(
+            data,
+            'appid',
+            'mch_id',
+            'nonce_str',
+            'body',
+            'out_trade_no',
+            'total_fee',
+            'spbill_create_ip',
+            'notify_url',
+            'trade_type')
 
         order_info = self.wechat.get_unifiedorder(data)
 
@@ -203,26 +227,219 @@ class WegoApi(object):
 
         return data
 
-    def _check_unifiedorder_params(self, params):
+
+    def get_order_query(self, out_trade_no=None, transaction_id=None):
+        """
+        Order query setting, get wechat config at https://api.mch.weixin.qq.com/pay/orderquery
+        Choose one in out_trade_no and transaction_id as parameter pass to this function
+
+        :param out_trade_no | transaction_id: WeChat order number, priority in use. Merchants system internal order number, when didn't provide transaction_id need to pass this.
+
+        :return: {...}
+        """
+
+        default_settings = {
+            'appid': self.settings.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+            'nonce_str': self._get_random_code(),
+        }
+        if transaction_id is None:
+            default_settings['out_trade_no'] = out_trade_no
+        elif out_trade_no is None:
+            default_settings['transaction_id'] = transaction_id
+        else:
+            raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param='out_trade_no|transaction_id'))
+
+        default_settings['sign'] = self.make_sign(default_settings)
+        data = self.wechat.get_orderquery(default_settings)
+
+        return data
+
+    def close_order(self, out_trade_no):
+        """
+        Close order, get wechat config at https://api.mch.weixin.qq.com/pay/closeorder
+
+        :param out_trade_no: Merchant order number within the system
+
+        :return: {...}
+        """
+
+        data = {
+            'appid': self.settings.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+            'nonce_str': self._get_random_code(),
+            'out_trade_no': out_trade_no,
+        }
+        data['sign'] = self.make_sign(data)
+        data = self.wechat.close_order(data)
+
+        return data
+
+    def refund(self, **kwargs):
+        """
+        Merchant order number within the system, get wechat config at https://api.mch.weixin.qq.com/secapi/pay/refund
+
+        Following parameters are necessary, you must be included in the kwargs and you must follow the format below as the parameters's key
+
+        :param out_trade_no | transaction_id: WeChat order number, priority in use. Merchants system internal order number, when didn't provide transaction_id need to pass this.
+
+        :param out_refund_no: Merchants system within the refund number, merchants within the system, only the same refund order request only a back many times
+
+        :param total_fee: Total amount of orders, the unit for points, only as an integer, see the payment amount
+
+        :param refund_fee: Refund the total amount, total amount of the order, the unit for points, only as an integer, see the payment amount
+
+        :param op_user_id: Operator account, the default for the merchants
+
+        :return: {...}
+        """
+
+        default_settings = {
+            'appid': self.settings.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+            'nonce_str': self._get_random_code(),
+        }
+        try:
+            param = kwargs['op_user_id']
+        except:
+            kwargs['op_user_id'] = self.settings.MCH_ID
+ 
+        data = dict(default_settings, **kwargs)
+        if self.settings.DEBUG:
+            data['total_fee'] = 1
+        data['sign'] = self.make_sign(data)
+        self._check_params(
+            data,
+            'appid',
+            'mch_id',
+            'nonce_str',
+            'sign',
+            'out_refund_no',
+            'total_fee',
+            'refund_fee',
+            'op_user_id')
+        try:
+            param1 = kwargs['out_trade_no']
+        except:
+            try:
+                param2 = kwargs['transaction_id']
+            except:
+                raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param='out_trade_on|transaction_id'))
+
+        data = self.wechat.refund(data)
+
+        return data
+
+    def refund_query(self, **kwargs):
+        """
+        get wechat config at https://api.mch.weixin.qq.com/pay/refundquery
+
+        :param transaction_id | out_trade_no | out_refund_no | refund_id: One out of four
+        :return: dict {...}
+        """
+
+        default_settings = {
+            'appid': self.settings.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+            'nonce_str': self._get_random_code(),
+        }
+
+        # check param
+        flag = False
+        keys = ['transaction_id', 'out_trade_no', 'out_refund_no', 'refund_id']
+        for k, v in kwargs.items():
+            if k in keys:
+                flag = True
+                break
+        if not flag:
+            raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param='out_trade_on|transaction_id|out_refund_no|refund_id'))
+
+        data = dict(default_settings, **kwargs)
+        data['sign'] = self.make_sign(data)
+        data = self.wechat.refund_query(data)
+
+        return data
+
+    def download_bill(self, **kwargs):
+        """
+        get wechat config at https://api.mch.weixin.qq.com/pay/downloadbill
+
+        :param bill_date:
+
+        :param bill_type:
+
+        :return: dict {...}
+        """
+
+        default_settings = {
+            'appid': self.settings.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+            'nonce_str': self._get_random_code(),
+        }
+
+        data = dict(default_settings, **kwargs)
+        data['sign'] = self.make_sign(data)
+        self._check_params(
+            data,
+            'appid',
+            'mch_id',
+            'nonce_str',
+            'sign',
+            'bill_date',
+            'bill_type')
+
+        data = self.wechat.download_bill(data)
+
+        return data
+
+    def report(self, **kwargs):
+        """
+        get wechat config at https://api.mch.weixin.qq.com/payitil/report
+
+        :param interface_url:
+        :param execute_time:
+        :param return_code:
+        :param result_code:
+        :param user_ip:
+        :return: dict{...}
+        """
+
+        default_settings = {
+            'appid': self.settings.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+            'nonce_str': self._get_random_code(),
+        }
+
+        data = dict(default_settings, **kwargs)
+        data['sign'] = self.make_sign(data)
+
+        self._check_params(
+            data,
+            'appid',
+            'mch_id',
+            'nonce_str',
+            'sign',
+            'interface_url',
+            'execute_time',
+            'return_code',
+            'result_code',
+            'user_ip'
+        )
+
+        data = self.wechat.report(data)
+
+        return data
+        
+ 
+    def _check_params(self, params, *args):
         """
         Check if params is available
 
         :param params: a dict.
         :return: None
         """
-        required_list = [
-            'appid',
-            'mch_id',
-            'nonce_str',
-            'body',
-            'out_trade_no',
-            'total_fee',
-            'spbill_create_ip',
-            'notify_url',
-            'trade_type'
-        ]
 
-        for i in required_list:
+        for i in args:
             if i not in params or not params[i]:
                 raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param=i))
 
@@ -265,6 +482,16 @@ class WegoApi(object):
 
         data = self.wechat.get_all_groups()
         return {i.pop('id'): i for i in data['groups']}
+
+    def get_user_groups(self, openid):
+        """
+        Get user groups.
+
+        :return: :dict: {'your_group_id': {'name':'str', 'count':'int'}}
+        """
+
+        data = self.wechat.get_user_groups(openid)
+        return data
 
     def _get_groupid(self, group):
         """
@@ -361,27 +588,45 @@ class WegoApi(object):
 
         return not self.wechat.del_conditional_menu(int(target))['errcode']
 
-    def analysis_push(self, raw_xml):
+    def analysis_push(self, request):
         """
         Analysis xml to dict and set wego push type.
-        Wego defind WeChatPush type:
+        Wego defind WeChatPush type (which can reply has checked):
+            
             -- msg --
+
             text ✓
+
             image ✓
+
             voice ✓
+
             video ✓
+
             shortvideo ✓
+
             location ✓
+
             link ✓
+
             -- event --
+
             subscribe ✓
+
             unsubscribe
+
             scancode_push
+
             scancode_waitmsg ✓
+
             scan
+
             scan_subscribe
+            
             user_location ✓
+            
             click ✓
+            
             view
 
         :param raw_xml: Raw xml.
@@ -389,11 +634,57 @@ class WegoApi(object):
         :rtype: WeChatPush.
         """
 
+        helper = self.settings.HELPER(request)
+        raw_xml = helper.get_body()
+        crypto = None
+        nonce = None
+
+        if self.settings.PUSH_TOKEN:
+            if not hasattr(self, 'push_crypto'):
+                from .lib.WEGOBizMsgCrypt import WXBizMsgCrypt
+                self.push_crypto = WXBizMsgCrypt(self.settings.PUSH_TOKEN, self.settings.PUSH_ENCODING_AES_KEY, self.settings.APP_ID)
+
+            crypto = self.push_crypto
+            msg_sign = helper.get_params()['msg_signature']
+            timestamp = helper.get_params()['timestamp']
+            nonce = helper.get_params()['nonce']
+            ret, raw_xml = self.push_crypto.DecryptMsg(raw_xml, msg_sign, timestamp, nonce)
+
         data = self.wechat._analysis_xml(raw_xml)
 
-        return WeChatPush(data)
+        return WeChatPush(data, crypto, nonce)
 
-    def get_materials(self, material_type, offset, count):
+    def add_material(self, **kwargs):
+
+        data = self.wechat.add_material(**kwargs)
+
+        return data
+
+    def get_material(self, media_id):
+
+        data = self.wechat.get_material(media_id)
+
+        return data
+
+    def delete_material(self, media_id):
+
+        data = self.wechat.delete_material(media_id)
+
+        return data
+
+    def update_material(self, **kwargs):
+
+        data = self.wechat.update_material(**kwargs)
+
+        return data
+
+    def get_materials_count(self):
+
+        data = self.wechat.get_materials_count()
+
+        return data
+
+    def get_materials_list(self, material_type, offset, count):
 
         data = self.wechat.get_materials(material_type, offset, count)
 
@@ -587,9 +878,11 @@ class WeChatPush(object):
     """
     """
 
-    def __init__(self, data):
+    def __init__(self, data, crypto=None, nonce=None):
 
         self.data = data
+        self.crypto = crypto
+        self.nonce = nonce
 
         if data['MsgType'] == 'event':
             if data['Event'] == 'subscribe' and data.has_key('Ticket'):
@@ -600,35 +893,40 @@ class WeChatPush(object):
                 self.type = data['Event'].lower()
         else:
             self.type = data['MsgType']
+
         self.from_user = data['FromUserName']
         self.to_user = data['ToUserName']
 
+    def return_xml(self, data):
+
+        data['ToUserName'] = self.from_user
+        data['FromUserName'] = self.to_user
+        data['CreateTime'] = int(time.time())
+
+        xml = wego.wechat.WeChatApi._make_xml(data)
+
+        if self.nonce:
+            ret, xml = self.crypto.EncryptMsg(xml, self.nonce)
+
+        return xml
+
     def reply_text(self, text):
 
-        return wego.wechat.WeChatApi._make_xml({
-            'ToUserName': self.from_user,
-            'FromUserName': self.to_user,
-            'CreateTime': int(time.time()),
+        return self.return_xml({
             'MsgType': 'text',
             'Content': str(text)
         })
 
     def reply_image(self, image):
 
-        return wego.wechat.WeChatApi._make_xml({
-            'ToUserName': self.from_user,
-            'FromUserName': self.to_user,
-            'CreateTime': int(time.time()),
+        return self.return_xml({
             'MsgType': 'image',
             'Image': {'MediaId': image}
         })
 
     def reply_voice(self, voice):
 
-        return wego.wechat.WeChatApi._make_xml({
-            'ToUserName': self.from_user,
-            'FromUserName': self.to_user,
-            'CreateTime': int(time.time()),
+        return self.return_xml({
             'MsgType': 'voice',
             'Voice': {'MediaId': voice}
         })
@@ -644,10 +942,7 @@ class WeChatPush(object):
         if video.has_key('description'):
             data['Description'] = video['description']
 
-        return wego.wechat.WeChatApi._make_xml({
-            'ToUserName': self.from_user,
-            'FromUserName': self.to_user,
-            'CreateTime': int(time.time()),
+        return self.return_xml({
             'MsgType': 'video',
             'Video': data
         })
@@ -663,10 +958,7 @@ class WeChatPush(object):
         if music.has_key('thumb_media_id'):
             data['ThumbMediaId'] = music['thumb_media_id']
 
-        return wego.wechat.WeChatApi._make_xml({
-            'ToUserName': self.from_user,
-            'FromUserName': self.to_user,
-            'CreateTime': int(time.time()),
+        return self.return_xml({
             'MsgType': 'music',
             'Music': data
         })
@@ -686,10 +978,7 @@ class WeChatPush(object):
                 new_dict['Url'] = i['url'],
             data.append(new_dict)
 
-        return wego.wechat.WeChatApi._make_xml({
-            'ToUserName': self.from_user,
-            'FromUserName': self.to_user,
-            'CreateTime': int(time.time()),
+        return self.return_xml({
             'MsgType': 'news',
             'ArticleCount': len(news),
             'Articles': {
