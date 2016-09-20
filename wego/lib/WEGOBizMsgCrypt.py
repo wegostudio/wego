@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- encoding:utf-8 -*-
+# -*- encoding:utf-8 -*-
 """
 基于官方版本修改为同时支持 python2、python3 并整理入一个文件内。
 部分参考自 https://github.com/chenjianjx/wechat-encrypt-python3
@@ -38,12 +38,15 @@ WXBizMsgCrypt_EncodeBase64_Error = -40009
 WXBizMsgCrypt_DecodeBase64_Error = -40010
 WXBizMsgCrypt_GenReturnXml_Error = -40011
 
+
 class FormatException(Exception):
     pass
+
 
 def throw_exception(message, exception_class=FormatException):
     """my define raise exception function"""
     raise exception_class(message)
+
 
 class SHA1:
     """计算公众平台的消息签名接口"""
@@ -61,9 +64,9 @@ class SHA1:
             sortlist.sort()
             sha = hashlib.sha1()
             sha.update("".join(sortlist).encode('utf-8'))
-            return  WXBizMsgCrypt_OK, sha.hexdigest()
+            return WXBizMsgCrypt_OK, sha.hexdigest()
         except Exception:
-            return  WXBizMsgCrypt_ComputeSignature_Error, None
+            return WXBizMsgCrypt_ComputeSignature_Error, None
 
 
 class XMLParse:
@@ -84,12 +87,11 @@ class XMLParse:
         """
         try:
             xml_tree = ET.fromstring(xmltext)
-            encrypt  = xml_tree.find("Encrypt")
-            touser_name    = xml_tree.find("ToUserName")
-            return  WXBizMsgCrypt_OK, encrypt.text, touser_name.text
+            encrypt = xml_tree.find("Encrypt")
+            touser_name = xml_tree.find("ToUserName")
+            return WXBizMsgCrypt_OK, encrypt.text, touser_name.text
         except Exception:
-            #print e
-            return  WXBizMsgCrypt_ParseXml_Error,None,None
+            return WXBizMsgCrypt_ParseXml_Error, None, None
 
     def generate(self, encrypt, signature, timestamp, nonce):
         """生成xml消息
@@ -104,7 +106,7 @@ class XMLParse:
             'msg_signaturet': signature,
             'timestamp': timestamp,
             'nonce': nonce,
-         }
+        }
         resp_xml = self.AES_TEXT_RESPONSE_TEMPLATE % resp_dict
         return resp_xml
 
@@ -113,6 +115,7 @@ class PKCS7Encoder():
     """提供基于PKCS7算法的加解密接口"""
 
     block_size = 32
+
     def encode(self, text):
         """ 对需要加密的明文进行填充补位
         @param text: 需要进行填充补位操作的明文
@@ -136,7 +139,7 @@ class PKCS7Encoder():
         @return: 删除补位字符后的明文
         """
         pad = ord(decrypted[-1])
-        if pad<1 or pad >32:
+        if pad < 1 or pad > 32:
             pad = 0
         return decrypted[:-pad]
 
@@ -144,15 +147,14 @@ class PKCS7Encoder():
 class Prpcrypt(object):
     """提供接收和推送给公众平台消息的加解密接口"""
 
-    def __init__(self,key,appid):
-        #self.key = base64.b64decode(key+"=")
+    def __init__(self, key, appid):
+        # self.key = base64.b64decode(key+"=")
         self.key = key
         # 设置加解密模式为AES的CBC模式
         self.mode = AES.MODE_CBC
         self.appid = appid
 
-
-    def encrypt(self,text):
+    def encrypt(self, text):
         """对明文进行加密
         @param text: 需要加密的明文
         @return: 加密得到的字符串
@@ -160,51 +162,51 @@ class Prpcrypt(object):
         # 16位随机字符串添加到明文开头
         text = text.encode('utf-8')
         if PY2:
-            text = self.get_random_str() + struct.pack("I",socket.htonl(len(text))) + text + self.appid
+            text = self.get_random_str() + struct.pack("I", socket.htonl(len(text))) + text + self.appid
         else:
             text = self.get_random_str().encode('utf-8') + struct.pack("I", socket.htonl(len(text))) + text + self.appid.encode('utf-8')
         # 使用自定义的填充方式对明文进行补位填充
         pkcs7 = PKCS7Encoder()
         text = pkcs7.encode(text)
         # 加密
-        cryptor = AES.new(self.key,self.mode,self.key[:16])
+        cryptor = AES.new(self.key, self.mode, self.key[:16])
         try:
             ciphertext = cryptor.encrypt(text)
             # 使用BASE64对加密后的字符串进行编码
             return WXBizMsgCrypt_OK, base64.b64encode(ciphertext).decode("utf8")
         except Exception:
-            return  WXBizMsgCrypt_EncryptAES_Error,None
+            return WXBizMsgCrypt_EncryptAES_Error, None
 
-    def decrypt(self,text):
+    def decrypt(self, text):
         """对解密后的明文进行补位删除
         @param text: 密文
         @return: 删除填充补位后的明文
         """
         try:
-            cryptor = AES.new(self.key,self.mode,self.key[:16])
+            cryptor = AES.new(self.key, self.mode, self.key[:16])
             # 使用BASE64对密文进行解码，然后AES-CBC解密
-            plain_text  = cryptor.decrypt(base64.b64decode(text))
+            plain_text = cryptor.decrypt(base64.b64decode(text))
         except Exception:
-            #print e
-            return  WXBizMsgCrypt_DecryptAES_Error,None
+            # print e
+            return WXBizMsgCrypt_DecryptAES_Error, None
         try:
             if PY2:
                 pad = ord(plain_text[-1])
             else:
                 pad = plain_text[-1]
             # 去掉补位字符串
-            #pkcs7 = PKCS7Encoder()
-            #plain_text = pkcs7.encode(plain_text)
+            # pkcs7 = PKCS7Encoder()
+            # plain_text = pkcs7.encode(plain_text)
             # 去除16位随机字符串
             content = plain_text[16:-pad]
-            xml_len = socket.ntohl(struct.unpack("I",content[ : 4])[0])
-            xml_content = content[4 : xml_len+4]
-            from_appid = content[xml_len+4:].decode("utf8")
+            xml_len = socket.ntohl(struct.unpack("I", content[: 4])[0])
+            xml_content = content[4: xml_len + 4]
+            from_appid = content[xml_len + 4:].decode("utf8")
         except Exception:
-           return  WXBizMsgCrypt_IllegalBuffer,None
-        if  from_appid != self.appid:
-            return WXBizMsgCrypt_ValidateAppid_Error,None
-        return 0,xml_content
+            return WXBizMsgCrypt_IllegalBuffer, None
+        if from_appid != self.appid:
+            return WXBizMsgCrypt_ValidateAppid_Error, None
+        return 0, xml_content
 
     def get_random_str(self):
         """ 随机生成16位字符串
@@ -216,39 +218,41 @@ class Prpcrypt(object):
             rule = string.ascii_letters + string.digits
         return "".join(random.sample(rule, 16))
 
+
 class WXBizMsgCrypt(object):
     # 构造函数
     # @param sToken: 公众平台上，开发者设置的Token
     # @param sEncodingAESKey: 公众平台上，开发者设置的EncodingAESKey
     # @param sAppId: 企业号的AppId
-    def __init__(self,sToken,sEncodingAESKey,sAppId):
+    def __init__(self, sToken, sEncodingAESKey, sAppId):
         try:
-            self.key = base64.b64decode(sEncodingAESKey+"=")
+            self.key = base64.b64decode(sEncodingAESKey + "=")
             assert len(self.key) == 32
         except:
             throw_exception("[error]: EncodingAESKey unvalid !", FormatException)
-           # return WXBizMsgCrypt_IllegalAesKey)
+            # return WXBizMsgCrypt_IllegalAesKey)
         self.token = sToken
         self.appid = sAppId
 
-    def EncryptMsg(self, sReplyMsg, sNonce, timestamp = None):
+    def EncryptMsg(self, sReplyMsg, sNonce, timestamp=None):
         # 将公众号回复用户的消息加密打包
         # @param sReplyMsg: 企业号待回复用户的消息，xml格式的字符串
         # @param sTimeStamp: 时间戳，可以自己生成，也可以用URL参数的timestamp,如为None则自动用当前时间
         # @param sNonce: 随机串，可以自己生成，也可以用URL参数的nonce
-        # sEncryptMsg: 加密后的可以直接回复用户的密文，包括msg_signature, timestamp, nonce, encrypt的xml格式的字符串,
+        # sEncryptMsg: 加密后的可以直接回复用户的密文，
+        # 包括msg_signature, timestamp, nonce, encrypt的xml格式的字符串
         # return：成功0，sEncryptMsg,失败返回对应的错误码None
         pc = Prpcrypt(self.key, self.appid)
-        ret,encrypt = pc.encrypt(sReplyMsg)
+        ret, encrypt = pc.encrypt(sReplyMsg)
         if ret != 0:
-            return ret,None
+            return ret, None
         if timestamp is None:
             timestamp = str(int(time.time()))
         # 生成安全签名
         sha1 = SHA1()
-        ret,signature = sha1.getSHA1(self.token, timestamp, sNonce, encrypt)
+        ret, signature = sha1.getSHA1(self.token, timestamp, sNonce, encrypt)
         if ret != 0:
-            return ret,None
+            return ret, None
         xmlParse = XMLParse()
         return ret, xmlParse.generate(encrypt, signature, timestamp, sNonce)
 
@@ -262,18 +266,17 @@ class WXBizMsgCrypt(object):
         # @return: 成功0，失败返回对应的错误码
         # 验证安全签名
         xmlParse = XMLParse()
-        ret,encrypt,touser_name = xmlParse.extract(sPostData)
+        ret, encrypt, touser_name = xmlParse.extract(sPostData)
         if ret != 0:
             return ret, None
         sha1 = SHA1()
-        ret,signature = sha1.getSHA1(self.token, sTimeStamp, sNonce, encrypt)
-        if ret  != 0:
+        ret, signature = sha1.getSHA1(self.token, sTimeStamp, sNonce, encrypt)
+        if ret != 0:
             return ret, None
         if not signature == sMsgSignature:
             return WXBizMsgCrypt_ValidateSignature_Error, None
         pc = Prpcrypt(self.key, self.appid)
-        ret,xml_content = pc.decrypt(encrypt)
+        ret, xml_content = pc.decrypt(encrypt)
         if not PY2:
             xml_content = xml_content.decode('utf-8')
-        return ret,xml_content
-
+        return ret, xml_content
