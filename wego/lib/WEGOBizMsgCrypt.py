@@ -158,10 +158,10 @@ class Prpcrypt(object):
         @return: 加密得到的字符串
         """
         # 16位随机字符串添加到明文开头
+        text = text.encode('utf-8')
         if PY2:
             text = self.get_random_str() + struct.pack("I",socket.htonl(len(text))) + text + self.appid
         else:
-            text = text.encode('utf-8')
             text = self.get_random_str().encode('utf-8') + struct.pack("I", socket.htonl(len(text))) + text + self.appid.encode('utf-8')
         # 使用自定义的填充方式对明文进行补位填充
         pkcs7 = PKCS7Encoder()
@@ -210,13 +210,15 @@ class Prpcrypt(object):
         """ 随机生成16位字符串
         @return: 16位字符串
         """
-        rule = string.ascii_letters + string.digits
-        str = random.sample(rule, 16)
-        return "".join(str)
+        if PY2:
+            rule = string.letters + string.digits
+        else:
+            rule = string.ascii_letters + string.digits
+        return "".join(random.sample(rule, 16))
 
 class WXBizMsgCrypt(object):
-    #构造函数
-    #@param sToken: 公众平台上，开发者设置的Token
+    # 构造函数
+    # @param sToken: 公众平台上，开发者设置的Token
     # @param sEncodingAESKey: 公众平台上，开发者设置的EncodingAESKey
     # @param sAppId: 企业号的AppId
     def __init__(self,sToken,sEncodingAESKey,sAppId):
@@ -225,17 +227,17 @@ class WXBizMsgCrypt(object):
             assert len(self.key) == 32
         except:
             throw_exception("[error]: EncodingAESKey unvalid !", FormatException)
-           #return WXBizMsgCrypt_IllegalAesKey)
+           # return WXBizMsgCrypt_IllegalAesKey)
         self.token = sToken
         self.appid = sAppId
 
     def EncryptMsg(self, sReplyMsg, sNonce, timestamp = None):
-        #将公众号回复用户的消息加密打包
-        #@param sReplyMsg: 企业号待回复用户的消息，xml格式的字符串
-        #@param sTimeStamp: 时间戳，可以自己生成，也可以用URL参数的timestamp,如为None则自动用当前时间
-        #@param sNonce: 随机串，可以自己生成，也可以用URL参数的nonce
-        #sEncryptMsg: 加密后的可以直接回复用户的密文，包括msg_signature, timestamp, nonce, encrypt的xml格式的字符串,
-        #return：成功0，sEncryptMsg,失败返回对应的错误码None
+        # 将公众号回复用户的消息加密打包
+        # @param sReplyMsg: 企业号待回复用户的消息，xml格式的字符串
+        # @param sTimeStamp: 时间戳，可以自己生成，也可以用URL参数的timestamp,如为None则自动用当前时间
+        # @param sNonce: 随机串，可以自己生成，也可以用URL参数的nonce
+        # sEncryptMsg: 加密后的可以直接回复用户的密文，包括msg_signature, timestamp, nonce, encrypt的xml格式的字符串,
+        # return：成功0，sEncryptMsg,失败返回对应的错误码None
         pc = Prpcrypt(self.key, self.appid)
         ret,encrypt = pc.encrypt(sReplyMsg)
         if ret != 0:
@@ -248,7 +250,7 @@ class WXBizMsgCrypt(object):
         if ret != 0:
             return ret,None
         xmlParse = XMLParse()
-        return ret,xmlParse.generate(encrypt, signature, timestamp, sNonce)
+        return ret, xmlParse.generate(encrypt, signature, timestamp, sNonce)
 
     def DecryptMsg(self, sPostData, sMsgSignature, sTimeStamp, sNonce):
         # 检验消息的真实性，并且获取解密后的明文
@@ -256,9 +258,9 @@ class WXBizMsgCrypt(object):
         # @param sTimeStamp: 时间戳，对应URL参数的timestamp
         # @param sNonce: 随机串，对应URL参数的nonce
         # @param sPostData: 密文，对应POST请求的数据
-        #  xml_content: 解密后的原文，当return返回0时有效
+        # xml_content: 解密后的原文，当return返回0时有效
         # @return: 成功0，失败返回对应的错误码
-         # 验证安全签名
+        # 验证安全签名
         xmlParse = XMLParse()
         ret,encrypt,touser_name = xmlParse.extract(sPostData)
         if ret != 0:
@@ -271,5 +273,7 @@ class WXBizMsgCrypt(object):
             return WXBizMsgCrypt_ValidateSignature_Error, None
         pc = Prpcrypt(self.key, self.appid)
         ret,xml_content = pc.decrypt(encrypt)
+        if not PY2:
+            xml_content = xml_content.decode('utf-8')
         return ret,xml_content
 

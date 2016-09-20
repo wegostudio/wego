@@ -180,11 +180,12 @@ class WeChatApi(object):
             v = k
             k = 'xml'
         if type(v) is dict:
-            v = ''.join([WeChatApi._make_xml(key, val) for key, val in v.iteritems()])
+            v = ''.join([WeChatApi._make_xml(key, val) for key, val in v.items()])
         elif type(v) is list:
             l = len(k)+2
             v = ''.join([WeChatApi._make_xml(k, val) for val in v])[l:(l+1)*-1]
-        elif type(v) in [str, unicode]:
+        # TODO elif type(v) in [str, unicode]:
+        else:
             return '<%s><![CDATA[%s]]></%s>' % (k, v, k)
         return '<%s>%s</%s>' % (k, v, k)
 

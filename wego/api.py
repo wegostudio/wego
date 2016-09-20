@@ -513,7 +513,7 @@ class WegoApi(object):
             else:
                 raise WegoApiError(u'Without this group(没有这个群组)')
 
-        if not groups.has_key(groupid):
+        if not groupid in groups:
             raise WegoApiError(u'Without this group(没有这个群组)')
 
         return groupid
@@ -566,18 +566,18 @@ class WegoApi(object):
             'button': [i.json for i in args]
         }
 
-        if kwargs.has_key('match'):
+        if 'match' in kwargs:
             data['matchrule'] = kwargs['match'].json
             data = self.wechat.create_conditional_menu(data)
         else:
             data = self.wechat.create_menu(data)
 
-        return not data['errcode'] if data.has_key('errcode') else data['menuid']
+        return not data['errcode'] if 'errcode' in data else data['menuid']
 
     def get_menus(self):
 
         data = self.wechat.get_menus()
-        if data.has_key('errcode') and data['errcode'] == 46003:
+        if 'errcode' in data and data['errcode'] == 46003:
             return {'menu':{}}
         return data
 
@@ -724,7 +724,7 @@ class WeChatPush(object):
         self.nonce = nonce
 
         if data['MsgType'] == 'event':
-            if data['Event'] == 'subscribe' and data.has_key('Ticket'):
+            if data['Event'] == 'subscribe' and 'Ticket' in data:
                 self.type = 'scan_subcribe'
             elif data['Event'] == 'LOCATION':
                 self.type = 'user_location'
@@ -776,9 +776,9 @@ class WeChatPush(object):
         data = {
             'MediaId': video['media_id'] 
         }
-        if video.has_key('title'):
+        if 'title' in video:
             data['Title'] = video['title']
-        if video.has_key('description'):
+        if 'description' in video:
             data['Description'] = video['description']
 
         return self.return_xml({
@@ -794,7 +794,7 @@ class WeChatPush(object):
             'MusicUrl': music['music_url'],
             'HQMusicUrl': music['hq_music_url'],
         }
-        if music.has_key('thumb_media_id'):
+        if 'thumb_media_id' in music:
             data['ThumbMediaId'] = music['thumb_media_id']
 
         return self.return_xml({
@@ -807,13 +807,13 @@ class WeChatPush(object):
         data = []
         for i in news:
             new_dict = {}
-            if i.has_key('title'):
+            if 'title' in i:
                 new_dict['Title'] = i['title'],
-            if i.has_key('description'):
+            if 'description' in i:
                 new_dict['Description'] = i['description'],
-            if i.has_key('pic_url'):
+            if 'pic_url' in i:
                 new_dict['PicUrl'] = i['pic_url'],
-            if i.has_key('url'):
+            if 'url' in i:
                 new_dict['Url'] = i['url'],
             data.append(new_dict)
 
@@ -844,10 +844,10 @@ class WeChatUser(object):
         if key in ext_userinfo and not self.is_upgrade:
             self.get_ext_userinfo()
 
-        if key == 'group' and not self.data.has_key(key):
+        if key == 'group' and not key in self.data:
             self.data['group'] = self.wego.get_groups()[self.groupid]
 
-        if self.data.has_key(key):
+        if key in self.data:
             return self.data[key]
         return ''
 
@@ -872,7 +872,7 @@ class WeChatUser(object):
                     raise WeChatUserError(u'Without this group(没有这个群组)')
 
             groupid = value 
-            if not groups.has_key(groupid):
+            if not groupid in groups:
                 raise WeChatUserError(u'Without this group(没有这个群组)')
 
             self.wego.change_user_group(groupid)
