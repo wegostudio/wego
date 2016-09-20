@@ -641,7 +641,7 @@ class WegoApi(object):
 
         if self.settings.PUSH_TOKEN:
             if not hasattr(self, 'push_crypto'):
-                from lib.WEGOBizMsgCrypt import WXBizMsgCrypt
+                from .lib.WEGOBizMsgCrypt import WXBizMsgCrypt
                 self.push_crypto = WXBizMsgCrypt(self.settings.PUSH_TOKEN, self.settings.PUSH_ENCODING_AES_KEY, self.settings.APP_ID)
 
             crypto = self.push_crypto

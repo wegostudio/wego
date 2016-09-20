@@ -193,6 +193,8 @@ class WeChatApi(object):
         Convert the XML to dict
         """
 
+        if not xml:
+            return {}
         return {k: v for v,k in re.findall('\<.*?\>\<\!\[CDATA\[(.*?)\]\]\>\<\/(.*?)\>', xml)}
 
     def get_unifiedorder(self, data):

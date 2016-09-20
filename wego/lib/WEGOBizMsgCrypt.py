@@ -13,12 +13,12 @@ import random
 import hashlib
 import time
 import struct
-from Crypto.Cipher import AES
+try:
+    from Crypto.Cipher import AES
+except ImportError:
+    print ('please install Crypto at first: $ pip install pycrypto')
 import xml.etree.cElementTree as ET
-import sys
 import socket
-reload(sys)
-sys.setdefaultencoding('utf-8')
 
 
 WXBizMsgCrypt_OK = 0
@@ -62,10 +62,9 @@ class SHA1:
             sortlist = [token, timestamp, nonce, encrypt]
             sortlist.sort()
             sha = hashlib.sha1()
-            sha.update("".join(sortlist))
+            sha.update("".join(sortlist).encode('utf-8'))
             return  WXBizMsgCrypt_OK, sha.hexdigest()
-        except Exception,e:
-            #print e
+        except Exception:
             return  WXBizMsgCrypt_ComputeSignature_Error, None
 
 
@@ -90,7 +89,7 @@ class XMLParse:
             encrypt  = xml_tree.find("Encrypt")
             touser_name    = xml_tree.find("ToUserName")
             return  WXBizMsgCrypt_OK, encrypt.text, touser_name.text
-        except Exception,e:
+        except Exception:
             #print e
             return  WXBizMsgCrypt_ParseXml_Error,None,None
 
@@ -167,7 +166,7 @@ class Prpcrypt(object):
             ciphertext = cryptor.encrypt(text)
             # 使用BASE64对加密后的字符串进行编码
             return WXBizMsgCrypt_OK, base64.b64encode(ciphertext)
-        except Exception,e:
+        except Exception:
             #print e
             return  WXBizMsgCrypt_EncryptAES_Error,None
 
@@ -180,22 +179,25 @@ class Prpcrypt(object):
             cryptor = AES.new(self.key,self.mode,self.key[:16])
             # 使用BASE64对密文进行解码，然后AES-CBC解密
             plain_text  = cryptor.decrypt(base64.b64decode(text))
-        except Exception,e:
+        except Exception:
             #print e
             return  WXBizMsgCrypt_DecryptAES_Error,None
+        #try:
         try:
             pad = ord(plain_text[-1])
-            # 去掉补位字符串
-            #pkcs7 = PKCS7Encoder()
-            #plain_text = pkcs7.encode(plain_text)
-            # 去除16位随机字符串
-            content = plain_text[16:-pad]
-            xml_len = socket.ntohl(struct.unpack("I",content[ : 4])[0])
-            xml_content = content[4 : xml_len+4]
-            from_appid = content[xml_len+4:]
-        except Exception,e:
+        except TypeError:
+            pad = plain_text[-1]
+        # 去掉补位字符串
+        #pkcs7 = PKCS7Encoder()
+        #plain_text = pkcs7.encode(plain_text)
+        # 去除16位随机字符串
+        content = plain_text[16:-pad]
+        xml_len = socket.ntohl(struct.unpack("I",content[ : 4])[0])
+        xml_content = content[4 : xml_len+4]
+        from_appid = content[xml_len+4:]
+        #except Exception:
             #print e
-            return  WXBizMsgCrypt_IllegalBuffer,None
+        #    return  WXBizMsgCrypt_IllegalBuffer,None
         if  from_appid != appid:
             return WXBizMsgCrypt_ValidateAppid_Error,None
         return 0,xml_content

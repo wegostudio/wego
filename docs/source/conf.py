@@ -21,7 +21,7 @@ import sys
 try:
     import solar_theme
 except:
-    print 'please install sphinx_rtd_theme at first: $ pip install solar-theme'
+    print('please install sphinx_rtd_theme at first: $ pip install solar-theme')
 sys.path.insert(0, os.path.abspath('../..'))
 
 # -- General configuration ------------------------------------------------
