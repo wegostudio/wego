@@ -724,6 +724,167 @@ class WegoApi(object):
         # TODO 容错
         return data['short_url']
 
+    
+    def get_wechat_servers_list(self):
+        """
+        Get wechat servers list
+        
+        :return: :list
+        """
+
+        data = self.wechat.get_wechat_servers_list()    
+        
+        return data
+ 
+       
+    def check_personalized_menu_match(self, user_id):
+        """
+        Check whether personalized menu match is correct.
+        
+        :param data:user_id
+        :return: :dict
+        """
+    
+        data = self.wechat.check_personalized_menu_match(user_id)
+    
+        return data    
+    
+    def get_variation_number_of_user(self, begin_date, end_date):
+        """
+        Get Variation on number of user
+
+        :param data:begin_date, end_date
+        :return: :dict
+        """
+        data = self.wechat.get_variation_number_of_user(begin_date, end_date)
+        if data.has_key('errcode'):
+            if data['errcode']==61501:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+            elif data['errcode']==61500:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+
+        return data
+
+    def get_user_cumulate(self, begin_date, end_date):
+        """
+        GET accumulation of user            
+                                            
+        :param date:begin_date, end_date    
+        :return: :dict        
+        """
+        data = self.wechat.get_user_cumulate(begin_date, end_date)
+        if data.has_key('errcode'):
+            if data['errcode']==61501:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+            elif data['errcode']==61500:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+
+        return data
+
+    def get_article_summary(self, begin_date, end_date):
+        """
+        Get article summary
+
+        :param date:begin_date, end_date
+        :return: :dict
+        """
+        
+        data = self.wechat.get_article_summary(begin_date, end_date)
+        if data.has_key('errcode'):
+            if data['errcode']==61501:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+            elif data['errcode']==61500:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+
+        return data
+
+    def get_article_total(self, begin_date, end_date):
+        """
+        Get article total
+
+        :param data: begin_date, end_date
+        :return: :dict
+        """
+            
+        data = self.wechat.get_article_total(begin_date, end_date)
+        if data.has_key('errcode'):
+            if data['errcode']==61501:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+            elif data['errcode']==61500:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+        
+        return data
+
+    def get_user_read(self, begin_date, end_date):
+        """
+        Get user read                           
+                                                
+        :param data:begin_date, end_date        
+        :return : :dict
+        """
+        
+        data = self.wechat.get_user_read(begin_date, end_date)
+        if data.has_key('errcode'):
+            if data['errcode']==61501:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+            elif data['errcode']==61500:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+
+        return data
+       
+    def get_user_read_hour(self, begin_date, end_date):
+        """
+        Get user read hour
+        
+        param data:begin_date, end_date
+        return : :dict
+        """
+        
+        data = self.wechat.get_user_read_hour(begin_date, end_date)
+        if data.has_key('errcode'):
+            if data['errcode']==61501:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+            elif data['errcode']==61500:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+
+        return data        
+
+
+    def get_user_share(self, begin_date, end_date):
+        """
+        Get user share
+
+        param data:begin_data,end_date
+        return : :dict
+        """
+        data = self.wechat.get_user_share(begin_date, end_date)
+        if data.has_key('errcode'):
+            if data['errcode']==61501:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+            elif data['errcode']==61500:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+        
+        return data
+
+
+    def get_user_share_hour(self, begin_date, end_date):
+        """
+        Get user share
+        
+        param data:begin_date, end_date
+        retur : :dict
+        """
+        data = self.wechat.get_user_share_hour(begin_date, end_date)
+        if data.has_key('errcode'):
+            if data['errcode']==61501:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+            elif data['errcode']==61500:
+                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+        
+        return data
+
+
+#333
 
 class WeChatPush(object):
     """
@@ -836,6 +997,8 @@ class WeChatPush(object):
                 'item': data
             }
         })
+
+
 
 
 class WeChatUser(object):
