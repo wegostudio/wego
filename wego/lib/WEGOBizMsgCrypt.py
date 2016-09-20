@@ -1,24 +1,28 @@
 #!/usr/bin/env python
 #-*- encoding:utf-8 -*-
-
-""" 对公众平台发送给公众账号的消息加解密示例代码.
-@copyright: Copyright (c) 1998-2014 Tencent Inc.
-
 """
-# ------------------------------------------------------------------------
+基于官方版本修改为同时支持 python2、python3 并整理入一个文件内。
+部分参考自 https://github.com/chenjianjx/wechat-encrypt-python3
+"""
 
+import xml.etree.cElementTree as ET
 import base64
 import string
 import random
 import hashlib
 import time
 import struct
+import socket
+import sys
+
+PY2 = False
+if sys.version_info[0] == 2:
+    PY2 = True
+
 try:
     from Crypto.Cipher import AES
 except ImportError:
     print ('please install Crypto at first: $ pip install pycrypto')
-import xml.etree.cElementTree as ET
-import socket
 
 
 WXBizMsgCrypt_OK = 0
@@ -34,12 +38,6 @@ WXBizMsgCrypt_EncodeBase64_Error = -40009
 WXBizMsgCrypt_DecodeBase64_Error = -40010
 WXBizMsgCrypt_GenReturnXml_Error = -40011
 
-
-"""
-关于Crypto.Cipher模块，ImportError: No module named 'Crypto'解决方案
-请到官方网站 https://www.dlitz.net/software/pycrypto/ 下载pycrypto。
-下载后，按照README中的“Installation”小节的提示进行pycrypto安装。
-"""
 class FormatException(Exception):
     pass
 
@@ -102,11 +100,11 @@ class XMLParse:
         @return: 生成的xml字符串
         """
         resp_dict = {
-                    'msg_encrypt' : encrypt,
-                    'msg_signaturet': signature,
-                    'timestamp'    : timestamp,
-                    'nonce'        : nonce,
-                     }
+            'msg_encrypt': encrypt,
+            'msg_signaturet': signature,
+            'timestamp': timestamp,
+            'nonce': nonce,
+         }
         resp_xml = self.AES_TEXT_RESPONSE_TEMPLATE % resp_dict
         return resp_xml
 
@@ -126,7 +124,10 @@ class PKCS7Encoder():
         if amount_to_pad == 0:
             amount_to_pad = self.block_size
         # 获得补位所用的字符
-        pad = chr(amount_to_pad)
+        if PY2:
+            pad = chr(amount_to_pad)
+        else:
+            pad = bytearray([amount_to_pad])
         return text + pad * amount_to_pad
 
     def decode(self, decrypted):
@@ -156,7 +157,11 @@ class Prpcrypt(object):
         @return: 加密得到的字符串
         """
         # 16位随机字符串添加到明文开头
-        text = self.get_random_str() + struct.pack("I",socket.htonl(len(text))) + text + appid
+        if PY2:
+            text = self.get_random_str() + struct.pack("I",socket.htonl(len(text))) + text + appid
+        else:
+            text = text.encode('utf-8')
+            text = self.get_random_str().encode('utf-8') + struct.pack("I", socket.htonl(len(text))) + text + appid.encode('utf-8')
         # 使用自定义的填充方式对明文进行补位填充
         pkcs7 = PKCS7Encoder()
         text = pkcs7.encode(text)
@@ -165,9 +170,8 @@ class Prpcrypt(object):
         try:
             ciphertext = cryptor.encrypt(text)
             # 使用BASE64对加密后的字符串进行编码
-            return WXBizMsgCrypt_OK, base64.b64encode(ciphertext)
+            return WXBizMsgCrypt_OK, base64.b64encode(ciphertext).decode("utf8")
         except Exception:
-            #print e
             return  WXBizMsgCrypt_EncryptAES_Error,None
 
     def decrypt(self,text,appid):
@@ -182,22 +186,21 @@ class Prpcrypt(object):
         except Exception:
             #print e
             return  WXBizMsgCrypt_DecryptAES_Error,None
-        #try:
         try:
-            pad = ord(plain_text[-1])
-        except TypeError:
-            pad = plain_text[-1]
-        # 去掉补位字符串
-        #pkcs7 = PKCS7Encoder()
-        #plain_text = pkcs7.encode(plain_text)
-        # 去除16位随机字符串
-        content = plain_text[16:-pad]
-        xml_len = socket.ntohl(struct.unpack("I",content[ : 4])[0])
-        xml_content = content[4 : xml_len+4]
-        from_appid = content[xml_len+4:]
-        #except Exception:
-            #print e
-        #    return  WXBizMsgCrypt_IllegalBuffer,None
+            if PY2:
+                pad = ord(plain_text[-1])
+            else:
+                pad = plain_text[-1]
+            # 去掉补位字符串
+            #pkcs7 = PKCS7Encoder()
+            #plain_text = pkcs7.encode(plain_text)
+            # 去除16位随机字符串
+            content = plain_text[16:-pad]
+            xml_len = socket.ntohl(struct.unpack("I",content[ : 4])[0])
+            xml_content = content[4 : xml_len+4]
+            from_appid = content[xml_len+4:].decode("utf8")
+        except Exception:
+           return  WXBizMsgCrypt_IllegalBuffer,None
         if  from_appid != appid:
             return WXBizMsgCrypt_ValidateAppid_Error,None
         return 0,xml_content
@@ -206,7 +209,7 @@ class Prpcrypt(object):
         """ 随机生成16位字符串
         @return: 16位字符串
         """
-        rule = string.letters + string.digits
+        rule = string.ascii_letters + string.digits
         str = random.sample(rule, 16)
         return "".join(str)
 
