@@ -668,8 +668,6 @@ class WeChatApi(object):
         data = requests.post(url, data=json.dumps(data)).json()
     
         return data
-    
-        print data
 
     def get_user_cumulate(self, begin_date, end_date):
         """
