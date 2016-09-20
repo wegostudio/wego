@@ -264,6 +264,7 @@ class WeChatApi(object):
         data = requests.post(url, data=json.dumps(data, ensure_ascii=False).encode('utf8')).json()
 
         return data
+    
 
     def create_conditional_menu(self, data):
         """
@@ -296,7 +297,7 @@ class WeChatApi(object):
         """
         Delete all menus, contain conditional menu.
 
-        :return: Raw data that wechat returns.
+        ::return: Raw data that wechat returns.
         """
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
@@ -397,6 +398,189 @@ class WeChatApi(object):
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
+
+    def get_wechat_servers_list(self):
+        """
+        Get wechat servers list
+            
+        :param data:
+        :return: Raw data that wechat returns.
+        """
+        
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self) 
+        url = "https://api.weixin.qq.com/cgi-bin/getcallbackip?access_token=%s" % access_token
+        data = requests.post(url).json()
+
+        return data
+    
+    def check_personalized_menu_match(self,user_id):
+        """
+        Check whether personalized menu match is correct.
+    
+        :param data:user_id
+        :return:Raw data that wechat returns.
+        """
+        
+        data = {
+            "user_id": user_id
+        }
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/cgi-bin/menu/trymatch?access_token=%s" % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+        
+        return data
+
+    def get_variation_number_of_user(self, begin_date, end_date):
+        """
+        Get variation in number od user
+        
+        :param data:begin_date, end_date
+        :return:Raw data that wechat returns.
+        """
+
+        data = {
+            "begin_date": begin_date,
+            "end_date": end_date
+        }
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/datacube/getusersummary?access_token=%s"  % access_token
+
+        data = requests.post(url, data=json.dumps(data)).json()
+    
+        return data
+    
+        print data
+
+    def get_user_cumulate(self, begin_date, end_date):
+        """
+        GET accumulation of user
+
+        :param date:begin_date, end_date
+        :return:Raw data that wechat returns.
+        """
+
+        data = {
+            "begin_date": begin_date,
+            "end_date": end_date
+        }
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/datacube/getusercumulate?access_token=%s" % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def get_article_summary(self, begin_date, end_date):
+        """
+        Get article summary
+
+        :param data:begin_date, end_date
+        :return :Raw data that wechat returns.
+        """
+
+        data = {
+            "begin_date": begin_date,
+            "end_date": end_date
+        }
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/datacube/getarticlesummary?access_token=%s" % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def get_article_total(self, begin_date, end_date):
+        """
+        Get article total
+
+        :param data:begin_date, end_date
+        :return :Raw data that wechat returns.
+        """
+        data = {
+            "begin_date": begin_date,
+            "end_date": end_date
+        }
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/datacube/getarticletotal?access_token=%s" % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def get_user_read(self, begin_date, end_date):
+        """
+        Get user read
+
+        :param data:begin_date, end_date
+        :return :Raw data that wechat returns.
+        """
+        data = {
+            "begin_date": begin_date,
+            "end_date": end_date
+        }
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/datacube/getuserread?access_token=%s" % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+    
+        return data
+
+    def get_user_read_hour(self, begin_date, end_date):
+        """
+        Get user read hour
+        
+        param data:begin_date, end_date
+        return :Raw data that wechat return.
+        """
+        data = {
+            "begin_date": begin_date,
+            "end_date": end_date
+        }
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/datacube/getuserreadhour?access_token=%s" % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+        
+        return data
+
+    def get_user_share(self, begin_date, end_date):
+        """
+        Get user share
+
+        param data:begin_data,end_date
+        return :Raw data that wechat return.
+        """
+        data = {
+            "begin_date": begin_date,
+            "end_date": end_date
+        }
+        
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/datacube/getusershare?access_token=%s" % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+    def get_user_share_hour(self, begin_date, end_date):
+        """
+        Get user share
+        
+        param data:begin_date, end_date
+        retur :Raw data that wechat return.
+        """
+        data = {
+            "begin_date": begin_date,
+            "end_date": end_date
+        }
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/datacube/getusersharehour?access_token=%s" % access_token
+        data = requests.post(url, data=json.dumps(data)).json()
+
+        return data
+
+#333
+
 
 # TODO 更方便定制
 def get_global_access_token(self):
