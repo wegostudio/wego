@@ -654,15 +654,27 @@ class WegoApi(object):
 
         return WeChatPush(data, crypto, nonce)
 
-    def add_material(self, **kwargs):
+    def add_temporary_material(self, **kwargs):
 
-        data = self.wechat.add_material(**kwargs)
+        data = self.wechat.add_temporary_material(**kwargs)
 
         return data
 
-    def get_material(self, media_id):
+    def get_temporary_material(self, **kwargs):
 
-        data = self.wechat.get_material(media_id)
+        data = self.wechat.get_temporary_material(**kwargs)
+
+        return data
+
+    def add_permanent_material(self, **kwargs):
+
+        data = self.wechat.add_permanent_material(**kwargs)
+
+        return data
+
+    def get_permanent_material(self, media_id):
+
+        data = self.wechat.get_permanent_material(media_id)
 
         return data
 

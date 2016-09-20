@@ -8,7 +8,7 @@ import requests
 import hashlib
 import json
 import re
-
+import os
 
 class WeChatApi(object):
     """
@@ -447,10 +447,26 @@ class WeChatApi(object):
 
 
 
+    def add_temporary_material(self, **kwargs):
 
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
 
+        url = 'https://api.weixin.qq.com/cgi-bin/media/upload?access_token=%s&type=%s' % (access_token, kwargs['type'])
+        files = {'file': open('../wego/bg.jpg', 'rb')}
+        
+        data = requests.post(url, files=files).json()
+        return data
 
-    def add_material(self, **kwargs):
+    def get_temporary_material(self, **kwargs):
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+
+        url = 'https://api.weixin.qq.com/cgi-bin/media/get?access_token=%s&media_id=%s' % (access_token, kwargs['media_id'])
+
+        data = requests.get(url).json()
+        return data
+
+    def add_permanent_material(self, **kwargs):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {
@@ -471,7 +487,7 @@ class WeChatApi(object):
 
         return data
 
-    def get_material(self, media_id):
+    def get_permanent_material(self, media_id):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {
