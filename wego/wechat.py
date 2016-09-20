@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-from .exceptions import WeChatApiError, WeChatUserError
+from .exceptions import WeChatApiError
+import requests
+import json
+import re
+
 try:
     from urllib import quote
 except ImportError:
     from urllib.parse import quote
-import requests
-import hashlib
-import json
-import re
-import os
+
 
 class WeChatApi(object):
     """
@@ -113,7 +113,7 @@ class WeChatApi(object):
             'openid': openid,
             'remark': remark
         }
-        url = 'https://api.weixin.qq.com/cgi-bin/user/info/updateremark?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/user/info/updateremark?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         if 'errcode' in data.keys() and data['errcode'] != 0:
@@ -122,7 +122,7 @@ class WeChatApi(object):
     def is_access_token_has_expired(sele, openid, access_token):
         """
         Determine whether the user access token has expired
- 
+
         :param openid: User openid.
         :param access_token: function get_access_token returns.
         :return: Raw data that wechat returns.
@@ -182,8 +182,8 @@ class WeChatApi(object):
         if type(v) is dict:
             v = ''.join([WeChatApi._make_xml(key, val) for key, val in v.items()])
         elif type(v) is list:
-            l = len(k)+2
-            v = ''.join([WeChatApi._make_xml(k, val) for val in v])[l:(l+1)*-1]
+            length = len(k) + 2
+            v = ''.join([WeChatApi._make_xml(k, val) for val in v])[length:(length + 1) * -1]
         # TODO elif type(v) in [str, unicode]:
         else:
             return '<%s><![CDATA[%s]]></%s>' % (k, v, k)
@@ -196,8 +196,9 @@ class WeChatApi(object):
 
         if not xml:
             return {}
-        return {k: v for v,k in re.findall('\<.*?\>\<\!\[CDATA\[(.*?)\]\]\>\<\/(.*?)\>', xml)}
+        return {k: v for v, k in re.findall('\<.*?\>\<\!\[CDATA\[(.*?)\]\]\>\<\/(.*?)\>', xml)}
 
+    # 统一下单
     def get_unifiedorder(self, data):
 
         xml = self._make_xml(data).encode('utf-8')
@@ -205,6 +206,7 @@ class WeChatApi(object):
 
         return self._analysis_xml(data)
 
+    # 查询订单
     def get_orderquery(self, data):
         """
         Get order query.
@@ -217,6 +219,7 @@ class WeChatApi(object):
 
         return self._analysis_xml(data)
 
+    # 关闭订单
     def close_order(self, data):
         """
         Get close_order info.
@@ -229,6 +232,8 @@ class WeChatApi(object):
 
         return self._analysis_xml(data)
 
+    # 申请退款
+    # TODO 证书
     def refund(self, data):
         """
         refund.
@@ -239,6 +244,7 @@ class WeChatApi(object):
         data = requests.post('https://api.mch.weixin.qq.com/secapi/pay/refund', data=xml).content
         return self._analysis_xml(data)
 
+    # 查询退款
     def refund_query(self, data):
         """
         refund query
@@ -249,22 +255,27 @@ class WeChatApi(object):
         data = requests.post('https://api.mch.weixin.qq.com/pay/refundquery', data=xml).content
         return self._analysis_xml(data)
 
+    # 下载对账单
     def download_bill(self, data):
         """
         download bill
 
         :return: Raw data that wechat returns.
         """
+
         xml = self._make_xml(data).encode('utf-8')
         data = requests.post('https://api.mch.weixin.qq.com/pay/downloadbill', data=xml).content
         return self._analysis_xml(data)
 
+    # 交易保障
     def report(self, data):
         """
         report
 
         :return: Raw data that wechat returns.
         """
+
+        xml = self._make_xml(data).encode('utf-8')
         data = requests.post('https://api.mch.weixin.qq.com/payitil/report', data=xml).content
         return self._analysis_xml(data)
 
@@ -282,7 +293,7 @@ class WeChatApi(object):
                 'name': name
             }
         }
-        url = 'https://api.weixin.qq.com/cgi-bin/groups/create?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/groups/create?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -295,7 +306,7 @@ class WeChatApi(object):
         """
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        url = "https://api.weixin.qq.com/cgi-bin/groups/get?access_token=%s" % access_token
+        url = "https://api.weixin.qq.com/cgi-bin/groups/get?access_token=" + access_token
         req = requests.get(url)
 
         return req.json()
@@ -311,7 +322,7 @@ class WeChatApi(object):
         data = {
             'openid': openid
         }
-        url = "https://api.weixin.qq.com/cgi-bin/groups/getid?access_token=%s" % access_token
+        url = "https://api.weixin.qq.com/cgi-bin/groups/getid?access_token=" + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -332,7 +343,7 @@ class WeChatApi(object):
                 'name': name
             }
         }
-        url = 'https://api.weixin.qq.com/cgi-bin/groups/update?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/groups/update?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -351,7 +362,7 @@ class WeChatApi(object):
             'openid': openid,
             'to_groupid': groupid
         }
-        url = 'https://api.weixin.qq.com/cgi-bin/groups/members/update?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/groups/members/update?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -370,7 +381,7 @@ class WeChatApi(object):
                 'id': groupid
             }
         }
-        url = 'https://api.weixin.qq.com/cgi-bin/groups/delete?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/groups/delete?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -382,13 +393,12 @@ class WeChatApi(object):
         :param data: Menu data.
         :return: Raw data that wechat returns.
         """
-        
+
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=%s" % access_token
+        url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=" + access_token
         data = requests.post(url, data=json.dumps(data, ensure_ascii=False).encode('utf8')).json()
 
         return data
-    
 
     def create_conditional_menu(self, data):
         """
@@ -399,7 +409,7 @@ class WeChatApi(object):
         """
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        url = "https://api.weixin.qq.com/cgi-bin/menu/addconditional?access_token=%s" % access_token
+        url = "https://api.weixin.qq.com/cgi-bin/menu/addconditional?access_token=" + access_token
         data = requests.post(url, data=json.dumps(data, ensure_ascii=False).encode('utf8')).json()
 
         return data
@@ -412,7 +422,7 @@ class WeChatApi(object):
         """
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        url = "https://api.weixin.qq.com/cgi-bin/menu/get?access_token=%s" % access_token
+        url = "https://api.weixin.qq.com/cgi-bin/menu/get?access_token=" + access_token
         data = requests.get(url).json()
 
         return data
@@ -425,7 +435,7 @@ class WeChatApi(object):
         """
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        url = "https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=%s" % access_token
+        url = "https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=" + access_token
         data = requests.get(url).json()
 
         return data
@@ -441,13 +451,10 @@ class WeChatApi(object):
         data = {
             'menuid': menu_id
         }
-        url = 'https://api.weixin.qq.com/cgi-bin/menu/delconditional?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/menu/delconditional?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
-
-
-
 
     def add_temporary_material(self, **kwargs):
 
@@ -455,7 +462,7 @@ class WeChatApi(object):
 
         url = 'https://api.weixin.qq.com/cgi-bin/media/upload?access_token=%s&type=%s' % (access_token, kwargs['type'])
         files = {'file': open('../wego/bg.jpg', 'rb')}
-        
+
         data = requests.post(url, files=files).json()
         return data
 
@@ -463,7 +470,10 @@ class WeChatApi(object):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
 
-        url = 'https://api.weixin.qq.com/cgi-bin/media/get?access_token=%s&media_id=%s' % (access_token, kwargs['media_id'])
+        url = 'https://api.weixin.qq.com/cgi-bin/media/get?access_token={access_token}&media_id={media_id}'.format(
+            access_token=access_token,
+            media_id=kwargs['media_id']
+        )
 
         data = requests.get(url).json()
         return data
@@ -473,18 +483,17 @@ class WeChatApi(object):
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {
             "articles": [{
-                    "title": kwargs['title'],
-                    "thumb_media_id": kwargs['thumb_media_id'],
-                    "author": kwargs['author'],
-                    "digest": kwargs['digest'],
-                    "show_cover_pic": kwargs['show_cover_pic'],
-                    "content": kwargs['content'],
-                    "content_source_url": kwargs['content_source_url']
-                },
-            ]
+                "title": kwargs['title'],
+                "thumb_media_id": kwargs['thumb_media_id'],
+                "author": kwargs['author'],
+                "digest": kwargs['digest'],
+                "show_cover_pic": kwargs['show_cover_pic'],
+                "content": kwargs['content'],
+                "content_source_url": kwargs['content_source_url']
+            }]
         }
 
-        url = 'https://api.weixin.qq.com/cgi-bin/material/add_news?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/material/add_news?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -496,7 +505,7 @@ class WeChatApi(object):
             "media_id": media_id,
         }
 
-        url = 'https://api.weixin.qq.com/cgi-bin/material/get_material?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/material/get_material?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -508,7 +517,7 @@ class WeChatApi(object):
             "media_id": media_id,
         }
 
-        url = 'https://api.weixin.qq.com/cgi-bin/material/del_material?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/material/del_material?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -530,7 +539,7 @@ class WeChatApi(object):
             }
         }
 
-        url = 'https://api.weixin.qq.com/cgi-bin/material/update_news?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/material/update_news?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -539,7 +548,7 @@ class WeChatApi(object):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
 
-        url = 'https://api.weixin.qq.com/cgi-bin/material/get_materialcount?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/material/get_materialcount?access_token=%s' + access_token
         data = requests.get(url).json()
 
         return data
@@ -553,56 +562,56 @@ class WeChatApi(object):
             "count": count
         }
 
-        url = 'https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
 
     def create_scene_qrcode(self, scene_id, expire):
-        
+
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {
-            'expire_seconds': expire, 
-            'action_name': 'QR_SCENE', 
+            'expire_seconds': expire,
+            'action_name': 'QR_SCENE',
             'action_info': {
                 'scene': {
                     'scene_id': scene_id
                 }
             }
         }
-        url = 'https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
 
     def create_limit_scene_qrcode(self, scene_id):
-        
+
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {
-            'action_name': 'QR_LIMIT_SCENE', 
+            'action_name': 'QR_LIMIT_SCENE',
             'action_info': {
                 'scene': {
                     'scene_id': scene_id
                 }
             }
         }
-        url = 'https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
 
     def create_limit_str_scene_qrcode(self, scene_str):
-        
+
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
         data = {
-            'action_name': 'QR_LIMIT_SCENE', 
+            'action_name': 'QR_LIMIT_SCENE',
             'action_info': {
                 'scene': {
                     'scene_str': scene_str
                 }
             }
         }
-        url = 'https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -614,7 +623,7 @@ class WeChatApi(object):
             'action': 'long2short',
             'long_url': url
         }
-        url = 'https://api.weixin.qq.com/cgi-bin/shorturl?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/shorturl?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -622,38 +631,38 @@ class WeChatApi(object):
     def get_wechat_servers_list(self):
         """
         Get wechat servers list
-            
+
         :param data:
         :return: Raw data that wechat returns.
         """
-        
-        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self) 
-        url = "https://api.weixin.qq.com/cgi-bin/getcallbackip?access_token=%s" % access_token
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/cgi-bin/getcallbackip?access_token=" + access_token
         data = requests.post(url).json()
 
         return data
-    
-    def check_personalized_menu_match(self,user_id):
+
+    def check_personalized_menu_match(self, user_id):
         """
         Check whether personalized menu match is correct.
-    
+
         :param data:user_id
         :return:Raw data that wechat returns.
         """
-        
+
         data = {
             "user_id": user_id
         }
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        url = "https://api.weixin.qq.com/cgi-bin/menu/trymatch?access_token=%s" % access_token
+        url = "https://api.weixin.qq.com/cgi-bin/menu/trymatch?access_token=" + access_token
         data = requests.post(url, data=json.dumps(data)).json()
-        
+
         return data
 
     def get_variation_number_of_user(self, begin_date, end_date):
         """
         Get variation in number od user
-        
+
         :param data:begin_date, end_date
         :return:Raw data that wechat returns.
         """
@@ -663,10 +672,10 @@ class WeChatApi(object):
             "end_date": end_date
         }
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        url = "https://api.weixin.qq.com/datacube/getusersummary?access_token=%s"  % access_token
+        url = "https://api.weixin.qq.com/datacube/getusersummary?access_token=" + access_token
 
         data = requests.post(url, data=json.dumps(data)).json()
-    
+
         return data
 
     def get_user_cumulate(self, begin_date, end_date):
@@ -683,7 +692,7 @@ class WeChatApi(object):
         }
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        url = "https://api.weixin.qq.com/datacube/getusercumulate?access_token=%s" % access_token
+        url = "https://api.weixin.qq.com/datacube/getusercumulate?access_token=" + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -702,7 +711,7 @@ class WeChatApi(object):
         }
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        url = "https://api.weixin.qq.com/datacube/getarticlesummary?access_token=%s" % access_token
+        url = "https://api.weixin.qq.com/datacube/getarticlesummary?access_token=" + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -720,7 +729,7 @@ class WeChatApi(object):
         }
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        url = "https://api.weixin.qq.com/datacube/getarticletotal?access_token=%s" % access_token
+        url = "https://api.weixin.qq.com/datacube/getarticletotal?access_token=" + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -738,15 +747,15 @@ class WeChatApi(object):
         }
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        url = "https://api.weixin.qq.com/datacube/getuserread?access_token=%s" % access_token
+        url = "https://api.weixin.qq.com/datacube/getuserread?access_token=" + access_token
         data = requests.post(url, data=json.dumps(data)).json()
-    
+
         return data
 
     def get_user_read_hour(self, begin_date, end_date):
         """
         Get user read hour
-        
+
         param data:begin_date, end_date
         return :Raw data that wechat return.
         """
@@ -756,9 +765,9 @@ class WeChatApi(object):
         }
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        url = "https://api.weixin.qq.com/datacube/getuserreadhour?access_token=%s" % access_token
+        url = "https://api.weixin.qq.com/datacube/getuserreadhour?access_token=" + access_token
         data = requests.post(url, data=json.dumps(data)).json()
-        
+
         return data
 
     def get_user_share(self, begin_date, end_date):
@@ -772,9 +781,9 @@ class WeChatApi(object):
             "begin_date": begin_date,
             "end_date": end_date
         }
-        
+
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        url = "https://api.weixin.qq.com/datacube/getusershare?access_token=%s" % access_token
+        url = "https://api.weixin.qq.com/datacube/getusershare?access_token=" + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -782,7 +791,7 @@ class WeChatApi(object):
     def get_user_share_hour(self, begin_date, end_date):
         """
         Get user share
-        
+
         param data:begin_date, end_date
         retur :Raw data that wechat return.
         """
@@ -792,12 +801,10 @@ class WeChatApi(object):
         }
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        url = "https://api.weixin.qq.com/datacube/getusersharehour?access_token=%s" % access_token
+        url = "https://api.weixin.qq.com/datacube/getusersharehour?access_token=" + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
-
-#333
 
 
 # TODO 更方便定制
@@ -819,7 +826,7 @@ def get_global_access_token(self):
                 'name': name
             }
         }
-        url = 'https://api.weixin.qq.com/cgi-bin/groups/create?access_token=%s' % access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/groups/create?access_token=%s' + access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data

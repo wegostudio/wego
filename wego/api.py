@@ -99,7 +99,7 @@ class WegoApi(object):
 
         access_token = helper.get_session('wx_access_token')
         data = self.wechat.get_userinfo_by_token(self.openid, access_token)
-        self._set_userinfo_to_session(helper,data)
+        self._set_userinfo_to_session(helper, data)
 
         return WeChatUser(self, data)
 
@@ -154,8 +154,10 @@ class WegoApi(object):
 
         return data['errmsg'] == 'ok'
 
+    # TODO 看看是否有必要放入一个新的类里面
+    # 统一下单
     def get_unifiedorder_info(self, **kwargs):
-        """ 
+        """
         Unifiedorder settings, get wechat config at https://api.mch.weixin.qq.com/pay/unifiedorder
         You can take return value as wechat api onBridgeReady's parameters directly
 
@@ -176,8 +178,9 @@ class WegoApi(object):
         :param spbill_create_ip: APP and web payment submitted to client IP, Native fill call
          WeChat payment API machine IP.
 
-        :param notify_url: (optional) Default is what you set at init. Receive pay WeChat asynchronous notification callback address,
-         notify the url must be accessible url directly, cannot carry parameters.
+        :param notify_url: (optional) Default is what you set at init.
+            Receive pay WeChat asynchronous notification callback address,
+            notify the url must be accessible url directly, cannot carry parameters.
 
         :param trade_type: Values are as follows: the JSAPI, NATIVE APP, details see parameter regulation
 
@@ -227,13 +230,14 @@ class WegoApi(object):
 
         return data
 
-
+    # 查询订单
     def get_order_query(self, out_trade_no=None, transaction_id=None):
         """
         Order query setting, get wechat config at https://api.mch.weixin.qq.com/pay/orderquery
         Choose one in out_trade_no and transaction_id as parameter pass to this function
 
-        :param out_trade_no | transaction_id: WeChat order number, priority in use. Merchants system internal order number, when didn't provide transaction_id need to pass this.
+        :param out_trade_no | transaction_id: WeChat order number, priority in use.
+            Merchants system internal order number, when didn't provide transaction_id need to pass this.
 
         :return: {...}
         """
@@ -248,13 +252,16 @@ class WegoApi(object):
         elif out_trade_no is None:
             default_settings['transaction_id'] = transaction_id
         else:
-            raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param='out_trade_no|transaction_id'))
+            raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(
+                param='out_trade_no|transaction_id'
+            ))
 
         default_settings['sign'] = self.make_sign(default_settings)
         data = self.wechat.get_orderquery(default_settings)
 
         return data
 
+    # 关闭订单
     def close_order(self, out_trade_no):
         """
         Close order, get wechat config at https://api.mch.weixin.qq.com/pay/closeorder
@@ -275,19 +282,22 @@ class WegoApi(object):
 
         return data
 
+    # 申请退款
     def refund(self, **kwargs):
         """
         Merchant order number within the system, get wechat config at https://api.mch.weixin.qq.com/secapi/pay/refund
 
-        Following parameters are necessary, you must be included in the kwargs and you must follow the format below as the parameters's key
+        :param out_trade_no | transaction_id: WeChat order number,
+            priority in use. Merchants system internal order number,
+            when didn't provide transaction_id need to pass this.
 
-        :param out_trade_no | transaction_id: WeChat order number, priority in use. Merchants system internal order number, when didn't provide transaction_id need to pass this.
-
-        :param out_refund_no: Merchants system within the refund number, merchants within the system, only the same refund order request only a back many times
+        :param out_refund_no: Merchants system within the refund number,
+            merchants within the system, only the same refund order request only a back many times
 
         :param total_fee: Total amount of orders, the unit for points, only as an integer, see the payment amount
 
-        :param refund_fee: Refund the total amount, total amount of the order, the unit for points, only as an integer, see the payment amount
+        :param refund_fee: Refund the total amount, total amount of the order,
+            the unit for points, only as an integer, see the payment amount
 
         :param op_user_id: Operator account, the default for the merchants
 
@@ -299,11 +309,10 @@ class WegoApi(object):
             'mch_id': self.settings.MCH_ID,
             'nonce_str': self._get_random_code(),
         }
-        try:
-            param = kwargs['op_user_id']
-        except:
+
+        if 'op_user_id' not in kwargs:
             kwargs['op_user_id'] = self.settings.MCH_ID
- 
+
         data = dict(default_settings, **kwargs)
         if self.settings.DEBUG:
             data['total_fee'] = 1
@@ -318,18 +327,17 @@ class WegoApi(object):
             'total_fee',
             'refund_fee',
             'op_user_id')
-        try:
-            param1 = kwargs['out_trade_no']
-        except:
-            try:
-                param2 = kwargs['transaction_id']
-            except:
-                raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param='out_trade_on|transaction_id'))
+
+        if 'out_trade_no' not in kwargs and 'transaction_id' not in kwargs:
+            raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(
+                param='out_trade_on|transaction_id'
+            ))
 
         data = self.wechat.refund(data)
 
         return data
 
+    # 查询退款
     def refund_query(self, **kwargs):
         """
         get wechat config at https://api.mch.weixin.qq.com/pay/refundquery
@@ -352,7 +360,9 @@ class WegoApi(object):
                 flag = True
                 break
         if not flag:
-            raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(param='out_trade_on|transaction_id|out_refund_no|refund_id'))
+            raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(
+                param='out_trade_on|transaction_id|out_refund_no|refund_id'
+            ))
 
         data = dict(default_settings, **kwargs)
         data['sign'] = self.make_sign(data)
@@ -360,6 +370,7 @@ class WegoApi(object):
 
         return data
 
+    # 下载对账单
     def download_bill(self, **kwargs):
         """
         get wechat config at https://api.mch.weixin.qq.com/pay/downloadbill
@@ -392,6 +403,7 @@ class WegoApi(object):
 
         return data
 
+    # 交易保障
     def report(self, **kwargs):
         """
         get wechat config at https://api.mch.weixin.qq.com/payitil/report
@@ -429,8 +441,7 @@ class WegoApi(object):
         data = self.wechat.report(data)
 
         return data
-        
- 
+
     def _check_params(self, params, *args):
         """
         Check if params is available
@@ -448,7 +459,7 @@ class WegoApi(object):
         Get random code
         """
 
-        return reduce(lambda x,y: x+y, [random.choice(string.printable[:62]) for i in range(32)])
+        return reduce(lambda x, y: x + y, [random.choice(string.printable[:62]) for i in range(32)])
 
     def make_sign(self, data):
         """
@@ -462,7 +473,7 @@ class WegoApi(object):
         md5.update(temp.encode('utf-8'))
 
         return md5.hexdigest().upper()
-   
+
     def create_group(self, name):
         """
         Create a new group.
@@ -513,7 +524,7 @@ class WegoApi(object):
             else:
                 raise WegoApiError(u'Without this group(没有这个群组)')
 
-        if not groupid in groups:
+        if groupid not in groups:
             raise WegoApiError(u'Without this group(没有这个群组)')
 
         return groupid
@@ -530,7 +541,7 @@ class WegoApi(object):
         groupid = self._get_groupid(group)
         data = self.wechat.change_group_name(groupid, name)
         return not data['errcode']
-    
+
     def change_user_group(self, group):
         """
         Change user group.
@@ -578,7 +589,7 @@ class WegoApi(object):
 
         data = self.wechat.get_menus()
         if 'errcode' in data and data['errcode'] == 46003:
-            return {'menu':{}}
+            return {'menu': {}}
         return data
 
     def del_menu(self, target='all'):
@@ -592,7 +603,7 @@ class WegoApi(object):
         """
         Analysis xml to dict and set wego push type.
         Wego defind WeChatPush type (which can reply has checked):
-            
+
             -- msg --
 
             text ✓
@@ -622,11 +633,11 @@ class WegoApi(object):
             scan
 
             scan_subscribe
-            
+
             user_location ✓
-            
+
             click ✓
-            
+
             view
 
         :param raw_xml: Raw xml.
@@ -642,7 +653,11 @@ class WegoApi(object):
         if self.settings.PUSH_TOKEN:
             if not hasattr(self, 'push_crypto'):
                 from .lib.WEGOBizMsgCrypt import WXBizMsgCrypt
-                self.push_crypto = WXBizMsgCrypt(self.settings.PUSH_TOKEN, self.settings.PUSH_ENCODING_AES_KEY, self.settings.APP_ID)
+                self.push_crypto = WXBizMsgCrypt(
+                    self.settings.PUSH_TOKEN,
+                    self.settings.PUSH_ENCODING_AES_KEY,
+                    self.settings.APP_ID
+                )
 
             crypto = self.push_crypto
             msg_sign = helper.get_params()['msg_signature']
@@ -724,31 +739,29 @@ class WegoApi(object):
         # TODO 容错
         return data['short_url']
 
-    
     def get_wechat_servers_list(self):
         """
         Get wechat servers list
-        
+
         :return: :list
         """
 
-        data = self.wechat.get_wechat_servers_list()    
-        
+        data = self.wechat.get_wechat_servers_list()
+
         return data
- 
-       
+
     def check_personalized_menu_match(self, user_id):
         """
         Check whether personalized menu match is correct.
-        
+
         :param data:user_id
         :return: :dict
         """
-    
+
         data = self.wechat.check_personalized_menu_match(user_id)
-    
-        return data    
-    
+
+        return data
+
     def get_variation_number_of_user(self, begin_date, end_date):
         """
         Get Variation on number of user
@@ -757,26 +770,26 @@ class WegoApi(object):
         :return: :dict
         """
         data = self.wechat.get_variation_number_of_user(begin_date, end_date)
-        if data.has_key('errcode'):
-            if data['errcode']==61501:
+        if 'errcode' in data:
+            if data['errcode'] == 61501:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
-            elif data['errcode']==61500:
+            elif data['errcode'] == 61500:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
 
         return data
 
     def get_user_cumulate(self, begin_date, end_date):
         """
-        GET accumulation of user            
-                                            
-        :param date:begin_date, end_date    
-        :return: :dict        
+        GET accumulation of user
+
+        :param date:begin_date, end_date
+        :return: :dict
         """
         data = self.wechat.get_user_cumulate(begin_date, end_date)
-        if data.has_key('errcode'):
-            if data['errcode']==61501:
+        if 'errcode' in data:
+            if data['errcode'] == 61501:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
-            elif data['errcode']==61500:
+            elif data['errcode'] == 61500:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
 
         return data
@@ -788,12 +801,12 @@ class WegoApi(object):
         :param date:begin_date, end_date
         :return: :dict
         """
-        
+
         data = self.wechat.get_article_summary(begin_date, end_date)
-        if data.has_key('errcode'):
-            if data['errcode']==61501:
+        if 'errcode' in data:
+            if data['errcode'] == 61501:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
-            elif data['errcode']==61500:
+            elif data['errcode'] == 61500:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
 
         return data
@@ -805,50 +818,49 @@ class WegoApi(object):
         :param data: begin_date, end_date
         :return: :dict
         """
-            
+
         data = self.wechat.get_article_total(begin_date, end_date)
-        if data.has_key('errcode'):
-            if data['errcode']==61501:
+        if 'errcode' in data:
+            if data['errcode'] == 61501:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
-            elif data['errcode']==61500:
+            elif data['errcode'] == 61500:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
-        
+
         return data
 
     def get_user_read(self, begin_date, end_date):
         """
-        Get user read                           
-                                                
-        :param data:begin_date, end_date        
+        Get user read
+
+        :param data:begin_date, end_date
         :return : :dict
         """
-        
+
         data = self.wechat.get_user_read(begin_date, end_date)
-        if data.has_key('errcode'):
-            if data['errcode']==61501:
+        if 'errcode' in data:
+            if data['errcode'] == 61501:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
-            elif data['errcode']==61500:
+            elif data['errcode'] == 61500:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
 
         return data
-       
+
     def get_user_read_hour(self, begin_date, end_date):
         """
         Get user read hour
-        
+
         param data:begin_date, end_date
         return : :dict
         """
-        
+
         data = self.wechat.get_user_read_hour(begin_date, end_date)
-        if data.has_key('errcode'):
-            if data['errcode']==61501:
+        if 'errcode' in data:
+            if data['errcode'] == 61501:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
-            elif data['errcode']==61500:
+            elif data['errcode'] == 61500:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
 
-        return data        
-
+        return data
 
     def get_user_share(self, begin_date, end_date):
         """
@@ -858,33 +870,30 @@ class WegoApi(object):
         return : :dict
         """
         data = self.wechat.get_user_share(begin_date, end_date)
-        if data.has_key('errcode'):
-            if data['errcode']==61501:
+        if 'errcode' in data:
+            if data['errcode'] == 61501:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
-            elif data['errcode']==61500:
+            elif data['errcode'] == 61500:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
-        
-        return data
 
+        return data
 
     def get_user_share_hour(self, begin_date, end_date):
         """
         Get user share
-        
+
         param data:begin_date, end_date
         retur : :dict
         """
         data = self.wechat.get_user_share_hour(begin_date, end_date)
-        if data.has_key('errcode'):
-            if data['errcode']==61501:
+        if 'errcode' in data:
+            if data['errcode'] == 61501:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
-            elif data['errcode']==61500:
+            elif data['errcode'] == 61500:
                 raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
-        
+
         return data
 
-
-#333
 
 class WeChatPush(object):
     """
@@ -947,7 +956,7 @@ class WeChatPush(object):
 
         # TODO 视频要等审核通过才能用, 或者是永久素材
         data = {
-            'MediaId': video['media_id'] 
+            'MediaId': video['media_id']
         }
         if 'title' in video:
             data['Title'] = video['title']
@@ -961,7 +970,7 @@ class WeChatPush(object):
 
     def reply_music(self, music):
 
-        data  = {
+        data = {
             'Title': music['title'],
             'Description': music['description'],
             'MusicUrl': music['music_url'],
@@ -1008,7 +1017,7 @@ class WeChatUser(object):
     """
 
     def __init__(self, wego, data):
-        
+
         self.wego = wego
         self.data = data
         self.is_upgrade = False
@@ -1019,7 +1028,7 @@ class WeChatUser(object):
         if key in ext_userinfo and not self.is_upgrade:
             self.get_ext_userinfo()
 
-        if key == 'group' and not key in self.data:
+        if key == 'group' and key not in self.data:
             self.data['group'] = self.wego.get_groups()[self.groupid]
 
         if key in self.data:
@@ -1027,7 +1036,7 @@ class WeChatUser(object):
         return ''
 
     def __setattr__(self, key, value):
-        
+
         if key == 'remark':
             if self.subscribe != 1:
                 raise WeChatUserError('The user does not subscribe you')
@@ -1046,12 +1055,12 @@ class WeChatUser(object):
                 else:
                     raise WeChatUserError(u'Without this group(没有这个群组)')
 
-            groupid = value 
-            if not groupid in groups:
+            groupid = value
+            if groupid not in groups:
                 raise WeChatUserError(u'Without this group(没有这个群组)')
 
             self.wego.change_user_group(groupid)
-        
+
         super(WeChatUser, self).__setattr__(key, value)
 
     def get_ext_userinfo(self):
