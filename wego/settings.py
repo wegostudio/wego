@@ -6,8 +6,11 @@ wego.settings
 default setting
 """
 
-from urllib import quote
-from exceptions import InitError
+try:
+    from urllib import quote
+except ImportError:
+    from urllib.parse import quote
+from .exceptions import InitError
 import wego
 import logging
 

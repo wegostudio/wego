@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
-from exceptions import WeChatApiError, WeChatUserError
-from urllib import quote
+from .exceptions import WeChatApiError, WeChatUserError
+try:
+    from urllib import quote
+except ImportError:
+    from urllib.parse import quote
 import requests
 import hashlib
 import json

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from exceptions import WegoApiError, WeChatUserError
+from .exceptions import WegoApiError, WeChatUserError
 import wego
 import json
 import time

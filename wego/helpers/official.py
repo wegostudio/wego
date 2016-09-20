@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from base_helper import BaseHelper
+from .base_helper import BaseHelper
 
 
 class DjangoHelper(BaseHelper):
