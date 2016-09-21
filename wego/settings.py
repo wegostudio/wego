@@ -29,6 +29,8 @@ def init(**kwargs):
 
     :param MCH_ID: (optional) Mac ID get it at https://pay.weixin.qq.com/ (商户号).
     :param MCH_SECRET: (optional) MCH SECRET As same as you set at https://pay.weixin.qq.com/ (API 密钥).
+    :param CERT_PEM_PATH: (optional) Path to apiclient_cert.pem.
+    :param KEY_PEM_PATH: (optional) Path to apiclient_key.pem.
     :param PAY_NOTIFY_PATH: (optional) Default notify url for wechat pay callback.
 
     :param PUSH_TOKEN: (optional) Set at basic configuration(基本配置).
@@ -56,8 +58,8 @@ def init(**kwargs):
 
     check_settings(kwargs)
 
-    kwargs['REDIRECT_URL'] = quote(kwargs['REGISTER_URL'] + kwargs['REDIRECT_PATH'])
-    kwargs['PAY_NOTIFY_URL'] = quote(kwargs['REGISTER_URL'] + kwargs['PAY_NOTIFY_PATH'])
+    kwargs['REDIRECT_URL'] = quote(kwargs['REGISTER_URL'] + kwargs['REDIRECT_PATH'][1:])
+    kwargs['PAY_NOTIFY_URL'] = kwargs['REGISTER_URL'] + kwargs['PAY_NOTIFY_PATH'][1:]
 
     logger = logging.getLogger('wego')
     formatter = logging.Formatter('%(asctime)s WEGO %(levelname)s: %(message)s', datefmt='%Y/%m/%d %I:%M:%S')
@@ -92,7 +94,7 @@ def check_settings(settings):
 
     # optional_couple
     optional_couple_list = [
-        ['MCH_ID', 'MCH_SECRET', 'PAY_NOTIFY_PATH'],
+        ['MCH_ID', 'MCH_SECRET', 'PAY_NOTIFY_PATH', 'CERT_PEM_PATH', 'KEY_PEM_PATH'],
         ['PUSH_TOKEN', 'PUSH_ENCODING_AES_KEY'],
     ]
 
