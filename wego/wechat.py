@@ -196,10 +196,14 @@ class WeChatApi(object):
 
         if not xml:
             return {}
-        return {k: v for v, k in re.findall('\<.*?\>\<\!\[CDATA\[(.*?)\]\]\>\<\/(.*?)\>', xml)}
+
+        if type(xml) is bytes:
+            xml = xml.decode("utf8")
+
+        return {k: v for v,k in re.findall('\<.*?\>\<\!\[CDATA\[(.*?)\]\]\>\<\/(.*?)\>', xml)}
 
     # 统一下单
-    def get_unifiedorder(self, data):
+    def unified_order(self, data):
 
         xml = self._make_xml(data).encode('utf-8')
         data = requests.post('https://api.mch.weixin.qq.com/pay/unifiedorder', data=xml).content
@@ -207,7 +211,7 @@ class WeChatApi(object):
         return self._analysis_xml(data)
 
     # 查询订单
-    def get_orderquery(self, data):
+    def query_order(self, data):
         """
         Get order query.
 
@@ -233,19 +237,22 @@ class WeChatApi(object):
         return self._analysis_xml(data)
 
     # 申请退款
-    # TODO 证书
-    def refund(self, data):
+    def refund_order(self, data):
         """
         refund.
 
         :return: Raw data that wechat returns.
         """
         xml = self._make_xml(data).encode('utf-8')
-        data = requests.post('https://api.mch.weixin.qq.com/secapi/pay/refund', data=xml).content
+        data = requests.post(
+            'https://api.mch.weixin.qq.com/secapi/pay/refund',
+            data=xml,
+            cert=(self.settings.CERT_PEM_PATH, self.settings.KEY_PEM_PATH)
+        ).content
         return self._analysis_xml(data)
 
     # 查询退款
-    def refund_query(self, data):
+    def query_refund(self, data):
         """
         refund query
 
@@ -264,11 +271,17 @@ class WeChatApi(object):
         """
 
         xml = self._make_xml(data).encode('utf-8')
-        data = requests.post('https://api.mch.weixin.qq.com/pay/downloadbill', data=xml).content
-        return self._analysis_xml(data)
+        data = requests.post('https://api.mch.weixin.qq.com/pay/downloadbill', data=xml)
+        if data.headers['content-type'] == 'text/plain':
+            return self._analysis_xml(data.content)
+
+        return {
+            'return_code': 'SUCCESS',
+            'content': data.content
+        }
 
     # 交易保障
-    def report(self, data):
+    def pay_report(self, data):
         """
         report
 

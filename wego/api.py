@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from .exceptions import WegoApiError, WeChatUserError
+from functools import reduce
 import wego
 import json
 import time
@@ -156,8 +157,9 @@ class WegoApi(object):
 
     # TODO 看看是否有必要放入一个新的类里面
     # 统一下单
-    def get_unifiedorder_info(self, **kwargs):
-        """
+    def unified_order(self, **kwargs):
+        """ 
+        # TODO
         Unifiedorder settings, get wechat config at https://api.mch.weixin.qq.com/pay/unifiedorder
         You can take return value as wechat api onBridgeReady's parameters directly
 
@@ -192,7 +194,7 @@ class WegoApi(object):
                 'paySign': value,}
         """
 
-        default_settings = {
+        default_data = {
             'appid': self.settings.APP_ID,
             'mch_id': self.settings.MCH_ID,
             'nonce_str': self._get_random_code(),
@@ -200,7 +202,7 @@ class WegoApi(object):
             'trade_type': 'JSAPI',
         }
 
-        data = dict(default_settings, **kwargs)
+        data = dict(default_data, **kwargs)
         if self.settings.DEBUG:
             data['total_fee'] = 1
         data['sign'] = self.make_sign(data)
@@ -217,7 +219,12 @@ class WegoApi(object):
             'notify_url',
             'trade_type')
 
-        order_info = self.wechat.get_unifiedorder(data)
+        order_info = self.wechat.unified_order(data)
+        if 'result_code' not in order_info or order_info['result_code'] != 'SUCCESS':
+            return self.settings.LOGGER.warn(u'统一下单失败! \n传入数据:\n{}\n返回数据:\n{}'.format(
+                json.dumps(data, indent=2),
+                json.dumps(order_info, indent=2)
+            ))
 
         data = {
             'appId': order_info['appid'],
@@ -231,8 +238,9 @@ class WegoApi(object):
         return data
 
     # 查询订单
-    def get_order_query(self, out_trade_no=None, transaction_id=None):
+    def query_order(self, out_trade_no=None, transaction_id=None):
         """
+        # TODO https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_2
         Order query setting, get wechat config at https://api.mch.weixin.qq.com/pay/orderquery
         Choose one in out_trade_no and transaction_id as parameter pass to this function
 
@@ -247,9 +255,9 @@ class WegoApi(object):
             'mch_id': self.settings.MCH_ID,
             'nonce_str': self._get_random_code(),
         }
-        if transaction_id is None:
+        if out_trade_no:
             default_settings['out_trade_no'] = out_trade_no
-        elif out_trade_no is None:
+        elif transaction_id:
             default_settings['transaction_id'] = transaction_id
         else:
             raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(
@@ -257,13 +265,14 @@ class WegoApi(object):
             ))
 
         default_settings['sign'] = self.make_sign(default_settings)
-        data = self.wechat.get_orderquery(default_settings)
+        data = self.wechat.query_order(default_settings)
 
         return data
 
     # 关闭订单
     def close_order(self, out_trade_no):
         """
+        # TODO return bool?
         Close order, get wechat config at https://api.mch.weixin.qq.com/pay/closeorder
 
         :param out_trade_no: Merchant order number within the system
@@ -283,13 +292,13 @@ class WegoApi(object):
         return data
 
     # 申请退款
-    def refund(self, **kwargs):
+    def refund_order(self, **kwargs):
         """
         Merchant order number within the system, get wechat config at https://api.mch.weixin.qq.com/secapi/pay/refund
 
-        :param out_trade_no | transaction_id: WeChat order number,
-            priority in use. Merchants system internal order number,
-            when didn't provide transaction_id need to pass this.
+        Following parameters are necessary, you must be included in the kwargs and you must follow the format below as the parameters's key
+
+        :param out_trade_no or transaction_id: WeChat order number, priority in use. Merchants system internal order number, when didn't provide transaction_id need to pass this.
 
         :param out_refund_no: Merchants system within the refund number,
             merchants within the system, only the same refund order request only a back many times
@@ -326,19 +335,20 @@ class WegoApi(object):
             'out_refund_no',
             'total_fee',
             'refund_fee',
-            'op_user_id')
+            'op_user_id'
+        )
 
         if 'out_trade_no' not in kwargs and 'transaction_id' not in kwargs:
             raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(
                 param='out_trade_on|transaction_id'
             ))
 
-        data = self.wechat.refund(data)
+        data = self.wechat.refund_order(data)
 
         return data
 
     # 查询退款
-    def refund_query(self, **kwargs):
+    def query_refund(self, **kwargs):
         """
         get wechat config at https://api.mch.weixin.qq.com/pay/refundquery
 
@@ -352,21 +362,18 @@ class WegoApi(object):
             'nonce_str': self._get_random_code(),
         }
 
-        # check param
-        flag = False
         keys = ['transaction_id', 'out_trade_no', 'out_refund_no', 'refund_id']
-        for k, v in kwargs.items():
-            if k in keys:
-                flag = True
+        for i in keys:
+            if i in kwargs:
                 break
-        if not flag:
+        else:
             raise WegoApiError('Missing required parameters "{param}" (缺少必须的参数 "{param}")'.format(
                 param='out_trade_on|transaction_id|out_refund_no|refund_id'
             ))
 
         data = dict(default_settings, **kwargs)
         data['sign'] = self.make_sign(data)
-        data = self.wechat.refund_query(data)
+        data = self.wechat.query_refund(data)
 
         return data
 
@@ -403,8 +410,9 @@ class WegoApi(object):
 
         return data
 
+    # TODO 暂时无需
     # 交易保障
-    def report(self, **kwargs):
+    def pay_report(self, **kwargs):
         """
         get wechat config at https://api.mch.weixin.qq.com/payitil/report
 
@@ -438,7 +446,7 @@ class WegoApi(object):
             'user_ip'
         )
 
-        data = self.wechat.report(data)
+        data = self.wechat.pay_report(data)
 
         return data
 
@@ -604,6 +612,10 @@ class WegoApi(object):
         Analysis xml to dict and set wego push type.
         Wego defind WeChatPush type (which can reply has checked):
 
+            -- pay --
+
+            all ✓
+
             -- msg --
 
             text ✓
@@ -647,6 +659,8 @@ class WegoApi(object):
 
         helper = self.settings.HELPER(request)
         raw_xml = helper.get_body()
+        # TODO 微信支付回调
+        print(raw_xml, '='*30)
         crypto = None
         nonce = None
 
