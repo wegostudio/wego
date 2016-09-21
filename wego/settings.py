@@ -38,8 +38,8 @@ def init(**kwargs):
             multiple servers it required. How to customized your GET_GLOBAL_ACCESS_TOKEN:
             http://wego.quseit.com/customized/GET_GLOBAL_ACCESS_TOKEN(building).
 
-    :param USERINFO_EXPIRE: (optional) Set number of seconds expired, default is 0. subscribe, language, remark and groupid
-            still is real time.
+    :param USERINFO_EXPIRE: (optional) Set number of seconds expired, default is 0. subscribe,
+            language, remark and groupid still is real time.
 
     :param DEBUG: (optional) Default is True,
             When Debug equal True it will log all information and wechat payment only spend a penny(0.01 yuan).

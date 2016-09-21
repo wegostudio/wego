@@ -772,9 +772,9 @@ class WegoApi(object):
         data = self.wechat.get_variation_number_of_user(begin_date, end_date)
         if 'errcode' in data:
             if data['errcode'] == 61501:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
             elif data['errcode'] == 61500:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
 
         return data
 
@@ -788,9 +788,9 @@ class WegoApi(object):
         data = self.wechat.get_user_cumulate(begin_date, end_date)
         if 'errcode' in data:
             if data['errcode'] == 61501:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
             elif data['errcode'] == 61500:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
 
         return data
 
@@ -805,9 +805,9 @@ class WegoApi(object):
         data = self.wechat.get_article_summary(begin_date, end_date)
         if 'errcode' in data:
             if data['errcode'] == 61501:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
             elif data['errcode'] == 61500:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
 
         return data
 
@@ -822,9 +822,9 @@ class WegoApi(object):
         data = self.wechat.get_article_total(begin_date, end_date)
         if 'errcode' in data:
             if data['errcode'] == 61501:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
             elif data['errcode'] == 61500:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
 
         return data
 
@@ -839,9 +839,9 @@ class WegoApi(object):
         data = self.wechat.get_user_read(begin_date, end_date)
         if 'errcode' in data:
             if data['errcode'] == 61501:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
             elif data['errcode'] == 61500:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
 
         return data
 
@@ -856,9 +856,9 @@ class WegoApi(object):
         data = self.wechat.get_user_read_hour(begin_date, end_date)
         if 'errcode' in data:
             if data['errcode'] == 61501:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
             elif data['errcode'] == 61500:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
 
         return data
 
@@ -872,9 +872,9 @@ class WegoApi(object):
         data = self.wechat.get_user_share(begin_date, end_date)
         if 'errcode' in data:
             if data['errcode'] == 61501:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
             elif data['errcode'] == 61500:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
 
         return data
 
@@ -888,9 +888,9 @@ class WegoApi(object):
         data = self.wechat.get_user_share_hour(begin_date, end_date)
         if 'errcode' in data:
             if data['errcode'] == 61501:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数跨度异常。)')
             elif data['errcode'] == 61500:
-                raise Exception(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
+                raise WegoApiError(data['errmsg'] + u'(错误返回码：' + str(data['errcode']) + u'，时间参数格式异常。)')
 
         return data
 
@@ -1006,8 +1006,6 @@ class WeChatPush(object):
                 'item': data
             }
         })
-
-
 
 
 class WeChatUser(object):
