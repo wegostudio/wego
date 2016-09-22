@@ -41,11 +41,10 @@ class WegoApi(object):
 
             openid = helper.get_session('wx_openid')
             if openid:
-                self.openid = openid
                 request.wego = self
                 request.wx_openid = openid
 
-                wx_user = self.get_userinfo(helper)
+                wx_user = self.get_userinfo(helper, openid)
                 if wx_user != 'error':
                     request.wx_user = wx_user
                     return func(request, *args, **kwargs)
@@ -80,7 +79,7 @@ class WegoApi(object):
 
         return data['openid']
 
-    def get_userinfo(self, helper):
+    def get_userinfo(self, helper, openid):
         """
         Get user info.
 
@@ -99,7 +98,7 @@ class WegoApi(object):
             self._set_user_tokens(helper, new_token)
 
         access_token = helper.get_session('wx_access_token')
-        data = self.wechat.get_userinfo_by_token(self.openid, access_token)
+        data = self.wechat.get_userinfo_by_token(openid, access_token)
         self._set_userinfo_to_session(helper, data)
 
         return WeChatUser(self, data)
@@ -141,6 +140,17 @@ class WegoApi(object):
         helper.set_session('wx_access_token', data['access_token'])
         helper.set_session('wx_access_token_expires_at', time.time() + data['expires_in'] - 180)
         helper.set_session('wx_refresh_token', data['refresh_token'])
+
+    def get_ext_userinfo(self, openid):
+        """
+        Get user extra info, such as subscribe, language, remark and groupid.
+
+        :return: :dict: User data
+        """
+
+        data = self.wechat.get_userinfo(openid)
+
+        return WeChatUser(self, data)
 
     def verification_token(self, openid, access_token):
         """
@@ -550,7 +560,7 @@ class WegoApi(object):
         data = self.wechat.change_group_name(groupid, name)
         return not data['errcode']
 
-    def change_user_group(self, group):
+    def change_user_group(self, openid, group):
         """
         Change user group.
 
@@ -559,7 +569,7 @@ class WegoApi(object):
         """
 
         groupid = self._get_groupid(group)
-        data = self.wechat.change_user_group(self.openid, groupid)
+        data = self.wechat.change_user_group(openid, groupid)
         return not data['errcode']
 
     def del_group(self, group):
@@ -949,7 +959,7 @@ class WeChatPush(object):
 
         return self.return_xml({
             'MsgType': 'text',
-            'Content': str(text)
+            'Content': text
         })
 
     def reply_image(self, image):
@@ -1056,7 +1066,7 @@ class WeChatUser(object):
                 raise WeChatUserError('The user does not subscribe you')
 
             if self.data['remark'] != value:
-                self.wego.wechat.set_user_remark(self.wego.openid, value)
+                self.wego.wechat.set_user_remark(self.data['openid'], value)
                 self.data[key] = value
 
         if key in ['group', 'groupid']:
@@ -1073,7 +1083,7 @@ class WeChatUser(object):
             if groupid not in groups:
                 raise WeChatUserError(u'Without this group(没有这个群组)')
 
-            self.wego.change_user_group(groupid)
+            self.wego.change_user_group(self.data['openid'], groupid)
 
         super(WeChatUser, self).__setattr__(key, value)
 
@@ -1087,7 +1097,7 @@ class WeChatUser(object):
         self.data['remark'] = ''
         self.data['groupid'] = ''
 
-        data = self.wego.wechat.get_userinfo(self.wego.openid)
+        data = self.wego.wechat.get_userinfo(self.data['openid'])
         self.data = dict(self.data, **data)
         self.is_upgrade = True
 

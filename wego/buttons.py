@@ -109,10 +109,10 @@ class MatchRule(object):
         else:
             raise WeChatButtonError(u'No valid arguments(没有有效参数)')
 
-        if kwargs.has_key('city') and not kwargs.has_key('province'):
+        if 'city' in kwargs and 'province' not in kwargs:
             raise WeChatButtonError(u'City to be set before setting the provinces(设置城市前需设置省份)')
 
-        if kwargs.has_key('province') and not kwargs.has_key('country'):
+        if 'province' in kwargs and 'country 'not in kwargs:
             raise WeChatButtonError(u'Province to be set before setting the country(设置省份前需设置国家)')
 
         self.json = kwargs
