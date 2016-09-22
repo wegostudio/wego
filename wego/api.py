@@ -644,7 +644,7 @@ class WegoApi(object):
 
             -- event --
 
-            subscribe ✓
+            subscribe ✓'
 
             unsubscribe
 
@@ -669,8 +669,11 @@ class WegoApi(object):
 
         helper = self.settings.HELPER(request)
         raw_xml = helper.get_body()
-        # TODO 微信支付回调
-        print(raw_xml, '='*30)
+
+        if raw_xml.find('return_code') != -1:
+            data = self.wechat._analysis_xml(raw_xml)
+            return WeChatPay(data)
+
         crypto = None
         nonce = None
 
@@ -919,6 +922,28 @@ class WegoApi(object):
         return data
 
 
+class WeChatPay(object):
+
+    def __init__(self, data):
+
+        self.is_pay = True
+        self.data = data
+        self.return_tpl = ('<xml>' +
+            '<return_code><![CDATA[SUCCESS]]></return_code>' +
+            '<return_msg><![CDATA[%s]]></return_msg>' +
+        '</xml>')
+        self.success = self.return_tpl % 'OK'
+
+    def fail(self, text):
+        return self.return_tpl % text
+ 
+    def __getattr__(self, key):
+
+        if key in self.data:
+            return self.data[key]
+        return ''
+
+
 class WeChatPush(object):
     """
     """
@@ -954,6 +979,12 @@ class WeChatPush(object):
             ret, xml = self.crypto.EncryptMsg(xml, self.nonce)
 
         return xml
+
+    def __getattr__(self, key):
+
+        if key in self.data:
+            return self.data[key]
+        return ''
 
     def reply_text(self, text):
 
