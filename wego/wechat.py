@@ -20,7 +20,7 @@ class WeChatApi(object):
         self.settings = settings
         self.global_access_token = {}
 
-    def get_code_url(self, redirect_url, state='STATE'):
+    def get_code_url(self, redirect_url, state):
         """
         Get the url which 302 jump back and bring a code.
 
@@ -29,10 +29,8 @@ class WeChatApi(object):
         :return: url
         """
 
-        if redirect_url:
-            redirect_url = quote(self.settings.REGISTER_URL + redirect_url[1:])
-        else:
-            redirect_url = self.settings.REDIRECT_URL
+        state = quote(state)
+        redirect_url = quote(self.settings.REGISTER_URL + redirect_url[1:])
 
         url = ('https://open.weixin.qq.com/connect/oauth2/authorize?' +
                'appid=%s&redirect_uri=%s' +

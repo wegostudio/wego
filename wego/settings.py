@@ -6,10 +6,6 @@ wego.settings
 default setting
 """
 
-try:
-    from urllib import quote
-except ImportError:
-    from urllib.parse import quote
 from .exceptions import InitError
 import wego
 import logging
@@ -61,9 +57,9 @@ def init(**kwargs):
 
     if 'REDIRECT_STATE' not in kwargs:
         kwargs['REDIRECT_STATE'] = False
-    kwargs['REDIRECT_URL'] = False
-    if 'REDIRECT_PATH' in kwargs:
-        kwargs['REDIRECT_URL'] = quote(kwargs['REGISTER_URL'] + kwargs['REDIRECT_PATH'][1:])
+    if 'REDIRECT_PATH' not in kwargs:
+        kwargs['REDIRECT_PATH'] = False
+
     kwargs['PAY_NOTIFY_URL'] = kwargs['REGISTER_URL'] + kwargs['PAY_NOTIFY_PATH'][1:]
 
     logger = logging.getLogger('wego')
