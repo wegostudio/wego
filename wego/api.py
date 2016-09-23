@@ -35,11 +35,15 @@ class WegoApi(object):
             helper = self.settings.HELPER(request)
 
             code = helper.get_params().get('code', '')
+            openid = None
+
             if code:
                 openid = self.get_openid(helper, code)
                 helper.set_session('wx_openid', openid)
 
-            openid = helper.get_session('wx_openid')
+            if not openid:
+                openid = helper.get_session('wx_openid')
+
             if openid:
                 request.wego = self
                 request.wx_openid = openid
@@ -60,14 +64,16 @@ class WegoApi(object):
         :return: Redirect object
         """
 
+        state = 'WEGO'
         if self.settings.REDIRECT_PATH:
             redirect_url = self.settings.REDIRECT_PATH
-            state = 'WEGO'
             if self.settings.REDIRECT_STATE:
                 state = self.settings.REDIRECT_STATE
         else:
             redirect_url = helper.get_current_path()
-            state = '&'.join(['%s=%s' % (i, j) for i, j in helper.get_params().items()])
+            get_params = helper.get_params()
+            if 'code' not in get_params:
+                state = '&'.join(['%s=%s' % (i, j) for i, j in get_params.items()])
         url = self.wechat.get_code_url(redirect_url, state)
 
         return helper.redirect(url)
@@ -97,7 +103,8 @@ class WegoApi(object):
         if wechat_user:
             return wechat_user
 
-        if helper.get_session('wx_access_token_expires_at') < time.time():
+        wx_access_token_expires_at = helper.get_session('wx_access_token_expires_at')
+        if wx_access_token_expires_at and float(wx_access_token_expires_at) < time.time():
             refresh_token = helper.get_session('wx_refresh_token')
             new_token = self.wechat.refresh_access_token(refresh_token)
             if new_token == 'error':
@@ -145,7 +152,7 @@ class WegoApi(object):
         """
 
         helper.set_session('wx_access_token', data['access_token'])
-        helper.set_session('wx_access_token_expires_at', time.time() + data['expires_in'] - 180)
+        helper.set_session('wx_access_token_expires_at', str(time.time() + data['expires_in'] - 180))
         helper.set_session('wx_refresh_token', data['refresh_token'])
 
     def get_ext_userinfo(self, openid):

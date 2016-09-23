@@ -7,9 +7,6 @@ class BaseHelper(object):
     wego base helper, any helper have to inherit this.
     """
 
-    def __init__(self, request):
-        self.request = request
-
     def get_current_url(self, request):
         raise HelperError('you have to customized YourHelper.get_current_url')
 
