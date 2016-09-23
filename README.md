@@ -4,6 +4,12 @@
 
 一个简单易用的微信开发框架，能协助你在微信开发中专注业务逻辑摆脱微信接口调试的烦恼。
 
+## Install
+
+```
+$ pip(3) install wego
+```
+
 ## Usage
 
 ```
@@ -41,4 +47,5 @@ class IndexHandler(tornado.web.RequestHandler):
 ## License
 
 [Apache](http://www.apache.org/licenses/)
+
 
