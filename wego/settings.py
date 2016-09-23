@@ -60,7 +60,8 @@ def init(**kwargs):
     if 'REDIRECT_PATH' not in kwargs:
         kwargs['REDIRECT_PATH'] = False
 
-    kwargs['PAY_NOTIFY_URL'] = kwargs['REGISTER_URL'] + kwargs['PAY_NOTIFY_PATH'][1:]
+    if 'PAY_NOTIFY_PATH' in kwargs:
+        kwargs['PAY_NOTIFY_URL'] = kwargs['REGISTER_URL'] + kwargs['PAY_NOTIFY_PATH'][1:]
 
     logger = logging.getLogger('wego')
     formatter = logging.Formatter('%(asctime)s WEGO %(levelname)s: %(message)s', datefmt='%Y/%m/%d %I:%M:%S')
@@ -114,7 +115,7 @@ def check_settings(settings):
     if 'REDIRECT_PATH' in settings and not settings['REDIRECT_PATH'].startswith('/'):
         raise InitError('REDIRECT_PATH have to starts with "/"(REDIRECT_PATH 需以 "/" 开始)')
 
-    if 'PAY_NOTIFY_PATH' in settings not settings['PAY_NOTIFY_PATH'].startswith('/'):
+    if 'PAY_NOTIFY_PATH' in settings and not settings['PAY_NOTIFY_PATH'].startswith('/'):
         raise InitError('PAY_NOTIFY_PATH have to starts with "/"(PAY_NOTIFY_PATH 需以 "/" 开始)')
 
     if type(settings['HELPER']) is str:
