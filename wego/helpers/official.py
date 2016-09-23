@@ -51,7 +51,7 @@ class TornadoHelper(BaseHelper):
     def get_session(self, key):
         if key in self.session:
             return self.session[key]
-        return self.handler.get_secure_cookie(key, False)
+        return self.handler.get_secure_cookie(key)
 
     def redirect(self, url):
         return self.handler.redirect(url)
