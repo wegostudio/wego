@@ -23,7 +23,6 @@ def init(**kwargs):
     :param APP_SECRET: Wechat AppSecret get it at basic configuration(基本配置).
     :param REGISTER_URL: As same as you set at interface permissions(接口权限)
             >> authorized users obtain basic information page(网页授权获取用户基本信息).
-    :param REDIRECT_PATH: Default redirect path, redirect when we get user`s authorize.
     :param HELPER: Official helper 'wego.helpers.django_helper' and 'wego.helpers.tornado_helper' or you can customized
             yourself helper with http://wego.quseit.com/customized/helper(building).
 
@@ -43,6 +42,8 @@ def init(**kwargs):
     :param USERINFO_EXPIRE: (optional) Set number of seconds expired, default is 0. subscribe,
             language, remark and groupid still is real time.
 
+    :param REDIRECT_PATH: (optional) Default redirect path, redirect when we get user`s authorize.
+    :param REDIRECT_STATE: (optional) Default redirect state, redirect when we get user`s authorize.
     :param DEBUG: (optional) Default is True,
             When Debug equal True it will log all information and wechat payment only spend a penny(0.01 yuan).
     :return: :class:`WegoApi <wego.api.WegoApi>` object.
@@ -58,7 +59,11 @@ def init(**kwargs):
 
     check_settings(kwargs)
 
-    kwargs['REDIRECT_URL'] = quote(kwargs['REGISTER_URL'] + kwargs['REDIRECT_PATH'][1:])
+    if 'REDIRECT_STATE' not in kwargs:
+        kwargs['REDIRECT_STATE'] = False
+    kwargs['REDIRECT_URL'] = False
+    if 'REDIRECT_PATH' in kwargs:
+        kwargs['REDIRECT_URL'] = quote(kwargs['REGISTER_URL'] + kwargs['REDIRECT_PATH'][1:])
     kwargs['PAY_NOTIFY_URL'] = kwargs['REGISTER_URL'] + kwargs['PAY_NOTIFY_PATH'][1:]
 
     logger = logging.getLogger('wego')
@@ -88,7 +93,6 @@ def check_settings(settings):
         'APP_ID',
         'APP_SECRET',
         'REGISTER_URL',
-        'REDIRECT_PATH',
         'HELPER'
     ]
 
@@ -111,8 +115,8 @@ def check_settings(settings):
     if not settings['REGISTER_URL'].endswith('/'):
         raise InitError('REGISTER_URL has to ends with "/"(REGISTER_URL 需以 "/" 结尾)')
 
-    if not settings['REDIRECT_PATH'].startswith('/'):
-        raise InitError('REDIRECT_URL have to starts with "/"(REDIRECT_URL 需以 "/" 开始)')
+    if 'REDIRECT_PATH' in settings and not settings['REDIRECT_PATH'].startswith('/'):
+        raise InitError('REDIRECT_PATH have to starts with "/"(REDIRECT_PATH 需以 "/" 开始)')
 
     if not settings['PAY_NOTIFY_PATH'].startswith('/'):
         raise InitError('PAY_NOTIFY_PATH have to starts with "/"(PAY_NOTIFY_PATH 需以 "/" 开始)')

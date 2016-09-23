@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+try:
+    from urllib import quote
+except ImportError:
+    from urllib.parse import quote
 from .exceptions import WegoApiError, WeChatUserError
 from functools import reduce
 import wego
@@ -60,8 +64,13 @@ class WegoApi(object):
         :return: Redirect object
         """
 
-        redirect_url = helper.get_current_path()
-        url = self.wechat.get_code_url(redirect_url)
+        if self.settings.REDIRECT_URL:
+            redirect_url = self.settings.REDIRECT_URL
+            state = self.settings.REDIRECT_STATE
+        else:
+            redirect_url = helper.get_current_path()
+            state = quote('&'.join(['%s=%s' % (i, j) for i, j in helper.get_params().items()]))
+        url = self.wechat.get_code_url(redirect_url, state)
 
         return helper.redirect(url)
 
