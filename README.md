@@ -27,12 +27,18 @@ class IndexHandler(tornado.web.RequestHandler):
 
 ## Discuss
 
-微信群:
-![微信群](http://ww2.sinaimg.cn/large/62e721e4gw1f84040ds0pj207s07st9m.jpg)
-
-Telegram:
-![Telegram](http://ww2.sinaimg.cn/large/62e721e4gw1f84078j40pj207s07st9m.jpg)
+<table>
+    <tr>
+        <td><img src="http://ww2.sinaimg.cn/large/62e721e4gw1f84040ds0pj207s07st9m.jpg" style="width: 142px"></td>
+        <td><img src="http://ww2.sinaimg.cn/large/62e721e4gw1f84078j40pj207s07st9m.jpg" style="width: 142px"></td>
+    </tr>
+    <tr>
+        <td>微信群</td>
+        <td>Telegram</td>
+    </tr>
+</table>
 
 ## License
 
 [Apache](http://www.apache.org/licenses/)
+
