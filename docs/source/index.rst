@@ -18,8 +18,8 @@ Wego 能协助你在微信开发中专注业务逻辑摆脱微信接口调试的
         APP_ID='',
         # 应用密钥 (开发 -> 基本配置)
         APP_SECRET='',
-        # 微信公众平台左侧: 接口权限-> 网页授权获取用户基本信息内配置
-        REGISTER_URL='',
+        # 注册域名, 微信公众平台左侧: 接口权限-> 网页授权获取用户基本信息内配置, 需加上 http(s):// 以 / 结尾
+        REGISTER_URL='http://www.example.com/',
         # WEGO 助手 'wego.helpers.tornado_helper'
         HELPER='wego.helpers.official.DjangoHelper',
 
