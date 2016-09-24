@@ -3,6 +3,8 @@ python:
   - "2.7"
   - "3.5"
 # command to install dependencies
-install: "pip install requests"
+install:
+  - pip install requests
+  - pip install pycrypto
 # command to run tests
 script: python tests/runtests.py
