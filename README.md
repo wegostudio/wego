@@ -35,7 +35,7 @@ class IndexHandler(tornado.web.RequestHandler):
 
 <table>
     <tr>
-        <td><img src="http://ww2.sinaimg.cn/large/62e721e4gw1f84040ds0pj207s07st9m.jpg" style="width: 142px"></td>
+        <td><img src="http://ww2.sinaimg.cn/large/62e721e4gw1f85i78ux1uj206x06zwf4.jpg" style="width: 142px"></td>
         <td><img src="http://ww2.sinaimg.cn/large/62e721e4gw1f84078j40pj207s07st9m.jpg" style="width: 142px"></td>
     </tr>
     <tr>
