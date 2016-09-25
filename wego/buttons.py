@@ -94,17 +94,16 @@ class MediaBtn(object):
 
 # TODO 文档
 class MatchRule(object):
+    """
+    https://mp.weixin.qq.com/wiki/0/c48ccd12b69ae023159b4bfaa7c39c20.html
+    地区表 https://mp.weixin.qq.com/wiki/static/assets/870a3c2a14e97b3e74fde5e88fa47717.zip
+    """
 
     def __init__(self, **kwargs):
-        """
-        https://mp.weixin.qq.com/wiki/0/c48ccd12b69ae023159b4bfaa7c39c20.html
-        地区表 https://mp.weixin.qq.com/wiki/static/assets/870a3c2a14e97b3e74fde5e88fa47717.zip
-        """
 
         # TODO sex 支持 male, Female 不限制大小写，client_platform_type 同样
         for i in kwargs.keys():
-            if i in ['group_id', 'sex', 'client_platform_type', 'country',
-                    'province', 'city', 'language']:
+            if i in ['group_id', 'sex', 'client_platform_type', 'country', 'province', 'city', 'language']:
                 break
         else:
             raise WeChatButtonError(u'No valid arguments(没有有效参数)')
