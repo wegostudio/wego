@@ -29,7 +29,7 @@ class IndexHandler(tornado.web.RequestHandler):
 
 ## Document
 
-未完成，持续更新中: [wegostudio.github.io/wego/](https://wegostudio.github.io/wego/)
+未完成，持续更新中: [wego.readthedocs.io](http://wego.readthedocs.io/zh_CN/latest/)
 
 ## Discuss
 
