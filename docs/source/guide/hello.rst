@@ -3,7 +3,7 @@
 Hello world
 ============
 
-这将是你使用 WEGO 的一个简单起步，放轻松，WEGO 不会给你带来太多理解上的压力，但开始前，我们希望你对 Django 或 Tornado 有一定的使用经验，如果两者你都还没尝试过，我们推荐文档更优秀的 Django 作为你的起步 (https://www.djangoproject.com/)。
+这将是你使用 WEGO 的一个简单起步，放轻松，WEGO 不会给你带来太多理解上的压力，但开始前，我们希望你对 Django 或 Tornado 有一定的使用经验，如果两者你都还没尝试过，我们推荐文档更优秀的 Django 作为你的起步 (https://www.djangoproject.com/)。(和 python2.x 用户的约定: 使用 unicode 类型传递包含中文的字符串如: u'中文')
 
 初始化
 ------

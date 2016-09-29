@@ -24,6 +24,13 @@ Settings Interface
     :members:
 
 
+Buttons Interface
+------------------
+
+.. automodule:: wego.buttons
+    :members:
+
+
 Exceptions
 ----------
 

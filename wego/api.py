@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 from .exceptions import WegoApiError, WeChatUserError
 from functools import reduce
+from cStringIO import StringIO
 import wego
 import json
 import time
 import random
 import string
 import hashlib
+import qrcode
 
 
 class WegoApi(object):
@@ -473,6 +475,32 @@ class WegoApi(object):
         data = self.wechat.pay_report(data)
 
         return data
+
+    def biz_pay(self, product_id):
+        """
+        get wechat config at ...
+
+        :param product_id:
+        """
+        
+        data = {
+            'appid': self.settings.APP_ID,
+            'mch_id': self.settings.MCH_ID,
+            'nonce_str': self._get_random_code(),
+            'time_stamp': int(time.time()),
+            'product_id': product_id
+        }
+
+        data['sign'] = self.make_sign(data)
+        
+        url = 'weixin://wxpay/bizpayurl?sign=%s&appid=%s&mch_id=%s&product_id=%s&time_stamp=%s&nonce_str=%s' % (data['sign'], data['appid'], data['mch_id'], data['product_id'], data['time_stamp'], data['nonce_str'])
+        img = qrcode.make(url)
+        buf = StringIO()
+        img.save(buf)
+        img_stream = buf.getvalue()
+
+        return img_stream
+
 
     def _check_params(self, params, *args):
         """

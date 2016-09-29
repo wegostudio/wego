@@ -32,11 +32,17 @@ Wego 能协助你在微信开发中专注业务逻辑摆脱微信接口调试的
    :maxdepth: 3
    
    guide/hello
+   guide/menu
+   guide/interaction
 
 示例
 ----
 
+<<<<<<< HEAD
 通过简单的教程, 你将很快上手 WEGO。
+=======
+完整、可用于生产项目的代码示例。
+>>>>>>> 931a00837342d127363a80194b5a1d0063bb6c94
 
 .. toctree::
    :maxdepth: 3
