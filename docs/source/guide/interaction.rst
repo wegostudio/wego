@@ -8,7 +8,7 @@
 启用服务器推送
 --------------
 
-在微信公众平台，基本配置中启用（TODO），启用时有一个简单的服务器验证过程，大部分情况下不需要进行安全验证，直接返回（TODO） 即可，启用后记得将对应的 token、aeskey 填入 wego.init 中。
+在微信公众平台的基本配置中启用服务器配置，启用时有一个简单的服务器验证过程，大部分情况下不需要进行安全验证，直接返回验证请求的 GET 参数 echostr 即可，启用后记得将对应的 token、aeskey 填入 wego.init 中。
 
 响应服务器推送事件
 ------------------
@@ -25,4 +25,4 @@
         reply = push.reply_text('hello ' + user.nickname)
         return HttpResponse(reply)
 
-wego 能解析所有的事件，由于一些事件微信命名重复，WeChatPush 包含了一个 type 属性进行严格的区分，当然，并不是所有类型的事件都能返回消息给用户，wego 的所有 type 都在 API 文档内都一一列出来，可以与用户交互的 type 在后面都有一个小勾。
+wego 能解析所有的事件，由于一些事件微信命名重复，WeChatPush 包含了一个 type 属性进行严格的区分，当然，并不是所有类型的事件都能返回消息给用户，wego 的所有 type 都在 :class:`analysis_push <wego.api.WegoApi.analysis_push>` 内一一列出来，在这里我们只关注按 msg 和 event 两类 type，可以与用户交互的 type 在后面都有一个小勾。
