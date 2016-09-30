@@ -4,6 +4,13 @@
 
 一个简单易用的微信开发框架，能协助你在微信开发中专注业务逻辑摆脱微信接口调试的烦恼。
 
+## Example
+
+<p align="center">
+    <img width="220"src="http://ww2.sinaimg.cn/large/62e721e4gw1f8bd8tn1kwj20a90a9gmt.jpg"><br/><br/>
+    微信扫一扫查看示例公众号
+</p>
+
 ## Install
 
 ```
@@ -35,7 +42,7 @@ class IndexHandler(tornado.web.RequestHandler):
 
 <table>
     <tr>
-        <td><img src="http://ww2.sinaimg.cn/large/62e721e4gw1f85i78ux1uj206x06zwf4.jpg" style="width: 142px"></td>
+        <td><img src="http://ww2.sinaimg.cn/large/62e721e4gw1f8bd7xm420j209k09lq43.jpg" style="width: 142px"></td>
         <td><img src="http://ww2.sinaimg.cn/large/62e721e4gw1f84078j40pj207s07st9m.jpg" style="width: 142px"></td>
     </tr>
     <tr>
