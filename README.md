@@ -42,8 +42,8 @@ class IndexHandler(tornado.web.RequestHandler):
 
 <table>
     <tr>
-        <td><img src="http://ww2.sinaimg.cn/large/62e721e4gw1f8bd7xm420j209k09lq43.jpg" style="width: 142px"></td>
-        <td><img src="http://ww2.sinaimg.cn/large/62e721e4gw1f84078j40pj207s07st9m.jpg" style="width: 142px"></td>
+        <td><img src="http://ww2.sinaimg.cn/large/62e721e4gw1f8bd7xm420j209k09lq43.jpg" width="142"></td>
+        <td><img src="http://ww2.sinaimg.cn/large/62e721e4gw1f84078j40pj207s07st9m.jpg" width="142"></td>
     </tr>
     <tr>
         <td>微信群</td>
