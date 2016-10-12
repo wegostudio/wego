@@ -19,7 +19,7 @@ def init(**kwargs):
     :param APP_SECRET: Wechat AppSecret get it at basic configuration(基本配置).
     :param REGISTER_URL: As same as you set at interface permissions(接口权限)
             >> authorized users obtain basic information page(网页授权获取用户基本信息).
-    :param HELPER: Official helper 'wego.helpers.django_helper' and 'wego.helpers.tornado_helper' or you can customized
+    :param HELPER: Official helper 'wego.helpers.DjangoHelper' and 'wego.helpers.TornadoHelper' or you can customized
             yourself helper with http://wego.quseit.com/customized/helper(building).
 
     :param MCH_ID: (optional) Mac ID get it at https://pay.weixin.qq.com/ (商户号).

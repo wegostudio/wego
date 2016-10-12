@@ -39,7 +39,7 @@ class TornadoHelper(BaseHelper):
         return self.handler.request.uri
 
     def get_params(self):
-        return {i: j[-1] for i,j in self.handler.request.arguments.items()}
+        return {i: j[-1] for i, j in self.handler.request.arguments.items()}
 
     def get_body(self):
         return self.handler.request.body

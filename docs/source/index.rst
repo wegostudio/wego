@@ -31,9 +31,11 @@ Wego 能协助你在微信开发中专注业务逻辑摆脱微信接口调试的
 .. toctree::
    :maxdepth: 3
    
+   guide/install
    guide/hello
    guide/menu
    guide/interaction
+   guide/paytime
 
 示例
 ----
@@ -47,7 +49,11 @@ Wego 能协助你在微信开发中专注业务逻辑摆脱微信接口调试的
 .. toctree::
    :maxdepth: 3
    
+   sample/init
    sample/user
+   sample/buttons
+   sample/custom_helper
+   sample/custom_get_token
 
 API 文档
 --------------

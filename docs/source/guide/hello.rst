@@ -1,4 +1,4 @@
-.. _guide:
+.. _hello:
 
 Hello world
 ============
@@ -25,7 +25,9 @@ Hello world
         HELPER='wego.helpers.official.DjangoHelper',
     )
 
-如果你是 tornado 用户，那么我们建议启动 tornado 时配置一下 cookie_secret (http://tornado-zh.readthedocs.io/zh/latest/guide/security.html)，以增强安全性。
+如果你是 tornado 用户，那么我们建议启动 tornado 时配置一下 cookie_secret (http://tornado-zh.readthedocs.io/zh/latest/guide/security.html)，以增强安全性
+
+注意：文档内的 w 变量将特指 wego.init 返回的 WegoApi 实例。
 
 ::
 
@@ -53,9 +55,9 @@ Hello world
 
 将 url 指向对应的函数或类，然后访问这个 url，是不是成功了？虽然不是标准的网页没有漂亮的样式字也有些小，但是热情还是在的。
 
-完整参数的初始化
+更多参数的初始化
 ----------------
-这是一个使用了当前所有初始化参数的例子。
+这是一个使用了更多初始化参数的例子，完整参数的示例请移步至 :ref:`初始化参数说明 <init>`。
 
 ::
 
