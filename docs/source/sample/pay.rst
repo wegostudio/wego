@@ -66,24 +66,24 @@
 
 必要参数说明
 ^^^^^^^^^^^^^^
-    :openid:
-    :body:
-    :out_trade_no:
-    :total_fee:
-    :trade_type:
-    :spbill_create_ip:
+    :openid: openid如何获取，可参考 `【获取openid】 <https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_4>`_ 。企业号请使用【企业号OAuth2.0接口】获取企业号内成员userid，再调用【企业号userid转openid接口】进行转换
+    :body: 商品简单描述，该字段须严格按照规范传递，具体请见 `参数规定 <https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_2>`_
+    :out_trade_no: 商户系统内部的订单号,32个字符内、可包含字母, 其他说明见 `商户订单号 <https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_2>`_
+    :total_fee: 订单总金额，单位为分，详见 `支付金额 <https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_2>`_
+    :spbill_create_ip: APP和网页支付提交用户端ip，Native支付填调用微信支付API的机器IP。
+    :trade_type: 取值如下：JSAPI，NATIVE，APP，详细说明见 `参数规定 <https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_2>`_
 
 可选参数说明
 ^^^^^^^^^^^^^^^
-    :device_data:
-    :detail:
-    :attach:
-    :fee_type:
-    :time_start:
-    :time_expire:
-    :goods_tag:
-    :product_id:
-    :limit_pay:
+    :device_data: 终端设备号(门店号或收银设备ID)，注意：PC网页或公众号内支付请传"WEB"
+    :detail: 商品详细列表，使用Json格式，传输签名前请务必使用CDATA标签将JSON文本串保护起来，`具体参考 <https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_1>`_
+    :attach: 附加数据，在查询API和支付通知中原样返回，该字段主要用于商户携带订单的自定义数据
+    :fee_type: 符合ISO 4217标准的三位字母代码，默认人民币：CNY，其他值列表详见 `货币类型 <https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_2>`_
+    :time_start: 订单生成时间，格式为yyyyMMddHHmmss，如2009年12月25日9点10分10秒表示为20091225091010。其他详见 `时间规则 <https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_2>`_
+    :time_expire: 订单失效时间，格式为yyyyMMddHHmmss，如2009年12月27日9点10分10秒表示为20091227091010。其他详见 `时间规则 <https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_2>`_ **注意：最短失效时间间隔必须大于5分钟**
+    :goods_tag: 商品标记，代金券或立减优惠功能的参数，说明详见 `代金券或立减优惠 <https://pay.weixin.qq.com/wiki/doc/api/tools/sp_coupon.php?chapter=12_1>`_
+    :product_id: trade_type=NATIVE，此参数必传。此id为二维码中包含的商品ID，商户自行定义。
+    :limit_pay: 指定不能使用信用卡支付
 
 返回对象
 ^^^^^^^^^^^^^^^

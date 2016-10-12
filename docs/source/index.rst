@@ -49,6 +49,7 @@ Wego 能协助你在微信开发中专注业务逻辑摆脱微信接口调试的
    sample/user
    sample/buttons
    sample/pay
+   sample/material
    sample/custom_helper
    sample/custom_get_token
 
