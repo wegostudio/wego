@@ -472,21 +472,23 @@ class WeChatApi(object):
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
 
         url = 'https://api.weixin.qq.com/cgi-bin/media/upload?access_token=%s&type=%s' % (access_token, kwargs['type'])
-        files = {'file': open('../wego/bg.jpg', 'rb')}
 
-        data = requests.post(url, files=files).json()
+        data = requests.post(url, files=kwargs['media']).json()
         return data
 
-    def get_temporary_material(self, **kwargs):
+    def get_temporary_material(self, media_id):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
 
         url = 'https://api.weixin.qq.com/cgi-bin/media/get?access_token={access_token}&media_id={media_id}'.format(
             access_token=access_token,
-            media_id=kwargs['media_id']
+            media_id=media_id
         )
 
-        data = requests.get(url).json()
+        try:
+            data = requests.get(url).content
+        except Exception, e:
+            data = None
         return data
 
     def add_permanent_material(self, **kwargs):
@@ -559,7 +561,7 @@ class WeChatApi(object):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
 
-        url = 'https://api.weixin.qq.com/cgi-bin/material/get_materialcount?access_token=%s' + access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/material/get_materialcount?access_token=%s' % access_token
         data = requests.get(url).json()
 
         return data

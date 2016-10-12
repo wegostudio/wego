@@ -476,7 +476,7 @@ class WegoApi(object):
 
         return data
 
-    def biz_pay(self, product_id):
+    def qr_pay(self, product_id):
         """
         get wechat config at ...
 
@@ -666,7 +666,9 @@ class WegoApi(object):
 
             -- pay --
 
-            all ✓
+            pay
+            
+            qr_pay 
 
             -- msg --
 
@@ -745,9 +747,9 @@ class WegoApi(object):
 
         return data
 
-    def get_temporary_material(self, **kwargs):
+    def get_temporary_material(self, media_id):
 
-        data = self.wechat.get_temporary_material(**kwargs)
+        data = self.wechat.get_temporary_material(media_id)
 
         return data
 
@@ -976,6 +978,9 @@ class WeChatPay(object):
             '<return_msg><![CDATA[%s]]></return_msg>' +
         '</xml>')
         self.success = self.return_tpl % 'OK'
+        self.type = 'pay'
+        if xxxx:
+            self.type = 'qr_pay'
 
     def fail(self, text):
         return self.return_tpl % text
