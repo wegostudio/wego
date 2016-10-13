@@ -717,9 +717,9 @@ class WegoApi(object):
 
         return data
 
-    def get_temporary_material(self, **kwargs):
+    def get_temporary_material(self, media_id):
 
-        data = self.wechat.get_temporary_material(**kwargs)
+        data = self.wechat.get_temporary_material(media_id)
 
         return data
 
