@@ -473,7 +473,7 @@ class WeChatApi(object):
 
         url = 'https://api.weixin.qq.com/cgi-bin/media/upload?access_token=%s&type=%s' % (access_token, kwargs['type'])
 
-        data = requests.post(url, files=kwargs['media']).json()
+        data = requests.post(url, files={'media': kwargs['media']}).json()
         return data
 
     def get_temporary_material(self, media_id):
@@ -490,7 +490,6 @@ class WeChatApi(object):
         except Exception, e:
             data = None
         return data
-
 
     def add_permanent_material(self, **kwargs):
 
@@ -512,14 +511,40 @@ class WeChatApi(object):
 
         return data
 
+    def upload_content_picture(self, media):
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+
+        url = 'https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=%s' % access_token
+
+        data = requests.post(url, files={'media': media}).json()
+        return data
+
+    def add_other_material(self, **kwargs):
+
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+
+        if 'title' in kwargs and 'introduction' in kwargs:
+            data = {
+                'type': kwargs['type'],
+                'description': {
+                    'title': kwargs['title'],
+                    'introduction': kwargs['introduction']
+                }
+            }
+        else:
+            data = {'type': kwargs['type']}
+
+        url = 'https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=%s' % access_token
+        data = requests.post(url, data=data, files={'media': kwargs['media']}).json()
+        return data
+
     def get_permanent_material(self, media_id):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        data = {
-            "media_id": media_id,
-        }
+        data = {"media_id": media_id}
 
-        url = 'https://api.weixin.qq.com/cgi-bin/material/get_material?access_token=%s' + access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/material/get_material?access_token=%s' % access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -527,9 +552,7 @@ class WeChatApi(object):
     def delete_material(self, media_id):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
-        data = {
-            "media_id": media_id,
-        }
+        data = {"media_id": media_id}
 
         url = 'https://api.weixin.qq.com/cgi-bin/material/del_material?access_token=%s' % access_token
         data = requests.post(url, data=json.dumps(data)).json()
@@ -553,7 +576,8 @@ class WeChatApi(object):
             }
         }
 
-        url = 'https://api.weixin.qq.com/cgi-bin/material/update_news?access_token=%s' + access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/material/update_news?access_token=%s' % access_token
+        print url
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data

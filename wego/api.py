@@ -729,6 +729,18 @@ class WegoApi(object):
 
         return data
 
+    def upload_content_picture(self, media):
+
+        data = self.wechat.upload_content_picture(media)
+
+        return data
+
+    def add_other_material(self, **kwargs):
+
+        data = self.wechat.add_other_material(**kwargs)
+
+        return data
+
     def get_permanent_material(self, media_id):
 
         data = self.wechat.get_permanent_material(media_id)
@@ -755,7 +767,7 @@ class WegoApi(object):
 
     def get_materials_list(self, material_type, offset, count):
 
-        data = self.wechat.get_materials(material_type, offset, count)
+        data = self.wechat.get_materials_list(material_type, offset, count)
 
         return data
 
