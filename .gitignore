@@ -86,3 +86,7 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Django project
+xwego/
+
