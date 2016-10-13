@@ -531,7 +531,7 @@ class WeChatApi(object):
             "media_id": media_id,
         }
 
-        url = 'https://api.weixin.qq.com/cgi-bin/material/del_material?access_token=%s' + access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/material/del_material?access_token=%s' % access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
@@ -562,7 +562,7 @@ class WeChatApi(object):
 
         access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
 
-        url = 'https://api.weixin.qq.com/cgi-bin/material/get_materialcount?access_token=%s' + access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/material/get_materialcount?access_token=%s' % access_token
         data = requests.get(url).json()
 
         return data
@@ -576,7 +576,7 @@ class WeChatApi(object):
             "count": count
         }
 
-        url = 'https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=%s' + access_token
+        url = 'https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=%s' % access_token
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data

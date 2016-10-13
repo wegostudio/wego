@@ -1159,6 +1159,6 @@ def official_get_global_access_token(self):
 
     if not self.global_access_token or self.global_access_token['expires_at'] <= int(time.time()):
         self.global_access_token = self.get_global_access_token()
-        self.global_access_token['expires_at'] += int(time.time()) - 180
+        self.global_access_token['expires_at'] = self.global_access_token['expires_in'] + int(time.time()) - 180
 
     return self.global_access_token['access_token']
