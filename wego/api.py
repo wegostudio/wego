@@ -723,9 +723,9 @@ class WegoApi(object):
 
         return data
 
-    def add_permanent_material(self, **kwargs):
+    def add_permanent_material(self, articles):
 
-        data = self.wechat.add_permanent_material(**kwargs)
+        data = self.wechat.add_permanent_material(articles)
 
         return data
 
