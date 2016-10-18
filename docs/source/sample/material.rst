@@ -75,14 +75,29 @@ WEGO对微信素材管理模块的所有API进行了封装，让您享受急速�
 ::
 
     # Django
+    articles: [{
+        "title": u'测试',
+        "thumb_media_id": u'CrRA4_7jU0pIxXW9U-90C8ixLOfcw2wJYew-wzZ34kQ',
+        "author": u'测试人员',
+        "digest": u'测试',
+        "show_cover_pic": '1',
+        "content": u'测试',
+        "content_source_url": 'www.placehold.com'
+    }, {
+        "title": u'测试',
+        "thumb_media_id": u'CrRA4_7jU0pIxXW9U-90C8ixLOfcw2wJYew-wzZ34kQ',
+        "author": u'测试人员',
+        "digest": u'测试',
+        "show_cover_pic": '1',
+        "content": u'测试',
+        "content_source_url": 'www.placehold.com'
+    },
+    # 若新增的是多图文素材，则此处应有几段articles结构，最多8段
+    ]
+
     @w.login_required
-    def test_get_temporary_material_api(request):
-        media = w.get_temporary_material(media_id=u'your_media_id')
-        if media:
-            with open('/path/to/save/media.*', 'wb') as f:
-                f.write(media)
-        else:
-            # TODO获取临时素材失败
+    def test_add_permanent_material_api(request):
+        return w.add_permanent_material(articles)
 
 注意事项
 ^^^^^^^^^^^^
@@ -91,6 +106,17 @@ WEGO对微信素材管理模块的所有API进行了封装，让您享受急速�
     * 永久素材的数量是有上限的，请谨慎新增。图文消息素材和图片素材的上限为5000，其他类型为1000
     * 素材的格式大小等要求与公众平台官网一致。具体是，图片大小不超过2M，支持bmp/png/jpeg/jpg/gif格式，语音大小不超过5M，长度不超过60秒（公众平台官网可以在文章中插入小于30分钟的语音，但这些语音不能用于群发等场景，只能放在文章内，这方面接口暂不支持），支持mp3/wma/wav/amr格式
     * 调用该接口需https协议
+
+必要参数
+^^^^^^^^^^^
+    :articles: list对象，存dict，dict的必要键：title， thumb_media_id，author， digest， show_cover_pic， content，content_source_url
+
+返回对象
+^^^^^^^^^^^
+
+    :success return: Json object { "media_id":MEDIA_ID }
+    :fail return: {"errcode":40007,"errmsg":"ERROR"}
+    **注意：** 成功时返回的Json中的media_id，建议将其保存
 
 上传图文消息内的图片获取URL
 ----------------------------
