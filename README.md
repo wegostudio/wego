@@ -44,10 +44,12 @@ class IndexHandler(tornado.web.RequestHandler):
     <tr>
         <td><img src="http://ww1.sinaimg.cn/mw690/c41e7f9agw1f8xnci4vhfj20kw0r2tam.jpg" width="142"></td>
         <td><img src="http://ww2.sinaimg.cn/large/62e721e4gw1f84078j40pj207s07st9m.jpg" width="142"></td>
+        <td><img src="http://group.store.qq.com/qun/V11fxpZ54Z89lz/V3tsFIHIzBGB1jQndMs/800" width="142"></td>
     </tr>
     <tr>
         <td>微信群</td>
         <td>Telegram</td>
+        <td>QQ群：<strong>587682480</strong></td>
     </tr>
 </table>
 <p>如果微信群二维码过期，请加微信river4，备注wego user即可。</p>
@@ -58,12 +60,10 @@ class IndexHandler(tornado.web.RequestHandler):
 
 <table>
     <tr>
-        <td><img src="http://ww3.sinaimg.cn/mw690/c41e7f9agw1f8xp9au5pgj20e80e8abz.jpg" width="142"></td>
-        <td></td>
+        <td><img src="http://group.store.qq.com/qun/V11fxpZ54Z89lz/V3tsFIHI.BBB1jAMmgd/800" width="142"></td>
     </tr>
     <tr>
         <td>通过支付宝捐助</td>
-        <td></td>
     </tr>
 </table>
 Wego项目是由优趣工作室（QuseitLab）开发并提供支持，我们将会一如既往地推进开源，造福大众，感谢您捐助我们。
