@@ -59,7 +59,7 @@ class IndexHandler(tornado.web.RequestHandler):
 <table>
     <tr>
         <td><img src="http://ww3.sinaimg.cn/mw690/c41e7f9agw1f8xp9au5pgj20e80e8abz.jpg" width="142"></td>
-        <td><img src="" width="142"></td>
+        <td></td>
     </tr>
     <tr>
         <td>通过支付宝捐助</td>
