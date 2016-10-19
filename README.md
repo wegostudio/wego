@@ -50,6 +50,7 @@ class IndexHandler(tornado.web.RequestHandler):
         <td>Telegram</td>
     </tr>
 </table>
+如果微信群二维码过期，请加微信river4，备注wego user即可
 
 ## License
 
