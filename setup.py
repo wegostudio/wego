@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'wego',
-    version = '0.9.1',
+    version = '0.9.2',
     keywords = ('wechat sdk'),
     description = 'dead simple wechat sdk',
     url = 'https://github.com/wegostudio/wego',
