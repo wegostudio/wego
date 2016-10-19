@@ -142,5 +142,7 @@ class WegoSettings(object):
         self.data = data
 
     def __getattr__(self, key):
-        return self.data[key]
+        if key in self.data:
+            return self.data[key]
+        return ''
 
