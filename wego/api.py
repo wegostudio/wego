@@ -1078,7 +1078,7 @@ class WeChatPush(object):
             if 'pic_url' in i:
                 new_dict['PicUrl'] = i['pic_url']
             if 'url' in i:
-                new_dict['Url'] = i['url'],
+                new_dict['Url'] = i['url']
             data.append(new_dict)
 
         return self.return_xml({
