@@ -1072,11 +1072,11 @@ class WeChatPush(object):
         for i in news:
             new_dict = {}
             if 'title' in i:
-                new_dict['Title'] = i['title'],
+                new_dict['Title'] = i['title']
             if 'description' in i:
-                new_dict['Description'] = i['description'],
+                new_dict['Description'] = i['description']
             if 'pic_url' in i:
-                new_dict['PicUrl'] = i['pic_url'],
+                new_dict['PicUrl'] = i['pic_url']
             if 'url' in i:
                 new_dict['Url'] = i['url'],
             data.append(new_dict)
