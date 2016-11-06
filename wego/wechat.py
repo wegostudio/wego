@@ -487,7 +487,7 @@ class WeChatApi(object):
 
         try:
             data = requests.get(url).content
-        except Exception, e:
+        except:
             data = None
         return data
 
@@ -568,7 +568,6 @@ class WeChatApi(object):
         }
 
         url = 'https://api.weixin.qq.com/cgi-bin/material/update_news?access_token=%s' % access_token
-        print url
         data = requests.post(url, data=json.dumps(data)).json()
 
         return data
