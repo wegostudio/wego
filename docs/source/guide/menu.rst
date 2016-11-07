@@ -8,7 +8,7 @@
 创建菜单 ::
 
     # 根据需要 import 所需的按钮
-    from wego.button import *
+    from wego.buttons import *
     
 
     w.create_menu(
