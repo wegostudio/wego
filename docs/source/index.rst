@@ -43,7 +43,7 @@ Wego 能协助你在微信开发中专注业务逻辑摆脱微信接口调试的
 完整、可用于生产项目的代码示例。
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    
    sample/init
    sample/user
