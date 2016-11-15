@@ -14,14 +14,16 @@
         </a>
         <div class="top_tab">
             <a href="#"><span class="active"></span>首页</a>
-            <a href="./docs/index.html"><span></span>文档</a>
+            <a href="//wego.readthedocs.io/zh_CN/latest/"><span></span>文档</a>
             <a target="_blank" href="https://github.com/wegostudio/wego"><span></span>GitHub</a>
         </div>
         <div class="search">
-            <form action="" class="search_form">
-                <input type="text" class="search_keyword" placeholder="快速搜索">
-                <input type="submit" class="search_submit" value="">
-            </form>
+          <form class="search_form" action="http://wego.readthedocs.io/zh_CN/latest/search.html" method="get">
+              <input type="text" name="q" class="search_keyword"/>
+              <input type="hidden" name="checvalue="yes" />
+              <input type="hidden" name="area" value="default" />
+              <input type="submit" value="" class="search_submit">
+          </form>
         </div>
     </div>
     <div class="main">
@@ -30,7 +32,7 @@
                 <h1><img src="img/logo_wego_white.png" alt="WEGO"></h1>
                 <h2>让微信开发触手可及</h2>
             </hgroup>
-            <a href="#">开始使用</a>
+            <a href="//wego.readthedocs.io/zh_CN/latest/">开始使用</a>
             <div class="special">
                 <p><span><img src="img/icon_api.png"></span>简洁、清晰的API</p>
                 <p><span><img src="img/icon_book.png"></span>丰富的文档与示例</p>
