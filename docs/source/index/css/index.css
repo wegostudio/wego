@@ -218,7 +218,7 @@ a {
       cursor: pointer; }
 
 .main {
-  background: url("../img/bg_wego.jpg");
+  background: url("http://123.56.134.0/static/img/bg_wego.jpg");
   display: block;
   width: 100%; }
   .main .banner {
