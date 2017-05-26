@@ -36,7 +36,7 @@ class IndexHandler(tornado.web.RequestHandler):
 
 ## Document
 
-未完成，持续更新中: [wego.readthedocs.io](http://wego.readthedocs.io/zh_CN/latest/)
+未完成，持续更新中: [wego.quseit.com](http://wego.quseit.com/document)
 
 ## Discuss
 

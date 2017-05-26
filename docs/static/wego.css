@@ -97,6 +97,20 @@ h1, h2, h3, h4, h5 {
       position: absolute;
       right: 5px;
       top: 4px; }
+#search-results ul > li {
+    padding: 22px 0;
+    line-height: 25px;
+    border-bottom: 1px solid #ddd;
+}
+
+#search-results ul li a {
+    color: #117EBD;
+    line-height: 40px;
+}
+
+#search-results h2 {
+    margin-top: 20px;
+}
 
 .content-wrapper {
   max-width: 1200px;

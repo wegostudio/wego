@@ -188,7 +188,7 @@ html_static_path = ['_static']
 
 # Custom sidebar templates, maps document names to template names.
 html_sidebars = {
-    'index': ['localtoc.html'],
+    'document': ['localtoc.html'],
     '**': ['sidebarintro.html']
 }
 

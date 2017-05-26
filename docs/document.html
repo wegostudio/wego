@@ -30,7 +30,7 @@ SOURCELINK_SUFFIX: '.txt'
 <a href="./index.html"><img src="static/logo_wego_top.png" alt="wego" class="logo_wego_top"></a>
 <div class="top_tab">
 <a href="//wego.quseit.com"><span></span>首页</a>
-<a href="//wego.readthedocs.io"><span class="active"></span>文档</a>
+<a href="//wego.quseit.com/document"><span class="active"></span>文档</a>
 <a href="https://github.com/wegostudio/wego" target="_blank"><span></span>GitHub</a>
 </div>
 <div class="search">
@@ -172,27 +172,26 @@ SOURCELINK_SUFFIX: '.txt'
 <div id="sidebar">
 <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
 <div class="sphinxsidebarwrapper">
-<h2>WEGO</h2>
+<div class="docnav">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="guide/install.html">安装</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide/hello.html">Hello world</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide/menu.html">创建菜单</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide/interaction.html">与用户互动</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide/paytime.html">微信支付</a></li>
+<li><a class="reference internal" href="#">WEGO</a><ul>
+<li><a class="reference internal" href="#id1">教程</a></li>
+<li><a class="reference internal" href="#id2">示例</a></li>
+<li><a class="reference internal" href="#api">API 文档</a></li>
 </ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="sample/init.html">初始化</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sample/user.html">管理用户</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sample/buttons.html">创建按钮</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sample/pay.html">微信支付</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sample/statistics.html">数据统计</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sample/material.html">素材管理</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sample/custom_helper.html">定制 helper</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sample/custom_get_token.html">定制 get_global_access_token</a></li>
+</li>
 </ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="api.html">Developer Interface</a></li>
-</ul>
+</div>
+<style type="text/css">
+.docnav {
+position: fixed;
+top: 80px;
+line-height: 4.5em;
+}
+.docnav a {
+font-weight: bold;
+}
+</style>
 </div>
 </div>
 </div>
@@ -201,8 +200,9 @@ SOURCELINK_SUFFIX: '.txt'
 </div>
 <div class="footer">
 <img src="static/logo_wego.png" alt="WEGO" class="logo">
-&copy; Copyright 2016, quseit.
-Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.1<!-- .Theme by <a href="http://github.com/vkvn">vkvn</a> -->
+<span>&copy; Copyright 2017, <a href="http://quseit.cn" target="_blank"> quseit </a></span>
+<!--
+Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.1.Theme by <a href="http://github.com/vkvn">vkvn</a>  -->
 </div>
 </body>
 </html>

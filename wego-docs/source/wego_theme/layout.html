@@ -15,7 +15,7 @@
         <a href="./index.html"><img src="{{ pathto('_static/logo_wego_top.png', 1) }}" alt="wego" class="logo_wego_top"></a>
         <div class="top_tab">
             <a href="//wego.quseit.com"><span></span>首页</a>
-            <a href="//wego.readthedocs.io"><span class="active"></span>文档</a>
+            <a href="//wego.quseit.com/document"><span class="active"></span>文档</a>
             <a href="https://github.com/wegostudio/wego" target="_blank"><span></span>GitHub</a>
         </div>
         {%- block sidebarsearch %}
@@ -57,15 +57,15 @@
       {%- if hasdoc('copyright') %}
         {% trans path=pathto('copyright'), copyright=copyright|e %}&copy; <a href="{{ path }}">Copyright</a> {{ copyright }}.{% endtrans %}
       {%- else %}
-        {% trans copyright=copyright|e %}&copy; Copyright {{ copyright }}.{% endtrans %}
+        {% trans copyright=copyright|e %}<span>&copy; Copyright 2017, <a href="http://quseit.cn" target="_blank"> quseit </a></span> {% endtrans %}
       {%- endif %}
     {%- endif %}
-    {%- if last_updated %}
+    <!-- {%- if last_updated %}
       {% trans last_updated=last_updated|e %}Last updated on {{ last_updated }}.{% endtrans %}
     {%- endif %}
     {%- if show_sphinx %}
-    {% trans sphinx_version=sphinx_version|e %}Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> {{ sphinx_version }}<!-- .Theme by <a href="http://github.com/vkvn">vkvn</a> -->{% endtrans %}
-    {%- endif %}
+    {% trans sphinx_version=sphinx_version|e %}Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> {{ sphinx_version }}.Theme by <a href="http://github.com/vkvn">vkvn</a> {% endtrans %}
+    {%- endif %} -->
     </div>
 {%- endblock %}
 
