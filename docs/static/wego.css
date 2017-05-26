@@ -56,7 +56,7 @@ h1, h2, h3, h4, h5 {
     .top_tab_bar .wrapper * {
       display: inline-block; }
     .top_tab_bar .wrapper .top_tab a {
-      font-family: "SourceHanSansSC Normal", "Microsoft YaHei";
+      /*font-family: "SourceHanSansSC Normal", "Microsoft YaHei";*/
       color: #333;
       line-height: 80px;
       padding: 0 1em;

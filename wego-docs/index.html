@@ -5,10 +5,11 @@
     <meta charset="UTF-8">
     <title>Wego 官网</title>
     <link rel="stylesheet" href="./static/index.css">
+    <link rel="stylesheet" href="./static/wego.css">
 </head>
 
 <body>
-    <div class="top_tab_bar">
+<!--     <div class="top_tab_bar">
         <a href="#">
             <img src="static/logo_wego_top.png" alt="wego" class="logo_wego_top">
         </a>
@@ -25,7 +26,27 @@
               <input type="submit" value="" class="search_submit">
           </form>
         </div>
+    </div> -->
+
+    <div class="top_tab_bar">
+    <div class="wrapper">
+        <a href="#"><img src="static/logo_wego_top.png" alt="wego" class="logo_wego_top"></a>
+        <div class="top_tab">
+            <a href="//wego.quseit.com"><span class="active"></span>首页</a>
+            <a href="//wego.quseit.com/document"><span></span>文档</a>
+            <a href="https://github.com/wegostudio/wego" target="_blank"><span></span>GitHub</a>
+        </div>
+        <div class="search">
+          <form class="search_form" action="//wego.quseit.com/search.html" method="get">
+              <input type="search" placeholder="快速搜索" name="q" class="search_keyword"/>
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+              <input type="submit" value="" class="search_submit">
+          </form>
+        </div>
     </div>
+</div>
+
     <div class="main">
         <div class="banner">
             <hgroup>
