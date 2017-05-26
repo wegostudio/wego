@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>wego.buttons &#8212; wego 0.9 documentation</title>
+<link rel="stylesheet" href="../../static/wego.css" type="text/css" />
+<link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+<script type="text/javascript">
+var DOCUMENTATION_OPTIONS = {
+URL_ROOT:    '../../',
+VERSION:     '0.9',
+COLLAPSE_INDEX: false,
+FILE_SUFFIX: '.html',
+HAS_SOURCE:  true,
+SOURCELINK_SUFFIX: '.txt'
+};
+</script>
+<script type="text/javascript" src="../../static/jquery.js"></script>
+<script type="text/javascript" src="../../static/underscore.js"></script>
+<script type="text/javascript" src="../../static/doctools.js"></script>
+<link rel="index" title="Index" href="../../genindex.html" />
+<link rel="search" title="Search" href="../../search.html" />
+<meta charset="UTF-8">
+<title>Wego文档</title>
+</head>
+<body>
+<div class="top_tab_bar">
+<div class="wrapper">
+<a href="./index.html"><img src="../../static/logo_wego_top.png" alt="wego" class="logo_wego_top"></a>
+<div class="top_tab">
+<a href="//wego.quseit.com"><span></span>首页</a>
+<a href="//wego.readthedocs.io"><span class="active"></span>文档</a>
+<a href="https://github.com/wegostudio/wego" target="_blank"><span></span>GitHub</a>
+</div>
+<div class="search">
+<form class="search_form" action="../../search.html" method="get">
+<input type="search" placeholder="快速搜索" name="q" class="search_keyword"/>
+<input type="hidden" name="check_keywords" value="yes" />
+<input type="hidden" name="area" value="default" />
+<input type="submit" value="" class="search_submit">
+</form>
+</div>
+</div>
+</div>
+<div class="content-wrapper">
+<div class="content">
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<h1>Source code for wego.buttons</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">wego.exceptions</span> <span class="k">import</span> <span class="n">WeChatButtonError</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">class BaseBtn(object):</span>
+<span class="sd">    pass</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="k">class</span> <span class="nc">MenuBtn</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">json</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+<span class="s1">&#39;sub_button&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">json</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+<span class="p">}</span>
+<span class="k">class</span> <span class="nc">ClickBtn</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">json</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;click&#39;</span><span class="p">,</span>
+<span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+<span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span>
+<span class="p">}</span>
+<span class="k">class</span> <span class="nc">ViewBtn</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">json</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;view&#39;</span><span class="p">,</span>
+<span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+<span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="n">url</span>
+<span class="p">}</span>
+<span class="k">class</span> <span class="nc">ScanBtn</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">wait_msg</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">json</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;scancode_waitmsg&#39;</span> <span class="k">if</span> <span class="n">wait_msg</span> <span class="k">else</span> <span class="s1">&#39;scancode_push&#39;</span><span class="p">,</span>
+<span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+<span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span>
+<span class="p">}</span>
+<span class="k">class</span> <span class="nc">PhotoBtn</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">only_sysphoto</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">only_album</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="n">btn_type</span> <span class="o">=</span> <span class="s1">&#39;pic_photo_or_album&#39;</span>
+<span class="k">if</span> <span class="n">only_sysphoto</span><span class="p">:</span>
+<span class="n">btn_type</span> <span class="o">=</span> <span class="s1">&#39;pic_sysphoto&#39;</span>
+<span class="k">elif</span> <span class="n">only_album</span><span class="p">:</span>
+<span class="n">btn_type</span> <span class="o">=</span> <span class="s1">&#39;pic_weixin&#39;</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">json</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="n">btn_type</span><span class="p">,</span>
+<span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+<span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span>
+<span class="p">}</span>
+<span class="c1"># TODO 待测试</span>
+<span class="k">class</span> <span class="nc">LocationBtn</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">json</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;location_select&#39;</span><span class="p">,</span>
+<span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+<span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span>
+<span class="p">}</span>
+<span class="c1"># TODO 待测试</span>
+<span class="k">class</span> <span class="nc">MediaBtn</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">media_id</span><span class="p">,</span> <span class="n">open_article</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">json</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;view_limited&#39;</span> <span class="k">if</span> <span class="n">open_article</span> <span class="k">else</span> <span class="s1">&#39;media_id&#39;</span><span class="p">,</span>
+<span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+<span class="s1">&#39;media_id&#39;</span><span class="p">:</span> <span class="n">media_id</span>
+<span class="p">}</span>
+<span class="c1"># TODO 文档</span>
+<div class="viewcode-block" id="MatchRule"><a class="viewcode-back" href="../../api.html#wego.buttons.MatchRule">[docs]</a><span class="k">class</span> <span class="nc">MatchRule</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    https://mp.weixin.qq.com/wiki/0/c48ccd12b69ae023159b4bfaa7c39c20.html</span>
+<span class="sd">    地区表 https://mp.weixin.qq.com/wiki/static/assets/870a3c2a14e97b3e74fde5e88fa47717.zip</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="c1"># TODO sex 支持 male, Female 不限制大小写，client_platform_type 同样</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+<span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;group_id&#39;</span><span class="p">,</span> <span class="s1">&#39;sex&#39;</span><span class="p">,</span> <span class="s1">&#39;client_platform_type&#39;</span><span class="p">,</span> <span class="s1">&#39;country&#39;</span><span class="p">,</span> <span class="s1">&#39;province&#39;</span><span class="p">,</span> <span class="s1">&#39;city&#39;</span><span class="p">,</span> <span class="s1">&#39;language&#39;</span><span class="p">]:</span>
+<span class="k">break</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WeChatButtonError</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;No valid arguments(没有有效参数)&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;city&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s1">&#39;province&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WeChatButtonError</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;City to be set before setting the provinces(设置城市前需设置省份)&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;province&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s1">&#39;country &#39;</span><span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WeChatButtonError</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;Province to be set before setting the country(设置省份前需设置国家)&#39;</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">json</span> <span class="o">=</span> <span class="n">kwargs</span></div>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div id="sidebar">
+<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+<div class="sphinxsidebarwrapper">
+<h2>WEGO</h2>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/hello.html">Hello world</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/menu.html">创建菜单</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/interaction.html">与用户互动</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/paytime.html">微信支付</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/init.html">初始化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/user.html">管理用户</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/buttons.html">创建按钮</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/pay.html">微信支付</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/statistics.html">数据统计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/material.html">素材管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/custom_helper.html">定制 helper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/custom_get_token.html">定制 get_global_access_token</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">Developer Interface</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+</div>
+<div class="footer">
+<img src="../../static/logo_wego.png" alt="WEGO" class="logo">
+&copy; Copyright 2016, quseit.
+Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.1<!-- .Theme by <a href="http://github.com/vkvn">vkvn</a> -->
+</div>
+</body>
+</html>

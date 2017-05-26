@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>数据统计 &#8212; wego 0.9 documentation</title>
+<link rel="stylesheet" href="../static/wego.css" type="text/css" />
+<link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+<script type="text/javascript">
+var DOCUMENTATION_OPTIONS = {
+URL_ROOT:    '../',
+VERSION:     '0.9',
+COLLAPSE_INDEX: false,
+FILE_SUFFIX: '.html',
+HAS_SOURCE:  true,
+SOURCELINK_SUFFIX: '.txt'
+};
+</script>
+<script type="text/javascript" src="../static/jquery.js"></script>
+<script type="text/javascript" src="../static/underscore.js"></script>
+<script type="text/javascript" src="../static/doctools.js"></script>
+<link rel="index" title="Index" href="../genindex.html" />
+<link rel="search" title="Search" href="../search.html" />
+<link rel="next" title="素材管理" href="material.html" />
+<link rel="prev" title="微信支付" href="pay.html" />
+<meta charset="UTF-8">
+<title>Wego文档</title>
+</head>
+<body>
+<div class="top_tab_bar">
+<div class="wrapper">
+<a href="./index.html"><img src="../static/logo_wego_top.png" alt="wego" class="logo_wego_top"></a>
+<div class="top_tab">
+<a href="//wego.quseit.com"><span></span>首页</a>
+<a href="//wego.readthedocs.io"><span class="active"></span>文档</a>
+<a href="https://github.com/wegostudio/wego" target="_blank"><span></span>GitHub</a>
+</div>
+<div class="search">
+<form class="search_form" action="../search.html" method="get">
+<input type="search" placeholder="快速搜索" name="q" class="search_keyword"/>
+<input type="hidden" name="check_keywords" value="yes" />
+<input type="hidden" name="area" value="default" />
+<input type="submit" value="" class="search_submit">
+</form>
+</div>
+</div>
+</div>
+<div class="content-wrapper">
+<div class="content">
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="statistics">
+<span id="id1"></span><h1>数据统计<a class="headerlink" href="#statistics" title="Permalink to this headline">¶</a></h1>
+<p>WEGO对微信数据统计模块的所有API进行了封装，让您享受急速且愉悦的微信开发过程</p>
+<div class="section" id="id2">
+<h2>用户分析数据接口<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Django</span>
+<span class="nd">@w</span><span class="o">.</span><span class="n">login_required</span>
+<span class="k">def</span> <span class="nf">test_get_variation_number_of_user_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">get_variation_number_of_user</span><span class="p">(</span><span class="s1">&#39;2015-12-02&#39;</span><span class="p">,</span> <span class="s1">&#39;2015-12-07&#39;</span><span class="p">)</span>
+<span class="c1"># Django</span>
+<span class="nd">@w</span><span class="o">.</span><span class="n">login_required</span>
+<span class="k">def</span> <span class="nf">test_get_user_cumulate_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">get_user_cumulate</span><span class="p">(</span><span class="s1">&#39;2015-12-02&#39;</span><span class="p">,</span> <span class="s1">&#39;2015-12-07&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="id3">
+<h3>必要参数<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">begin_date:</th><td class="field-body">“2015-12-02”</td>
+</tr>
+<tr class="field-even field"><th class="field-name">end_date:</th><td class="field-body">“2015-12-07”</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id4">
+<h3>注意事项<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li>接口侧的公众号数据的数据库中仅存储了2014年12月1日之后的数据，将查询不到在此之前的日期，即使有查到，也是不可信的脏数据；</li>
+<li>请开发者在调用接口获取数据后，将数据保存在自身数据库中，即加快下次用户的访问速度，也降低了微信侧接口调用的不必要损耗。</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="id5">
+<h3>返回对象<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">return:</th><td class="field-body">Json object 详见 <a class="reference external" href="https://mp.weixin.qq.com/wiki/15/88726a421bfc54654a3095821c3ca3bb.html">用户分析数据接口</a></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="id7">
+<h2>图文分析数据接口<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Django</span>
+<span class="nd">@w</span><span class="o">.</span><span class="n">login_required</span>
+<span class="k">def</span> <span class="nf">test_many_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">get_article_summary</span><span class="p">(</span><span class="s1">&#39;2015-12-02&#39;</span><span class="p">,</span> <span class="s1">&#39;2015-12-07&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">get_article_total</span><span class="p">(</span><span class="s1">&#39;2015-12-02&#39;</span><span class="p">,</span> <span class="s1">&#39;2015-12-07&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">get_user_read</span><span class="p">(</span><span class="s1">&#39;2015-12-02&#39;</span><span class="p">,</span> <span class="s1">&#39;2015-12-07&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">get_user_read_hour</span><span class="p">(</span><span class="s1">&#39;2015-12-02&#39;</span><span class="p">,</span> <span class="s1">&#39;2015-12-07&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">get_user_share</span><span class="p">(</span><span class="s1">&#39;2015-12-02&#39;</span><span class="p">,</span> <span class="s1">&#39;2015-12-07&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">get_user_share_hour</span><span class="p">(</span><span class="s1">&#39;2015-12-02&#39;</span><span class="p">,</span> <span class="s1">&#39;2015-12-07&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="id8">
+<h3>必要参数<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">begin_date:</th><td class="field-body">“2015-12-02”</td>
+</tr>
+<tr class="field-even field"><th class="field-name">end_date:</th><td class="field-body">“2015-12-07”</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id9">
+<h3>注意事项<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li>接口侧的公众号数据的数据库中仅存储了2014年12月1日之后的数据，将查询不到在此之前的日期，即使有查到，也是不可信的脏数据；</li>
+<li>请开发者在调用接口获取数据后，将数据保存在自身数据库中，即加快下次用户的访问速度，也降低了微信侧接口调用的不必要损耗。</li>
+<li>额外注意，获取图文群发每日数据接口的结果中，只有中间页阅读人数+原文页阅读人数+分享转发人数+分享转发次数+收藏次数 &gt;=3的结果才会得到统计，过小的阅读量的图文消息无法统计。</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="id10">
+<h3>返回对象<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">return:</th><td class="field-body">Json object 详见 <a class="reference external" href="https://mp.weixin.qq.com/wiki/9/d347c6ddb6f86ab11ec3b41c2729c8d9.html">图文分析数据接口</a></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="id12">
+<h2>消息分析数据接口<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>待开发…</div></blockquote>
+</div>
+<div class="section" id="id13">
+<h2>接口分析数据接口<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>待开发…</div></blockquote>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="sidebar">
+<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+<div class="sphinxsidebarwrapper">
+<h2>WEGO</h2>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/install.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/hello.html">Hello world</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/menu.html">创建菜单</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/interaction.html">与用户互动</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/paytime.html">微信支付</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="init.html">初始化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user.html">管理用户</a></li>
+<li class="toctree-l1"><a class="reference internal" href="buttons.html">创建按钮</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pay.html">微信支付</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">数据统计</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">用户分析数据接口</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">图文分析数据接口</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id12">消息分析数据接口</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id13">接口分析数据接口</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="material.html">素材管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom_helper.html">定制 helper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom_get_token.html">定制 get_global_access_token</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Developer Interface</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+</div>
+<div class="footer">
+<img src="../static/logo_wego.png" alt="WEGO" class="logo">
+&copy; Copyright 2016, quseit.
+Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.1<!-- .Theme by <a href="http://github.com/vkvn">vkvn</a> -->
+</div>
+</body>
+</html>

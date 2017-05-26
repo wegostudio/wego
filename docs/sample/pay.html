@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>微信支付 &#8212; wego 0.9 documentation</title>
+<link rel="stylesheet" href="../static/wego.css" type="text/css" />
+<link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+<script type="text/javascript">
+var DOCUMENTATION_OPTIONS = {
+URL_ROOT:    '../',
+VERSION:     '0.9',
+COLLAPSE_INDEX: false,
+FILE_SUFFIX: '.html',
+HAS_SOURCE:  true,
+SOURCELINK_SUFFIX: '.txt'
+};
+</script>
+<script type="text/javascript" src="../static/jquery.js"></script>
+<script type="text/javascript" src="../static/underscore.js"></script>
+<script type="text/javascript" src="../static/doctools.js"></script>
+<link rel="index" title="Index" href="../genindex.html" />
+<link rel="search" title="Search" href="../search.html" />
+<link rel="next" title="数据统计" href="statistics.html" />
+<link rel="prev" title="创建按钮" href="buttons.html" />
+<meta charset="UTF-8">
+<title>Wego文档</title>
+</head>
+<body>
+<div class="top_tab_bar">
+<div class="wrapper">
+<a href="./index.html"><img src="../static/logo_wego_top.png" alt="wego" class="logo_wego_top"></a>
+<div class="top_tab">
+<a href="//wego.quseit.com"><span></span>首页</a>
+<a href="//wego.readthedocs.io"><span class="active"></span>文档</a>
+<a href="https://github.com/wegostudio/wego" target="_blank"><span></span>GitHub</a>
+</div>
+<div class="search">
+<form class="search_form" action="../search.html" method="get">
+<input type="search" placeholder="快速搜索" name="q" class="search_keyword"/>
+<input type="hidden" name="check_keywords" value="yes" />
+<input type="hidden" name="area" value="default" />
+<input type="submit" value="" class="search_submit">
+</form>
+</div>
+</div>
+</div>
+<div class="content-wrapper">
+<div class="content">
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="pay">
+<span id="id1"></span><h1>微信支付<a class="headerlink" href="#pay" title="Permalink to this headline">¶</a></h1>
+<p>微信的支付方式有多种，目前 wego 只实现了公众号支付、扫码支付，其他支付方式正在开发中…</p>
+<div class="section" id="id2">
+<h2>准备工作<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>初始化生成 w 实例时，请记得将所需参数填入，详细参数请看 <a class="reference internal" href="init.html#pay-options"><span class="std std-ref">微信支付参数说明</span></a></p>
+</div>
+<div class="section" id="id3">
+<h2>公众号支付<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>在 wego，你只需要填入对应的参数(详细参数查看 <a class="reference external" href="https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_1">微信统一下单API</a> )，即可生成前端调起微信支付所需的 json 数据，下面是一个访问便立即调起微信支付的django示例。</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Django</span>
+<span class="nd">@w</span><span class="o">.</span><span class="n">login_required</span>
+<span class="k">def</span> <span class="nf">wechat_pay</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="n">order</span> <span class="o">=</span> <span class="s1">&#39;ordernum&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()))</span>
+<span class="n">raw_html</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">unified_order</span><span class="p">(</span>
+<span class="n">openid</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">wx_openid</span><span class="p">,</span>
+<span class="n">body</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">,</span>
+<span class="n">out_trade_no</span><span class="o">=</span> <span class="n">order</span><span class="p">,</span>
+<span class="n">total_fee</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">,</span>
+<span class="n">spbill_create_ip</span><span class="o">=</span><span class="s1">&#39;113.16.139.82&#39;</span><span class="p">,</span>
+<span class="n">trade_type</span><span class="o">=</span><span class="s1">&#39;JSAPI&#39;</span><span class="p">,</span>
+<span class="p">))</span>
+<span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="s1">&#39;pay.html&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">raw_html</span><span class="p">})</span>
+<span class="c1"># H5调起支付API</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">&lt;script&gt;</span>
+<span class="sd">    document.getElementById(&#39;payBtn&#39;).onclick = function () {</span>
+<span class="sd">        // 调用微信支付接口</span>
+<span class="sd">        var data = {{data|safe}};</span>
+<span class="sd">        function onBridgeReady () {</span>
+<span class="sd">            WeixinJSBridge.invoke(</span>
+<span class="sd">                &#39;getBrandWCPayRequest&#39;, data, function (res) {</span>
+<span class="sd">                    if(res.err_msg == &quot;get_brand_wcpay_request：ok&quot; ) {</span>
+<span class="sd">                        // TODO</span>
+<span class="sd">                    }</span>
+<span class="sd">                }</span>
+<span class="sd">            );</span>
+<span class="sd">        }</span>
+<span class="sd">        if (typeof WeixinJSBridge == &quot;undefined&quot;) {</span>
+<span class="sd">            if (document.addEventListener) {</span>
+<span class="sd">                document.addEventListener(&#39;WeixinJSBridgeReady&#39;, onBridgeReady, false);</span>
+<span class="sd">            } else if (document.attachEvent) {</span>
+<span class="sd">                document.attachEvent(&#39;Weix1inJSBridgeReady&#39;, onBridgeReady);</span>
+<span class="sd">                document.attachEvent(&#39;onWeixinJSBridgeReady&#39;, onBridgeReady);</span>
+<span class="sd">            }</span>
+<span class="sd">        } else {</span>
+<span class="sd">            onBridgeReady();</span>
+<span class="sd">        }</span>
+<span class="sd">    }</span>
+<span class="sd">&lt;/script&gt;</span>
+<span class="sd">&#39;&#39;&#39;</span>
+</pre></div>
+</div>
+<div class="section" id="id4">
+<h3>必要参数说明<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">openid:</th><td class="field-body">openid如何获取，可参考 <a class="reference external" href="https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_4">【获取openid】</a> 。企业号请使用【企业号OAuth2.0接口】获取企业号内成员userid，再调用【企业号userid转openid接口】进行转换</td>
+</tr>
+<tr class="field-even field"><th class="field-name">body:</th><td class="field-body">商品简单描述，该字段须严格按照规范传递，具体请见 <a class="reference external" href="https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_2">参数规定</a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">out_trade_no:</th><td class="field-body">商户系统内部的订单号,32个字符内、可包含字母, 其他说明见 <a class="reference external" href="https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_2">商户订单号</a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">total_fee:</th><td class="field-body">订单总金额，单位为分，详见 <a class="reference external" href="https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_2">支付金额</a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">spbill_create_ip:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">APP和网页支付提交用户端ip，Native支付填调用微信支付API的机器IP。</td>
+</tr>
+<tr class="field-even field"><th class="field-name">trade_type:</th><td class="field-body">取值如下：JSAPI，NATIVE，APP，详细说明见 <a class="reference external" href="https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_2">参数规定</a></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id9">
+<h3>可选参数说明<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">device_data:</th><td class="field-body">终端设备号(门店号或收银设备ID)，注意：PC网页或公众号内支付请传”WEB”</td>
+</tr>
+<tr class="field-even field"><th class="field-name">detail:</th><td class="field-body">商品详细列表，使用Json格式，传输签名前请务必使用CDATA标签将JSON文本串保护起来，<a class="reference external" href="https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_1">具体参考</a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">attach:</th><td class="field-body">附加数据，在查询API和支付通知中原样返回，该字段主要用于商户携带订单的自定义数据</td>
+</tr>
+<tr class="field-even field"><th class="field-name">fee_type:</th><td class="field-body">符合ISO 4217标准的三位字母代码，默认人民币：CNY，其他值列表详见 <a class="reference external" href="https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_2">货币类型</a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">time_start:</th><td class="field-body">订单生成时间，格式为yyyyMMddHHmmss，如2009年12月25日9点10分10秒表示为20091225091010。其他详见 <a class="reference external" href="https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_2">时间规则</a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">time_expire:</th><td class="field-body">订单失效时间，格式为yyyyMMddHHmmss，如2009年12月27日9点10分10秒表示为20091227091010。其他详见 <a class="reference external" href="https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_2">时间规则</a> <strong>注意：最短失效时间间隔必须大于5分钟</strong></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">goods_tag:</th><td class="field-body">商品标记，代金券或立减优惠功能的参数，说明详见 <a class="reference external" href="https://pay.weixin.qq.com/wiki/doc/api/tools/sp_coupon.php?chapter=12_1">代金券或立减优惠</a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">product_id:</th><td class="field-body">trade_type=NATIVE，此参数必传。此id为二维码中包含的商品ID，商户自行定义。</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">limit_pay:</th><td class="field-body">指定不能使用信用卡支付</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id15">
+<h3>返回对象<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">return:</th><td class="field-body">Json object</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="id16">
+<h2>扫码支付<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
+<p>#TODO</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="sidebar">
+<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+<div class="sphinxsidebarwrapper">
+<h2>WEGO</h2>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/install.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/hello.html">Hello world</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/menu.html">创建菜单</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/interaction.html">与用户互动</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/paytime.html">微信支付</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="init.html">初始化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user.html">管理用户</a></li>
+<li class="toctree-l1"><a class="reference internal" href="buttons.html">创建按钮</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">微信支付</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">准备工作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">公众号支付</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id16">扫码支付</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="statistics.html">数据统计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="material.html">素材管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom_helper.html">定制 helper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom_get_token.html">定制 get_global_access_token</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Developer Interface</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+</div>
+<div class="footer">
+<img src="../static/logo_wego.png" alt="WEGO" class="logo">
+&copy; Copyright 2016, quseit.
+Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.1<!-- .Theme by <a href="http://github.com/vkvn">vkvn</a> -->
+</div>
+</body>
+</html>

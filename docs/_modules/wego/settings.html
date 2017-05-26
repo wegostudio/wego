@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>wego.settings &#8212; wego 0.9 documentation</title>
+<link rel="stylesheet" href="../../static/wego.css" type="text/css" />
+<link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+<script type="text/javascript">
+var DOCUMENTATION_OPTIONS = {
+URL_ROOT:    '../../',
+VERSION:     '0.9',
+COLLAPSE_INDEX: false,
+FILE_SUFFIX: '.html',
+HAS_SOURCE:  true,
+SOURCELINK_SUFFIX: '.txt'
+};
+</script>
+<script type="text/javascript" src="../../static/jquery.js"></script>
+<script type="text/javascript" src="../../static/underscore.js"></script>
+<script type="text/javascript" src="../../static/doctools.js"></script>
+<link rel="index" title="Index" href="../../genindex.html" />
+<link rel="search" title="Search" href="../../search.html" />
+<meta charset="UTF-8">
+<title>Wego文档</title>
+</head>
+<body>
+<div class="top_tab_bar">
+<div class="wrapper">
+<a href="./index.html"><img src="../../static/logo_wego_top.png" alt="wego" class="logo_wego_top"></a>
+<div class="top_tab">
+<a href="//wego.quseit.com"><span></span>首页</a>
+<a href="//wego.readthedocs.io"><span class="active"></span>文档</a>
+<a href="https://github.com/wegostudio/wego" target="_blank"><span></span>GitHub</a>
+</div>
+<div class="search">
+<form class="search_form" action="../../search.html" method="get">
+<input type="search" placeholder="快速搜索" name="q" class="search_keyword"/>
+<input type="hidden" name="check_keywords" value="yes" />
+<input type="hidden" name="area" value="default" />
+<input type="submit" value="" class="search_submit">
+</form>
+</div>
+</div>
+</div>
+<div class="content-wrapper">
+<div class="content">
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<h1>Source code for wego.settings</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">wego.settings</span>
+<span class="sd">default setting</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">InitError</span>
+<span class="kn">import</span> <span class="nn">wego</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<div class="viewcode-block" id="init"><a class="viewcode-back" href="../../api.html#wego.settings.init">[docs]</a><span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Init settings, get wechat config at https://mp.weixin.qq.com</span>
+<span class="sd">    :param APP_ID: Wechat AppID get it at basic configuration(基本配置).</span>
+<span class="sd">    :param APP_SECRET: Wechat AppSecret get it at basic configuration(基本配置).</span>
+<span class="sd">    :param REGISTER_URL: As same as you set at interface permissions(接口权限)</span>
+<span class="sd">            &gt;&gt; authorized users obtain basic information page(网页授权获取用户基本信息).</span>
+<span class="sd">    :param HELPER: Official helper &#39;wego.helpers.DjangoHelper&#39; and &#39;wego.helpers.TornadoHelper&#39; or you can customized</span>
+<span class="sd">            yourself helper with http://wego.quseit.com/customized/helper(building).</span>
+<span class="sd">    :param MCH_ID: (optional) Mac ID get it at https://pay.weixin.qq.com/ (商户号).</span>
+<span class="sd">    :param MCH_SECRET: (optional) MCH SECRET As same as you set at https://pay.weixin.qq.com/ (API 密钥).</span>
+<span class="sd">    :param CERT_PEM_PATH: (optional) Path to apiclient_cert.pem.</span>
+<span class="sd">    :param KEY_PEM_PATH: (optional) Path to apiclient_key.pem.</span>
+<span class="sd">    :param PAY_NOTIFY_PATH: (optional) Default notify url for wechat pay callback.</span>
+<span class="sd">    :param PUSH_TOKEN: (optional) Set at basic configuration(基本配置).</span>
+<span class="sd">    :param PUSH_ENCODING_AES_KEY: (optional) Set at basic configuration(基本配置).</span>
+<span class="sd">    :param GET_GLOBAL_ACCESS_TOKEN: (optional) A function that return a global access token, if your application run at</span>
+<span class="sd">            multiple servers it required. How to customized your GET_GLOBAL_ACCESS_TOKEN:</span>
+<span class="sd">            http://wego.quseit.com/customized/GET_GLOBAL_ACCESS_TOKEN(building).</span>
+<span class="sd">    :param USERINFO_EXPIRE: (optional) Set number of seconds expired, default is 0. subscribe,</span>
+<span class="sd">            language, remark and groupid still is real time.</span>
+<span class="sd">    :param REDIRECT_PATH: (optional) Default redirect path, redirect when we get user`s authorize.</span>
+<span class="sd">    :param REDIRECT_STATE: (optional) Default redirect state, redirect when we get user`s authorize.</span>
+<span class="sd">    :param DEBUG: (optional) Default is True,</span>
+<span class="sd">            When Debug equal True it will log all information and wechat payment only spend a penny(0.01 yuan).</span>
+<span class="sd">    :return: :class:`WegoApi &lt;wego.api.WegoApi&gt;` object.</span>
+<span class="sd">    :rtype: WegoApi.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="n">default_settings</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;GET_GLOBAL_ACCESS_TOKEN&#39;</span><span class="p">:</span> <span class="n">wego</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">official_get_global_access_token</span><span class="p">,</span>
+<span class="s1">&#39;USERINFO_EXPIRE&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+<span class="s1">&#39;DEBUG&#39;</span><span class="p">:</span> <span class="kc">False</span>
+<span class="p">}</span>
+<span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">default_settings</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="n">check_settings</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;REDIRECT_STATE&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;REDIRECT_STATE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">if</span> <span class="s1">&#39;REDIRECT_PATH&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;REDIRECT_PATH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">if</span> <span class="s1">&#39;PAY_NOTIFY_PATH&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;PAY_NOTIFY_URL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;REGISTER_URL&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;PAY_NOTIFY_PATH&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wego&#39;</span><span class="p">)</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> WEGO </span><span class="si">%(levelname)s</span><span class="s1">: </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">datefmt</span><span class="o">=</span><span class="s1">&#39;%Y/%m/</span><span class="si">%d</span><span class="s1"> %I:%M:%S&#39;</span><span class="p">)</span>
+<span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+<span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">warn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[1;31m</span><span class="si">%s</span><span class="se">\033</span><span class="s1">[0m&#39;</span> <span class="o">%</span> <span class="n">x</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">]:</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;WEGO 运行在 DEBUG 模式, 微信支付付款金额将固定在 1 分钱.&#39;</span><span class="p">)</span>
+<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;LOGGER&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">logger</span>
+<span class="k">return</span> <span class="n">wego</span><span class="o">.</span><span class="n">WegoApi</span><span class="p">(</span><span class="n">WegoSettings</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span></div>
+<div class="viewcode-block" id="check_settings"><a class="viewcode-back" href="../../api.html#wego.settings.check_settings">[docs]</a><span class="k">def</span> <span class="nf">check_settings</span><span class="p">(</span><span class="n">settings</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    check if settings is available</span>
+<span class="sd">    :param settings: a dict.</span>
+<span class="sd">    :return: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="n">required_list</span> <span class="o">=</span> <span class="p">[</span>
+<span class="s1">&#39;APP_ID&#39;</span><span class="p">,</span>
+<span class="s1">&#39;APP_SECRET&#39;</span><span class="p">,</span>
+<span class="s1">&#39;REGISTER_URL&#39;</span><span class="p">,</span>
+<span class="s1">&#39;HELPER&#39;</span>
+<span class="p">]</span>
+<span class="c1"># optional_couple</span>
+<span class="n">optional_couple_list</span> <span class="o">=</span> <span class="p">[</span>
+<span class="p">[</span><span class="s1">&#39;MCH_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;MCH_SECRET&#39;</span><span class="p">,</span> <span class="s1">&#39;PAY_NOTIFY_PATH&#39;</span><span class="p">,</span> <span class="s1">&#39;CERT_PEM_PATH&#39;</span><span class="p">,</span> <span class="s1">&#39;KEY_PEM_PATH&#39;</span><span class="p">],</span>
+<span class="p">[</span><span class="s1">&#39;PUSH_TOKEN&#39;</span><span class="p">,</span> <span class="s1">&#39;PUSH_ENCODING_AES_KEY&#39;</span><span class="p">],</span>
+<span class="p">]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">optional_couple_list</span><span class="p">:</span>
+<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">i</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
+<span class="n">required_list</span> <span class="o">+=</span> <span class="n">i</span>
+<span class="k">break</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">required_list</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">settings</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">settings</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+<span class="k">raise</span> <span class="n">InitError</span><span class="p">(</span><span class="s1">&#39;Missing required parameters &quot;</span><span class="si">{param}</span><span class="s1">&quot;(缺少必须的参数 &quot;</span><span class="si">{param}</span><span class="s1">&quot;)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">param</span><span class="o">=</span><span class="n">i</span><span class="p">))</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;REGISTER_URL&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+<span class="k">raise</span> <span class="n">InitError</span><span class="p">(</span><span class="s1">&#39;REGISTER_URL has to ends with &quot;/&quot;(REGISTER_URL 需以 &quot;/&quot; 结尾)&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;REDIRECT_PATH&#39;</span> <span class="ow">in</span> <span class="n">settings</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;REDIRECT_PATH&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+<span class="k">raise</span> <span class="n">InitError</span><span class="p">(</span><span class="s1">&#39;REDIRECT_PATH have to starts with &quot;/&quot;(REDIRECT_PATH 需以 &quot;/&quot; 开始)&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;PAY_NOTIFY_PATH&#39;</span> <span class="ow">in</span> <span class="n">settings</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;PAY_NOTIFY_PATH&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+<span class="k">raise</span> <span class="n">InitError</span><span class="p">(</span><span class="s1">&#39;PAY_NOTIFY_PATH have to starts with &quot;/&quot;(PAY_NOTIFY_PATH 需以 &quot;/&quot; 开始)&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;HELPER&#39;</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+<span class="n">modules</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;HELPER&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+<span class="n">settings</span><span class="p">[</span><span class="s1">&#39;HELPER&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">__import__</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">modules</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">fromlist</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]),</span> <span class="n">modules</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;HELPER&#39;</span><span class="p">],</span> <span class="n">wego</span><span class="o">.</span><span class="n">helpers</span><span class="o">.</span><span class="n">BaseHelper</span><span class="p">):</span>
+<span class="k">raise</span> <span class="n">InitError</span><span class="p">(</span><span class="s1">&#39;Helper have to inherit the wego.helper.BaseHelper(Helper 必须继承至 wego.helper.BaseHelper)&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;GET_GLOBAL_ACCESS_TOKEN&#39;</span><span class="p">],</span> <span class="s1">&#39;__call__&#39;</span><span class="p">):</span>
+<span class="k">raise</span> <span class="n">InitError</span><span class="p">(</span><span class="s1">&#39;GET_GLOBAL_ACCESS_TOKEN is not a function(GET_ACCESS_TOKEN 不是一个函数)&#39;</span><span class="p">)</span>
+<span class="c1"># TODO 检查推送消息加解密所需依赖是否安装 PUSH_TOKEN PUSH_ENCODING_AES_KEY</span>
+<span class="n">settings</span><span class="p">[</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="ow">not</span> <span class="ow">not</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">]</span></div>
+<div class="viewcode-block" id="WegoSettings"><a class="viewcode-back" href="../../api.html#wego.settings.WegoSettings">[docs]</a><span class="k">class</span> <span class="nc">WegoSettings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wego settings</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+<span class="k">return</span> <span class="s1">&#39;&#39;</span></div>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div id="sidebar">
+<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+<div class="sphinxsidebarwrapper">
+<h2>WEGO</h2>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/hello.html">Hello world</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/menu.html">创建菜单</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/interaction.html">与用户互动</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/paytime.html">微信支付</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/init.html">初始化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/user.html">管理用户</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/buttons.html">创建按钮</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/pay.html">微信支付</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/statistics.html">数据统计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/material.html">素材管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/custom_helper.html">定制 helper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/custom_get_token.html">定制 get_global_access_token</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">Developer Interface</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+</div>
+<div class="footer">
+<img src="../../static/logo_wego.png" alt="WEGO" class="logo">
+&copy; Copyright 2016, quseit.
+Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.1<!-- .Theme by <a href="http://github.com/vkvn">vkvn</a> -->
+</div>
+</body>
+</html>

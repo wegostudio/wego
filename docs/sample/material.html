@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>素材管理 &#8212; wego 0.9 documentation</title>
+<link rel="stylesheet" href="../static/wego.css" type="text/css" />
+<link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+<script type="text/javascript">
+var DOCUMENTATION_OPTIONS = {
+URL_ROOT:    '../',
+VERSION:     '0.9',
+COLLAPSE_INDEX: false,
+FILE_SUFFIX: '.html',
+HAS_SOURCE:  true,
+SOURCELINK_SUFFIX: '.txt'
+};
+</script>
+<script type="text/javascript" src="../static/jquery.js"></script>
+<script type="text/javascript" src="../static/underscore.js"></script>
+<script type="text/javascript" src="../static/doctools.js"></script>
+<link rel="index" title="Index" href="../genindex.html" />
+<link rel="search" title="Search" href="../search.html" />
+<link rel="next" title="定制 helper" href="custom_helper.html" />
+<link rel="prev" title="数据统计" href="statistics.html" />
+<meta charset="UTF-8">
+<title>Wego文档</title>
+</head>
+<body>
+<div class="top_tab_bar">
+<div class="wrapper">
+<a href="./index.html"><img src="../static/logo_wego_top.png" alt="wego" class="logo_wego_top"></a>
+<div class="top_tab">
+<a href="//wego.quseit.com"><span></span>首页</a>
+<a href="//wego.readthedocs.io"><span class="active"></span>文档</a>
+<a href="https://github.com/wegostudio/wego" target="_blank"><span></span>GitHub</a>
+</div>
+<div class="search">
+<form class="search_form" action="../search.html" method="get">
+<input type="search" placeholder="快速搜索" name="q" class="search_keyword"/>
+<input type="hidden" name="check_keywords" value="yes" />
+<input type="hidden" name="area" value="default" />
+<input type="submit" value="" class="search_submit">
+</form>
+</div>
+</div>
+</div>
+<div class="content-wrapper">
+<div class="content">
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="material">
+<span id="id1"></span><h1>素材管理<a class="headerlink" href="#material" title="Permalink to this headline">¶</a></h1>
+<p>WEGO对微信素材管理模块的所有API进行了封装，让您享受急速且愉悦的微信开发过程</p>
+<div class="section" id="id2">
+<h2>在此之前<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>初始化生成 w 实例时，请记得将所需参数填入， 详见初始化 <a class="reference internal" href="init.html#init"><span class="std std-ref">初始化</span></a></p>
+</div>
+<div class="section" id="id3">
+<h2>新增临时素材<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Django</span>
+<span class="nd">@w</span><span class="o">.</span><span class="n">login_required</span>
+<span class="k">def</span> <span class="nf">test_add_temporary_material_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/path/to/media.png&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="n">w</span><span class="o">.</span><span class="n">add_temporary_material</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;image&#39;</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="id4">
+<h3>必要参数<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">type:</th><td class="field-body">媒体文件类型，分别有图片（image）、语音（voice）、视频（video）和缩略图（thumb，主要用于视频与音乐格式的缩略图）</td>
+</tr>
+<tr class="field-even field"><th class="field-name">media:</th><td class="field-body">python文件对象</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id5">
+<h3>注意事项<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>上传的临时多媒体文件有格式和大小限制，如下：</p>
+<ul class="simple">
+<li>图片（image）: 2M，支持bmp/png/jpeg/jpg/gif格式</li>
+<li>语音（voice）：2M，播放长度不超过60s，支持AMRMP3格式</li>
+<li>视频（video）：10MB，支持MP4格式</li>
+<li>缩略图（thumb）：64KB，支持JPG格式</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="id6">
+<h3>返回对象<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">return:</th><td class="field-body">Json object 详见 <a class="reference external" href="https://mp.weixin.qq.com/wiki/15/2d353966323806a202cd2deaafe8e557.html">新增临时素材</a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意：</strong> 成功时返回的Json中有media_id，建议将其保存</p>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="id8">
+<h2>获取临时素材<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Django</span>
+<span class="nd">@w</span><span class="o">.</span><span class="n">login_required</span>
+<span class="k">def</span> <span class="nf">test_get_temporary_material_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="n">media</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">get_temporary_material</span><span class="p">(</span><span class="n">media_id</span><span class="o">=</span><span class="sa">u</span><span class="s1">&#39;your_media_id&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">media</span><span class="p">:</span>
+<span class="c1"># 获取临时素材成功，将其保存到本地</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/path/to/save/media.*&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">media</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="c1"># TODO获取临时素材失败</span>
+</pre></div>
+</div>
+<div class="section" id="id9">
+<h3>必要参数<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">media_id:</th><td class="field-body">媒体文件ID</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id10">
+<h3>返回对象<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">success return:</th><td class="field-body">File object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">fail return:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="id11">
+<h2>新增永久素材<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>最近更新，永久图片素材新增后，将带有URL返回给开发者，开发者可以在腾讯系域名内使用（腾讯系域名外使用，图片将被屏蔽），以下是实例代码。</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Django</span>
+<span class="n">articles</span><span class="p">:</span> <span class="p">[{</span>
+<span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;测试&#39;</span><span class="p">,</span>
+<span class="s2">&quot;thumb_media_id&quot;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;CrRA4_7jU0pIxXW9U-90C8ixLOfcw2wJYew-wzZ34kQ&#39;</span><span class="p">,</span>
+<span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;测试人员&#39;</span><span class="p">,</span>
+<span class="s2">&quot;digest&quot;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;测试&#39;</span><span class="p">,</span>
+<span class="s2">&quot;show_cover_pic&quot;</span><span class="p">:</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span>
+<span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;测试&#39;</span><span class="p">,</span>
+<span class="s2">&quot;content_source_url&quot;</span><span class="p">:</span> <span class="s1">&#39;www.placehold.com&#39;</span>
+<span class="p">},</span> <span class="p">{</span>
+<span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;测试&#39;</span><span class="p">,</span>
+<span class="s2">&quot;thumb_media_id&quot;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;CrRA4_7jU0pIxXW9U-90C8ixLOfcw2wJYew-wzZ34kQ&#39;</span><span class="p">,</span>
+<span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;测试人员&#39;</span><span class="p">,</span>
+<span class="s2">&quot;digest&quot;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;测试&#39;</span><span class="p">,</span>
+<span class="s2">&quot;show_cover_pic&quot;</span><span class="p">:</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span>
+<span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;测试&#39;</span><span class="p">,</span>
+<span class="s2">&quot;content_source_url&quot;</span><span class="p">:</span> <span class="s1">&#39;www.placehold.com&#39;</span>
+<span class="p">},</span>
+<span class="c1"># 若新增的是多图文素材，则此处应有几段articles结构，最多8段</span>
+<span class="p">]</span>
+<span class="nd">@w</span><span class="o">.</span><span class="n">login_required</span>
+<span class="k">def</span> <span class="nf">test_add_permanent_material_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">add_permanent_material</span><span class="p">(</span><span class="n">articles</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="id12">
+<h3>注意事项<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li>新增的永久素材也可以在公众平台官网素材管理模块中看到</li>
+<li>永久素材的数量是有上限的，请谨慎新增。图文消息素材和图片素材的上限为5000，其他类型为1000</li>
+<li>素材的格式大小等要求与公众平台官网一致。具体是，图片大小不超过2M，支持bmp/png/jpeg/jpg/gif格式，语音大小不超过5M，长度不超过60秒（公众平台官网可以在文章中插入小于30分钟的语音，但这些语音不能用于群发等场景，只能放在文章内，这方面接口暂不支持），支持mp3/wma/wav/amr格式</li>
+<li>调用该接口需https协议</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="id13">
+<h3>必要参数<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">articles:</th><td class="field-body">list对象，存dict，dict的必要键：title， thumb_media_id，author， digest， show_cover_pic， content，content_source_url</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id14">
+<h3>返回对象<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">success return:</th><td class="field-body">Json object { “media_id”:MEDIA_ID }</td>
+</tr>
+<tr class="field-even field"><th class="field-name">fail return:</th><td class="field-body">{“errcode”:40007,”errmsg”:”ERROR”}</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意：</strong> 成功时返回的Json中的media_id，建议将其保存</p>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="url">
+<h2>上传图文消息内的图片获取URL<a class="headerlink" href="#url" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>请注意，本接口所上传的图片不占用公众号的素材库中图片数量的5000个的限制。图片仅支持jpg/png格式，大小必须在1MB以下。</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Django</span>
+<span class="nd">@w</span><span class="o">.</span><span class="n">login_required</span>
+<span class="k">def</span> <span class="nf">test_upload_content_picture_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/path/to/media.png&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="n">w</span><span class="o">.</span><span class="n">pload_content_picture</span><span class="p">(</span><span class="n">media</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="id15">
+<h3>必要参数<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">media:</th><td class="field-body">python文件对象</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id16">
+<h3>返回对象<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">success return:</th><td class="field-body">Json object {“url”:  “URL”}</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意：</strong> 成功时返回的Json中有url，建议将其保存</p>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="id17">
+<h2>新增其他永久素材<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Django</span>
+<span class="nd">@w</span><span class="o">.</span><span class="n">login_required</span>
+<span class="k">def</span> <span class="nf">test_add_other_material_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/path/to/media.png&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="n">w</span><span class="o">.</span><span class="n">add_other_material</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;image&#39;</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+<span class="c1"># 上传视频文件</span>
+<span class="c1"># w.add_other_material(type=&#39;image&#39;, media=f, title=&#39;TITLE&#39;, introduction=&quot;INTRODUCTION&quot;)</span>
+</pre></div>
+</div>
+<div class="section" id="id18">
+<h3>必要参数<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">type:</th><td class="field-body">媒体文件类型，分别有图片（image）、语音（voice）、视频（video）和缩略图（thumb，主要用于视频与音乐格式的缩略图）</td>
+</tr>
+<tr class="field-even field"><th class="field-name">media:</th><td class="field-body">python文件对象</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id19">
+<h3>当上传视频文件时的必要参数<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">title:</th><td class="field-body">视频素材的标题</td>
+</tr>
+<tr class="field-even field"><th class="field-name">introduction:</th><td class="field-body">视频素材的描述</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id20">
+<h3>返回对象<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">success return:</th><td class="field-body">Json object {“media_id”:MEDIA_ID, “url”:URL }</td>
+</tr>
+<tr class="field-even field"><th class="field-name">fail return:</th><td class="field-body">{“errcode”:40007,”errmsg”:”invalid media_id”}</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意：</strong> 成功时返回的Json中有media_id，建议将其保存</p>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="id21">
+<h2>获取永久素材<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Django</span>
+<span class="nd">@w</span><span class="o">.</span><span class="n">login_required</span>
+<span class="k">def</span> <span class="nf">test_get_permanent_material_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">get_temporary_material</span><span class="p">(</span><span class="n">media_id</span><span class="o">=</span><span class="sa">u</span><span class="s1">&#39;your_media_id&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="id22">
+<h3>必要参数<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">media_id:</th><td class="field-body">媒体文件ID</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id23">
+<h3>返回对象<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">return:</th><td class="field-body">Json object 返回值详见 <a class="reference external" href="https://mp.weixin.qq.com/wiki/12/3c12fac7c14cb4d0e0d4fe2fbc87b638.html">获取永久素材</a></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="id25">
+<h2>删除永久素材<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>在新增了永久素材后，使用WEGO的开发者可以调用该接口删除不再需要的永久素材，节省空间，以下是代码示例</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Django</span>
+<span class="nd">@w</span><span class="o">.</span><span class="n">login_required</span>
+<span class="k">def</span> <span class="nf">test_delete_material_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">delete_material</span><span class="p">(</span><span class="n">media_id</span><span class="o">=</span><span class="sa">u</span><span class="s1">&#39;your_media_id&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="id26">
+<h3>注意事项<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li>请谨慎操作本接口，因为它可以删除公众号在公众平台官网素材管理模块中新建的图文消息、语音、视频等素材（但需要先通过获取素材列表来获知素材的media_id）</li>
+<li>临时素材无法通过本接口删除</li>
+<li>调用该接口需https协议</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="id27">
+<h3>必要参数<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">media_id:</th><td class="field-body">媒体文件ID</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id28">
+<h3>返回对象<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">return:</th><td class="field-body">Json object -&gt;{“errcode”:ERRCODE, “errmsg”:ERRMSG } (正常情况下调用成功时，errcode将为0)</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="id29">
+<h2>修改永久素材<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Django</span>
+<span class="nd">@w</span><span class="o">.</span><span class="n">login_required</span>
+<span class="k">def</span> <span class="nf">test_update_material_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">update_material</span><span class="p">(</span>
+<span class="n">media_id</span><span class="o">=</span><span class="n">MEDIA_ID</span><span class="p">,</span>
+<span class="n">index</span><span class="o">=</span><span class="n">INDEX</span><span class="p">,</span>
+<span class="n">title</span><span class="o">=</span><span class="n">TITLE</span><span class="p">,</span>
+<span class="n">thumb_media_id</span><span class="o">=</span><span class="n">THUMB_MEDIA_ID</span><span class="p">,</span>
+<span class="n">author</span><span class="o">=</span><span class="n">AUTHOR</span><span class="p">,</span>
+<span class="n">digest</span><span class="o">=</span><span class="n">DIGEST</span><span class="p">,</span>
+<span class="n">show_cover_pic</span><span class="o">=</span><span class="n">SHOW_COVER_PIC</span><span class="p">(</span><span class="mi">0</span> <span class="o">/</span> <span class="mi">1</span><span class="p">),</span>
+<span class="n">content</span><span class="o">=</span><span class="n">CONTENT</span><span class="p">,</span>
+<span class="n">content_source_url</span><span class="o">=</span><span class="n">CONTENT_SOURCE_URL</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="id30">
+<h3>注意事项<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li>也可以在公众平台官网素材管理模块中保存的图文消息（永久图文素材）</li>
+<li>调用该接口需https协议</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="id31">
+<h3>必要参数<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">media_id:</th><td class="field-body">要修改的图文消息的id</td>
+</tr>
+<tr class="field-even field"><th class="field-name">index:</th><td class="field-body">要更新的文章在图文消息中的位置（多图文消息时，此字段才有意义），第一篇为0</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">title:</th><td class="field-body">标题</td>
+</tr>
+<tr class="field-even field"><th class="field-name">thumb_media_id:</th><td class="field-body">图文消息的封面图片素材id（必须是永久mediaID)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">author:</th><td class="field-body">作者</td>
+</tr>
+<tr class="field-even field"><th class="field-name">digest:</th><td class="field-body">图文消息的摘要，仅有单图文消息才有摘要，多图文此处为空</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">show_cover_pic:</th><td class="field-body">是否显示封面，0为false，即不显示，1为true，即显示</td>
+</tr>
+<tr class="field-even field"><th class="field-name">content:</th><td class="field-body">图文消息的具体内容，支持HTML标签，必须少于2万字符，小于1M，且此处会去除JS</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">content_source_url:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">图文消息的原文地址，即点击“阅读原文”后的URL</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id32">
+<h3>返回对象<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">return:</th><td class="field-body">Json object -&gt;{“errcode”:ERRCODE, “errmsg”:ERRMSG } (正常情况下调用成功时，errcode将为0)</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="id33">
+<h2>获取素材总数<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Django</span>
+<span class="nd">@w</span><span class="o">.</span><span class="n">login_required</span>
+<span class="k">def</span> <span class="nf">test_get_materials_count_api</span><span class="p">():</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">get_materials_count</span><span class="p">()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    if success:</span>
+<span class="sd">    data = {</span>
+<span class="sd">        u&#39;voice_count&#39;: 0,</span>
+<span class="sd">        u&#39;video_count&#39;: 1,</span>
+<span class="sd">        u&#39;image_count&#39;: 72,</span>
+<span class="sd">        u&#39;news_count&#39;: 12</span>
+<span class="sd">    }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<div class="section" id="id34">
+<h3>返回对象<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">success return:</th><td class="field-body">Json object: {“voice_count”:COUNT, “video_count”:COUNT, “image_count”:COUNT, “news_count”:COUNT }</td>
+</tr>
+<tr class="field-even field"><th class="field-name">fail return:</th><td class="field-body">Json object: {“errcode”:-1,”errmsg”:”system error”}</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="id35">
+<h2>获取素材列表<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Django</span>
+<span class="nd">@w</span><span class="o">.</span><span class="n">login_required</span>
+<span class="k">def</span> <span class="nf">test_get_materials_list_api</span><span class="p">():</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">get_materials_list</span><span class="p">(</span>
+<span class="n">material_type</span><span class="o">=</span><span class="s1">&#39;image&#39;</span><span class="p">,</span>
+<span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="n">count</span><span class="o">=</span><span class="mi">1</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="id36">
+<h3>必要参数<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">material_type:</th><td class="field-body">素材的类型，图片（image）、视频（video）、语音 （voice）、图文（news）</td>
+</tr>
+<tr class="field-even field"><th class="field-name">offset:</th><td class="field-body">从全部素材的该偏移位置开始返回，0表示从第一个素材 返回</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">count:</th><td class="field-body">返回素材的数量，取值在1到20之间</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id37">
+<h3>返回对象<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">return:</th><td class="field-body">Json object （具体返回值请参考 <a class="reference external" href="https://mp.weixin.qq.com/wiki/15/8386c11b7bc4cdd1499c572bfe2e95b3.html">获取素材列表</a>）</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="sidebar">
+<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+<div class="sphinxsidebarwrapper">
+<h2>WEGO</h2>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/install.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/hello.html">Hello world</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/menu.html">创建菜单</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/interaction.html">与用户互动</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/paytime.html">微信支付</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="init.html">初始化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user.html">管理用户</a></li>
+<li class="toctree-l1"><a class="reference internal" href="buttons.html">创建按钮</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pay.html">微信支付</a></li>
+<li class="toctree-l1"><a class="reference internal" href="statistics.html">数据统计</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">素材管理</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">在此之前</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">新增临时素材</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id8">获取临时素材</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id11">新增永久素材</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#url">上传图文消息内的图片获取URL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id17">新增其他永久素材</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id21">获取永久素材</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id25">删除永久素材</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id29">修改永久素材</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id33">获取素材总数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id35">获取素材列表</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="custom_helper.html">定制 helper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom_get_token.html">定制 get_global_access_token</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Developer Interface</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+</div>
+<div class="footer">
+<img src="../static/logo_wego.png" alt="WEGO" class="logo">
+&copy; Copyright 2016, quseit.
+Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.1<!-- .Theme by <a href="http://github.com/vkvn">vkvn</a> -->
+</div>
+</body>
+</html>

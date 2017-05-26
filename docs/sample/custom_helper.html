@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>定制 helper &#8212; wego 0.9 documentation</title>
+<link rel="stylesheet" href="../static/wego.css" type="text/css" />
+<link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+<script type="text/javascript">
+var DOCUMENTATION_OPTIONS = {
+URL_ROOT:    '../',
+VERSION:     '0.9',
+COLLAPSE_INDEX: false,
+FILE_SUFFIX: '.html',
+HAS_SOURCE:  true,
+SOURCELINK_SUFFIX: '.txt'
+};
+</script>
+<script type="text/javascript" src="../static/jquery.js"></script>
+<script type="text/javascript" src="../static/underscore.js"></script>
+<script type="text/javascript" src="../static/doctools.js"></script>
+<link rel="index" title="Index" href="../genindex.html" />
+<link rel="search" title="Search" href="../search.html" />
+<link rel="next" title="定制 get_global_access_token" href="custom_get_token.html" />
+<link rel="prev" title="素材管理" href="material.html" />
+<meta charset="UTF-8">
+<title>Wego文档</title>
+</head>
+<body>
+<div class="top_tab_bar">
+<div class="wrapper">
+<a href="./index.html"><img src="../static/logo_wego_top.png" alt="wego" class="logo_wego_top"></a>
+<div class="top_tab">
+<a href="//wego.quseit.com"><span></span>首页</a>
+<a href="//wego.readthedocs.io"><span class="active"></span>文档</a>
+<a href="https://github.com/wegostudio/wego" target="_blank"><span></span>GitHub</a>
+</div>
+<div class="search">
+<form class="search_form" action="../search.html" method="get">
+<input type="search" placeholder="快速搜索" name="q" class="search_keyword"/>
+<input type="hidden" name="check_keywords" value="yes" />
+<input type="hidden" name="area" value="default" />
+<input type="submit" value="" class="search_submit">
+</form>
+</div>
+</div>
+</div>
+<div class="content-wrapper">
+<div class="content">
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="helper">
+<h1>定制 helper<a class="headerlink" href="#helper" title="Permalink to this headline">¶</a></h1>
+<p>在 WEGO 中 helper 扮演了十分重要的角色，官方提供了 Django 和 Tornado 的 helper 但是你可能没有使用这两个框架或是助手不符合应用的实际情况，这时候你就需要自定义一个 helper。</p>
+<p>注：即便是 Tornado 有官方的 helper 我们仍然建议你自定义一个 helper，因为官方 helper 由于不知道你所使用的数据库，所以只能将数据存储在加密的 cookie 中。</p>
+<div class="section" id="id1">
+<h2>定制说明<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>你可以参考官方 django helper 的源码进行定制。</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">wego.helpers.base_helper</span> <span class="k">import</span> <span class="n">BaseHelper</span>
+<span class="k">class</span> <span class="nc">DjangoHelper</span><span class="p">(</span><span class="n">BaseHelper</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">request</span>
+<span class="k">def</span> <span class="nf">get_current_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">get_full_path</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">get_body</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">body</span>
+<span class="k">def</span> <span class="nf">set_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+<span class="k">def</span> <span class="nf">get_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">redirect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+<span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="k">import</span> <span class="n">redirect</span>
+<span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">__init__:</th><td class="field-body">初始化时，request 为 handler 的第一个参数，如 Django 的 request , Tornado 的 self。</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">get_current_path:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body">当调用此函数时，需要返回当前请求的 path 如果请求 <a class="reference external" href="http://www.example.com/a/b/c">http://www.example.com/a/b/c</a> 需返回字符串的 ‘/a/b/c’ (请保证以 ‘/’ 开头)。</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">get_params:</th><td class="field-body">当调用此函数时，需要以字典形式返回当前请求的所有 GET 参数，键值对要求值为字符串而不是列表，如果是列表建议取最后一个的值: value_list[-1]。</td>
+</tr>
+<tr class="field-even field"><th class="field-name">get_body:</th><td class="field-body">当调用此函数时，需要以字符串形式返回当前请求的 body。</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">set_session:</th><td class="field-body">当调用此函数时会传入两个参数 key 与 value，你需要将其保存至数据库并与请求绑定。</td>
+</tr>
+<tr class="field-even field"><th class="field-name">get_session:</th><td class="field-body">当调用此函数时会传入一个参数 key，你需要返回此请求 session 中该 key 的 value。</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">redirect:</th><td class="field-body">当调用此函数时会，你需要返回你所使用框架的 301 跳转响应。</td>
+</tr>
+</tbody>
+</table>
+<p>当你定制完成后只需将初始化参数 HELPER 的值改为你所自定义的类即可。</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="sidebar">
+<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+<div class="sphinxsidebarwrapper">
+<h2>WEGO</h2>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/install.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/hello.html">Hello world</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/menu.html">创建菜单</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/interaction.html">与用户互动</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/paytime.html">微信支付</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="init.html">初始化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user.html">管理用户</a></li>
+<li class="toctree-l1"><a class="reference internal" href="buttons.html">创建按钮</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pay.html">微信支付</a></li>
+<li class="toctree-l1"><a class="reference internal" href="statistics.html">数据统计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="material.html">素材管理</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">定制 helper</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">定制说明</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="custom_get_token.html">定制 get_global_access_token</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Developer Interface</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+</div>
+<div class="footer">
+<img src="../static/logo_wego.png" alt="WEGO" class="logo">
+&copy; Copyright 2016, quseit.
+Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.1<!-- .Theme by <a href="http://github.com/vkvn">vkvn</a> -->
+</div>
+</body>
+</html>

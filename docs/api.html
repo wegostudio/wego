@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Developer Interface &#8212; wego 0.9 documentation</title>
+<link rel="stylesheet" href="static/wego.css" type="text/css" />
+<link rel="stylesheet" href="static/pygments.css" type="text/css" />
+<script type="text/javascript">
+var DOCUMENTATION_OPTIONS = {
+URL_ROOT:    './',
+VERSION:     '0.9',
+COLLAPSE_INDEX: false,
+FILE_SUFFIX: '.html',
+HAS_SOURCE:  true,
+SOURCELINK_SUFFIX: '.txt'
+};
+</script>
+<script type="text/javascript" src="static/jquery.js"></script>
+<script type="text/javascript" src="static/underscore.js"></script>
+<script type="text/javascript" src="static/doctools.js"></script>
+<link rel="index" title="Index" href="genindex.html" />
+<link rel="search" title="Search" href="search.html" />
+<link rel="prev" title="定制 get_global_access_token" href="sample/custom_get_token.html" />
+<meta charset="UTF-8">
+<title>Wego文档</title>
+</head>
+<body>
+<div class="top_tab_bar">
+<div class="wrapper">
+<a href="./index.html"><img src="static/logo_wego_top.png" alt="wego" class="logo_wego_top"></a>
+<div class="top_tab">
+<a href="//wego.quseit.com"><span></span>首页</a>
+<a href="//wego.readthedocs.io"><span class="active"></span>文档</a>
+<a href="https://github.com/wegostudio/wego" target="_blank"><span></span>GitHub</a>
+</div>
+<div class="search">
+<form class="search_form" action="search.html" method="get">
+<input type="search" placeholder="快速搜索" name="q" class="search_keyword"/>
+<input type="hidden" name="check_keywords" value="yes" />
+<input type="hidden" name="area" value="default" />
+<input type="submit" value="" class="search_submit">
+</form>
+</div>
+</div>
+</div>
+<div class="content-wrapper">
+<div class="content">
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="developer-interface">
+<span id="api"></span><h1>Developer Interface<a class="headerlink" href="#developer-interface" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-wego.api">
+<span id="main-interface"></span><h2>Main Interface<a class="headerlink" href="#module-wego.api" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="wego.api.WeChatPush">
+<em class="property">class </em><code class="descclassname">wego.api.</code><code class="descname">WeChatPush</code><span class="sig-paren">(</span><em>data</em>, <em>crypto=None</em>, <em>nonce=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WeChatPush"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WeChatPush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="class">
+<dt id="wego.api.WeChatUser">
+<em class="property">class </em><code class="descclassname">wego.api.</code><code class="descname">WeChatUser</code><span class="sig-paren">(</span><em>wego</em>, <em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WeChatUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WeChatUser" title="Permalink to this definition">¶</a></dt>
+<dd><p>A lazy and smart wechat user object. You can set user remark, group, groupid direct,
+because of group name can be repeated, so if you set the group by group name, it may not be accurate.</p>
+<dl class="method">
+<dt id="wego.api.WeChatUser.get_ext_userinfo">
+<code class="descname">get_ext_userinfo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WeChatUser.get_ext_userinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WeChatUser.get_ext_userinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user extra info, such as subscribe, language, remark and groupid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">dict:</th><td class="field-body">User data</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+</dd></dl>
+<dl class="class">
+<dt id="wego.api.WegoApi">
+<em class="property">class </em><code class="descclassname">wego.api.</code><code class="descname">WegoApi</code><span class="sig-paren">(</span><em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wego api dead simple for humans.</p>
+<dl class="method">
+<dt id="wego.api.WegoApi.analysis_push">
+<code class="descname">analysis_push</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.analysis_push"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.analysis_push" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analysis xml to dict and set wego push type.
+Wego defind WeChatPush type (which can reply has checked):</p>
+<blockquote>
+<div><p>– pay –</p>
+<p>all ✓</p>
+<p class="attribution">&mdash;msg –</p>
+</div></blockquote>
+<blockquote>
+<div><p>text ✓</p>
+<p>image ✓</p>
+<p>voice ✓</p>
+<p>video ✓</p>
+<p>shortvideo ✓</p>
+<p>location ✓</p>
+<p>link ✓</p>
+<p class="attribution">&mdash;event –</p>
+</div></blockquote>
+<blockquote>
+<div><p>subscribe ✓’</p>
+<p>unsubscribe</p>
+<p>scancode_push</p>
+<p>scancode_waitmsg ✓</p>
+<p>scan</p>
+<p>scan_subscribe</p>
+<p>user_location ✓</p>
+<p>click ✓</p>
+<p>view</p>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>raw_xml</strong> – Raw xml.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#wego.api.WeChatPush" title="wego.api.WeChatPush"><code class="xref py py-class docutils literal"><span class="pre">WeChatPush</span></code></a> object.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">WeChatPush.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.change_group_name">
+<code class="descname">change_group_name</code><span class="sig-paren">(</span><em>group</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.change_group_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.change_group_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change group name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>group</strong> – Group id or group name.</li>
+<li><strong>name</strong> – New group name</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">:Bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.change_user_group">
+<code class="descname">change_user_group</code><span class="sig-paren">(</span><em>openid</em>, <em>group</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.change_user_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.change_user_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change user group.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>group</strong> – Group id or group name.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">:Bool .</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.check_personalized_menu_match">
+<code class="descname">check_personalized_menu_match</code><span class="sig-paren">(</span><em>user_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.check_personalized_menu_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.check_personalized_menu_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether personalized menu match is correct.</p>
+<p>:param <a class="reference external" href="data:user_id">data:user_id</a>
+:return: :dict</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.close_order">
+<code class="descname">close_order</code><span class="sig-paren">(</span><em>out_trade_no</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.close_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.close_order" title="Permalink to this definition">¶</a></dt>
+<dd><p># TODO return bool?
+Close order, get wechat config at <a class="reference external" href="https://api.mch.weixin.qq.com/pay/closeorder">https://api.mch.weixin.qq.com/pay/closeorder</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>out_trade_no</strong> – Merchant order number within the system</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">{…}</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.create_group">
+<code class="descname">create_group</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.create_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.create_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new group.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> – Group name.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">dict:</th><td class="field-body">{‘id’: ‘int’, ‘name’:’str’}</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.create_menu">
+<code class="descname">create_menu</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.create_menu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.create_menu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create menu by wego.button</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">:Bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.del_group">
+<code class="descname">del_group</code><span class="sig-paren">(</span><em>group</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.del_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.del_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete group.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>group</strong> – Group id or group name.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">:Bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.download_bill">
+<code class="descname">download_bill</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.download_bill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.download_bill" title="Permalink to this definition">¶</a></dt>
+<dd><p>get wechat config at <a class="reference external" href="https://api.mch.weixin.qq.com/pay/downloadbill">https://api.mch.weixin.qq.com/pay/downloadbill</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>bill_date</strong> – </li>
+<li><strong>bill_type</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dict {…}</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.get_article_summary">
+<code class="descname">get_article_summary</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.get_article_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.get_article_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get article summary</p>
+<p>:param date:begin_date, end_date
+:return: :dict</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.get_article_total">
+<code class="descname">get_article_total</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.get_article_total"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.get_article_total" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get article total</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – begin_date, end_date</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">:dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.get_ext_userinfo">
+<code class="descname">get_ext_userinfo</code><span class="sig-paren">(</span><em>openid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.get_ext_userinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.get_ext_userinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user extra info, such as subscribe, language, remark and groupid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">dict:</th><td class="field-body">User data</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.get_groups">
+<code class="descname">get_groups</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.get_groups"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.get_groups" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all groups.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">dict:</th><td class="field-body">{‘your_group_id’: {‘name’:’str’, ‘count’:’int’}}</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.get_openid">
+<code class="descname">get_openid</code><span class="sig-paren">(</span><em>helper</em>, <em>code</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.get_openid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.get_openid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user openid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>code</strong> – A code that user redirect back will bring.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">openid</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.get_user_cumulate">
+<code class="descname">get_user_cumulate</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.get_user_cumulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.get_user_cumulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>GET accumulation of user</p>
+<p>:param date:begin_date, end_date
+:return: :dict</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.get_user_groups">
+<code class="descname">get_user_groups</code><span class="sig-paren">(</span><em>openid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.get_user_groups"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.get_user_groups" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user groups.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">dict:</th><td class="field-body">{‘your_group_id’: {‘name’:’str’, ‘count’:’int’}}</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.get_user_read">
+<code class="descname">get_user_read</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.get_user_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.get_user_read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user read</p>
+<p>:param <a class="reference external" href="data:begin_date">data:begin_date</a>, end_date
+:return : :dict</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.get_user_read_hour">
+<code class="descname">get_user_read_hour</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.get_user_read_hour"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.get_user_read_hour" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user read hour</p>
+<p>param <a class="reference external" href="data:begin_date">data:begin_date</a>, end_date
+return : :dict</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.get_user_share">
+<code class="descname">get_user_share</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.get_user_share"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.get_user_share" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user share</p>
+<p>param <a class="reference external" href="data:begin_data,end_date">data:begin_data,end_date</a>
+return : :dict</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.get_user_share_hour">
+<code class="descname">get_user_share_hour</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.get_user_share_hour"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.get_user_share_hour" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user share</p>
+<p>param <a class="reference external" href="data:begin_date">data:begin_date</a>, end_date
+retur : :dict</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.get_userinfo">
+<code class="descname">get_userinfo</code><span class="sig-paren">(</span><em>helper</em>, <em>openid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.get_userinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.get_userinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user info.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#wego.api.WeChatUser" title="wego.api.WeChatUser"><code class="xref py py-class docutils literal"><span class="pre">WeChatUser</span></code></a> object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.get_variation_number_of_user">
+<code class="descname">get_variation_number_of_user</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.get_variation_number_of_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.get_variation_number_of_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get Variation on number of user</p>
+<p>:param <a class="reference external" href="data:begin_date">data:begin_date</a>, end_date
+:return: :dict</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.get_wechat_servers_list">
+<code class="descname">get_wechat_servers_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.get_wechat_servers_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.get_wechat_servers_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get wechat servers list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">:list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.login_required">
+<code class="descname">login_required</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.login_required"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.login_required" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator：use for request function, and it will init an independent WegoApi instance.</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.make_sign">
+<code class="descname">make_sign</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.make_sign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.make_sign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate wechat pay for signature</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.pay_report">
+<code class="descname">pay_report</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.pay_report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.pay_report" title="Permalink to this definition">¶</a></dt>
+<dd><p>get wechat config at <a class="reference external" href="https://api.mch.weixin.qq.com/payitil/report">https://api.mch.weixin.qq.com/payitil/report</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>interface_url</strong> – </li>
+<li><strong>execute_time</strong> – </li>
+<li><strong>return_code</strong> – </li>
+<li><strong>result_code</strong> – </li>
+<li><strong>user_ip</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dict{…}</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.query_order">
+<code class="descname">query_order</code><span class="sig-paren">(</span><em>out_trade_no=None</em>, <em>transaction_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.query_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.query_order" title="Permalink to this definition">¶</a></dt>
+<dd><p># TODO <a class="reference external" href="https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_2">https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_2</a>
+Order query setting, get wechat config at <a class="reference external" href="https://api.mch.weixin.qq.com/pay/orderquery">https://api.mch.weixin.qq.com/pay/orderquery</a>
+Choose one in out_trade_no and transaction_id as parameter pass to this function</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>| transaction_id</strong> (<em>out_trade_no</em>) – WeChat order number, priority in use.
+Merchants system internal order number, when didn’t provide transaction_id need to pass this.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">{…}</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.query_refund">
+<code class="descname">query_refund</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.query_refund"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.query_refund" title="Permalink to this definition">¶</a></dt>
+<dd><p>get wechat config at <a class="reference external" href="https://api.mch.weixin.qq.com/pay/refundquery">https://api.mch.weixin.qq.com/pay/refundquery</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>| out_trade_no | out_refund_no | refund_id</strong> (<em>transaction_id</em>) – One out of four</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict {…}</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.redirect_for_code">
+<code class="descname">redirect_for_code</code><span class="sig-paren">(</span><em>helper</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.redirect_for_code"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.redirect_for_code" title="Permalink to this definition">¶</a></dt>
+<dd><p>Let user jump to wechat authorization page.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Redirect object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.refund_order">
+<code class="descname">refund_order</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.refund_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.refund_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merchant order number within the system, get wechat config at <a class="reference external" href="https://api.mch.weixin.qq.com/secapi/pay/refund">https://api.mch.weixin.qq.com/secapi/pay/refund</a></p>
+<p>Following parameters are necessary, you must be included in the kwargs and you must follow the format below as the parameters’s key</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>or transaction_id</strong> (<em>out_trade_no</em>) – WeChat order number, priority in use. Merchants system internal order number, when didn’t provide transaction_id need to pass this.</li>
+<li><strong>out_refund_no</strong> – Merchants system within the refund number,
+merchants within the system, only the same refund order request only a back many times</li>
+<li><strong>total_fee</strong> – Total amount of orders, the unit for points, only as an integer, see the payment amount</li>
+<li><strong>refund_fee</strong> – Refund the total amount, total amount of the order,
+the unit for points, only as an integer, see the payment amount</li>
+<li><strong>op_user_id</strong> – Operator account, the default for the merchants</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">{…}</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.unified_order">
+<code class="descname">unified_order</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.unified_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.unified_order" title="Permalink to this definition">¶</a></dt>
+<dd><p># TODO
+Unifiedorder settings, get wechat config at <a class="reference external" href="https://api.mch.weixin.qq.com/pay/unifiedorder">https://api.mch.weixin.qq.com/pay/unifiedorder</a>
+You can take return value as wechat api onBridgeReady’s parameters directly</p>
+<p>You don’t need to include appid, mch_id, nonce_str and sign because these three parameters set by WeChatApi,
+but the following parameters are necessary, you must be included in the kwargs
+and you must follow the format below as the parameters’s key</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>openid</strong> – User openid.</li>
+<li><strong>body</strong> – Goods are simply described, the field must be in strict accordance with the
+specification, specific see parameters</li>
+<li><strong>out_trade_no</strong> – Merchants system internal order number, within 32 characters,
+can include letters, other see merchant order number</li>
+<li><strong>total_fee</strong> – Total amount of orders, the unit for points, as shown in the payment amount</li>
+<li><strong>spbill_create_ip</strong> – APP and web payment submitted to client IP, Native fill call
+WeChat payment API machine IP.</li>
+<li><strong>notify_url</strong> – (optional) Default is what you set at init.
+Receive pay WeChat asynchronous notification callback address,
+notify the url must be accessible url directly, cannot carry parameters.</li>
+<li><strong>trade_type</strong> – Values are as follows: the JSAPI, NATIVE APP, details see parameter regulation</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">{‘appId’: string,
+‘timeStamp’: value,
+‘nonceStr’: value,
+‘package’: value,
+‘signType’: value,
+‘paySign’: value,}</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.api.WegoApi.verification_token">
+<code class="descname">verification_token</code><span class="sig-paren">(</span><em>openid</em>, <em>access_token</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#WegoApi.verification_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.WegoApi.verification_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether the user access token has expired</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>openid</strong> – User openid.</li>
+<li><strong>access_token</strong> – function get_access_token returns.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Bool.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+</dd></dl>
+<dl class="function">
+<dt id="wego.api.official_get_global_access_token">
+<code class="descclassname">wego.api.</code><code class="descname">official_get_global_access_token</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/api.html#official_get_global_access_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.api.official_get_global_access_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get global access token.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>self</strong> – Call self.get_global_access_token() for get global access token.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">str:</th><td class="field-body">Global access token</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+</div>
+<div class="section" id="module-wego.wechat">
+<span id="wechat-interface"></span><h2>Wechat Interface<a class="headerlink" href="#module-wego.wechat" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="wego.wechat.WeChatApi">
+<em class="property">class </em><code class="descclassname">wego.wechat.</code><code class="descname">WeChatApi</code><span class="sig-paren">(</span><em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi" title="Permalink to this definition">¶</a></dt>
+<dd><p>WeChat Api just do one thing: give params to wechat and get the data what wechat return.</p>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.change_group_name">
+<code class="descname">change_group_name</code><span class="sig-paren">(</span><em>groupid</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.change_group_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.change_group_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change group name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>groupid</strong> – Group ID.</li>
+<li><strong>name</strong> – New name.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Raw data that wechat returns.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.change_user_group">
+<code class="descname">change_user_group</code><span class="sig-paren">(</span><em>openid</em>, <em>groupid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.change_user_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.change_user_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move user to a new group.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>openid</strong> – User openid.</li>
+<li><strong>groupid</strong> – Group ID.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Raw data that wechat returns.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.check_personalized_menu_match">
+<code class="descname">check_personalized_menu_match</code><span class="sig-paren">(</span><em>user_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.check_personalized_menu_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.check_personalized_menu_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether personalized menu match is correct.</p>
+<p>:param <a class="reference external" href="data:user_id">data:user_id</a>
+:return:Raw data that wechat returns.</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.close_order">
+<code class="descname">close_order</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.close_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.close_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get close_order info.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.create_conditional_menu">
+<code class="descname">create_conditional_menu</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.create_conditional_menu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.create_conditional_menu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a conditional menu.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – Menu data.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.create_group">
+<code class="descname">create_group</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.create_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.create_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a user group.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> – Group name.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.create_menu">
+<code class="descname">create_menu</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.create_menu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.create_menu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a menu.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – Menu data.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.del_all_menus">
+<code class="descname">del_all_menus</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.del_all_menus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.del_all_menus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete all menus, contain conditional menu.</p>
+<p>::return: Raw data that wechat returns.</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.del_conditional_menu">
+<code class="descname">del_conditional_menu</code><span class="sig-paren">(</span><em>menu_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.del_conditional_menu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.del_conditional_menu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete conditional menus, contain conditional menu.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.del_group">
+<code class="descname">del_group</code><span class="sig-paren">(</span><em>groupid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.del_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.del_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a group.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>groupid</strong> – Group id.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.download_bill">
+<code class="descname">download_bill</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.download_bill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.download_bill" title="Permalink to this definition">¶</a></dt>
+<dd><p>download bill</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_access_token">
+<code class="descname">get_access_token</code><span class="sig-paren">(</span><em>code</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_access_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_access_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use code for get access token, refresh token, openid etc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>code</strong> – A code see function get_code_url.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_all_groups">
+<code class="descname">get_all_groups</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_all_groups"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_all_groups" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all user groups.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_article_summary">
+<code class="descname">get_article_summary</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_article_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_article_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get article summary</p>
+<p>:param <a class="reference external" href="data:begin_date">data:begin_date</a>, end_date
+:return :Raw data that wechat returns.</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_article_total">
+<code class="descname">get_article_total</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_article_total"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_article_total" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get article total</p>
+<p>:param <a class="reference external" href="data:begin_date">data:begin_date</a>, end_date
+:return :Raw data that wechat returns.</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_code_url">
+<code class="descname">get_code_url</code><span class="sig-paren">(</span><em>redirect_url</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_code_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_code_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the url which 302 jump back and bring a code.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>redirect_url</strong> – Jump back url</li>
+<li><strong>state</strong> – Jump back state</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">url</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_global_access_token">
+<code class="descname">get_global_access_token</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_global_access_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_global_access_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get global access token.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_menus">
+<code class="descname">get_menus</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_menus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_menus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all menus.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_user_cumulate">
+<code class="descname">get_user_cumulate</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_user_cumulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_user_cumulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>GET accumulation of user</p>
+<p>:param date:begin_date, end_date
+:return:Raw data that wechat returns.</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_user_groups">
+<code class="descname">get_user_groups</code><span class="sig-paren">(</span><em>openid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_user_groups"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_user_groups" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all a user groups.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_user_read">
+<code class="descname">get_user_read</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_user_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_user_read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user read</p>
+<p>:param <a class="reference external" href="data:begin_date">data:begin_date</a>, end_date
+:return :Raw data that wechat returns.</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_user_read_hour">
+<code class="descname">get_user_read_hour</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_user_read_hour"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_user_read_hour" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user read hour</p>
+<p>param <a class="reference external" href="data:begin_date">data:begin_date</a>, end_date
+return :Raw data that wechat return.</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_user_share">
+<code class="descname">get_user_share</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_user_share"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_user_share" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user share</p>
+<p>param <a class="reference external" href="data:begin_data,end_date">data:begin_data,end_date</a>
+return :Raw data that wechat return.</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_user_share_hour">
+<code class="descname">get_user_share_hour</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_user_share_hour"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_user_share_hour" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user share</p>
+<p>param <a class="reference external" href="data:begin_date">data:begin_date</a>, end_date
+retur :Raw data that wechat return.</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_userinfo">
+<code class="descname">get_userinfo</code><span class="sig-paren">(</span><em>openid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_userinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_userinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user info with global access token (content subscribe, language, remark and groupid).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>openid</strong> – User openid.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_userinfo_by_token">
+<code class="descname">get_userinfo_by_token</code><span class="sig-paren">(</span><em>openid</em>, <em>access_token</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_userinfo_by_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_userinfo_by_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get user info with user access token (without subscribe, language, remark and groupid).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>openid</strong> – User openid.</li>
+<li><strong>access_token</strong> – function get_access_token returns.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Raw data that wechat returns.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_variation_number_of_user">
+<code class="descname">get_variation_number_of_user</code><span class="sig-paren">(</span><em>begin_date</em>, <em>end_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_variation_number_of_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_variation_number_of_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get variation in number od user</p>
+<p>:param <a class="reference external" href="data:begin_date">data:begin_date</a>, end_date
+:return:Raw data that wechat returns.</p>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.get_wechat_servers_list">
+<code class="descname">get_wechat_servers_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.get_wechat_servers_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.get_wechat_servers_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get wechat servers list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.is_access_token_has_expired">
+<code class="descname">is_access_token_has_expired</code><span class="sig-paren">(</span><em>sele</em>, <em>openid</em>, <em>access_token</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.is_access_token_has_expired"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.is_access_token_has_expired" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether the user access token has expired</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>openid</strong> – User openid.</li>
+<li><strong>access_token</strong> – function get_access_token returns.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Raw data that wechat returns.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.pay_report">
+<code class="descname">pay_report</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.pay_report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.pay_report" title="Permalink to this definition">¶</a></dt>
+<dd><p>report</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.query_order">
+<code class="descname">query_order</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.query_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.query_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get order query.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.query_refund">
+<code class="descname">query_refund</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.query_refund"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.query_refund" title="Permalink to this definition">¶</a></dt>
+<dd><p>refund query</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.refresh_access_token">
+<code class="descname">refresh_access_token</code><span class="sig-paren">(</span><em>refresh_token</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.refresh_access_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.refresh_access_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refresh user access token by refresh token.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>refresh_token</strong> – function get_access_token returns.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.refund_order">
+<code class="descname">refund_order</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.refund_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.refund_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>refund.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Raw data that wechat returns.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="method">
+<dt id="wego.wechat.WeChatApi.set_user_remark">
+<code class="descname">set_user_remark</code><span class="sig-paren">(</span><em>openid</em>, <em>remark</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#WeChatApi.set_user_remark"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.WeChatApi.set_user_remark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set user remark.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>openid</strong> – User openid.</li>
+<li><strong>remark</strong> – The remark you want to set.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Raw data that wechat returns.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+</dd></dl>
+<dl class="function">
+<dt id="wego.wechat.get_global_access_token">
+<code class="descclassname">wego.wechat.</code><code class="descname">get_global_access_token</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/wechat.html#get_global_access_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.wechat.get_global_access_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>获取全局 access token</p>
+</dd></dl>
+</div>
+<div class="section" id="module-wego.settings">
+<span id="settings-interface"></span><h2>Settings Interface<a class="headerlink" href="#module-wego.settings" title="Permalink to this headline">¶</a></h2>
+<p>wego.settings</p>
+<p>default setting</p>
+<dl class="class">
+<dt id="wego.settings.WegoSettings">
+<em class="property">class </em><code class="descclassname">wego.settings.</code><code class="descname">WegoSettings</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/settings.html#WegoSettings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.settings.WegoSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wego settings</p>
+</dd></dl>
+<dl class="function">
+<dt id="wego.settings.check_settings">
+<code class="descclassname">wego.settings.</code><code class="descname">check_settings</code><span class="sig-paren">(</span><em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/settings.html#check_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.settings.check_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>check if settings is available</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>settings</strong> – a dict.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+<dl class="function">
+<dt id="wego.settings.init">
+<code class="descclassname">wego.settings.</code><code class="descname">init</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/settings.html#init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.settings.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Init settings, get wechat config at <a class="reference external" href="https://mp.weixin.qq.com">https://mp.weixin.qq.com</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>APP_ID</strong> – Wechat AppID get it at basic configuration(基本配置).</li>
+<li><strong>APP_SECRET</strong> – Wechat AppSecret get it at basic configuration(基本配置).</li>
+<li><strong>REGISTER_URL</strong> – As same as you set at interface permissions(接口权限)
+&gt;&gt; authorized users obtain basic information page(网页授权获取用户基本信息).</li>
+<li><strong>HELPER</strong> – Official helper ‘wego.helpers.DjangoHelper’ and ‘wego.helpers.TornadoHelper’ or you can customized
+yourself helper with <a class="reference external" href="http://wego.quseit.com/customized/helper(building">http://wego.quseit.com/customized/helper(building</a>).</li>
+<li><strong>MCH_ID</strong> – (optional) Mac ID get it at <a class="reference external" href="https://pay.weixin.qq.com/">https://pay.weixin.qq.com/</a> (商户号).</li>
+<li><strong>MCH_SECRET</strong> – (optional) MCH SECRET As same as you set at <a class="reference external" href="https://pay.weixin.qq.com/">https://pay.weixin.qq.com/</a> (API 密钥).</li>
+<li><strong>CERT_PEM_PATH</strong> – (optional) Path to apiclient_cert.pem.</li>
+<li><strong>KEY_PEM_PATH</strong> – (optional) Path to apiclient_key.pem.</li>
+<li><strong>PAY_NOTIFY_PATH</strong> – (optional) Default notify url for wechat pay callback.</li>
+<li><strong>PUSH_TOKEN</strong> – (optional) Set at basic configuration(基本配置).</li>
+<li><strong>PUSH_ENCODING_AES_KEY</strong> – (optional) Set at basic configuration(基本配置).</li>
+<li><strong>GET_GLOBAL_ACCESS_TOKEN</strong> – (optional) A function that return a global access token, if your application run at
+multiple servers it required. How to customized your GET_GLOBAL_ACCESS_TOKEN:
+<a class="reference external" href="http://wego.quseit.com/customized/GET_GLOBAL_ACCESS_TOKEN(building">http://wego.quseit.com/customized/GET_GLOBAL_ACCESS_TOKEN(building</a>).</li>
+<li><strong>USERINFO_EXPIRE</strong> – (optional) Set number of seconds expired, default is 0. subscribe,
+language, remark and groupid still is real time.</li>
+<li><strong>REDIRECT_PATH</strong> – (optional) Default redirect path, redirect when we get user`s authorize.</li>
+<li><strong>REDIRECT_STATE</strong> – (optional) Default redirect state, redirect when we get user`s authorize.</li>
+<li><strong>DEBUG</strong> – (optional) Default is True,
+When Debug equal True it will log all information and wechat payment only spend a penny(0.01 yuan).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><a class="reference internal" href="#wego.api.WegoApi" title="wego.api.WegoApi"><code class="xref py py-class docutils literal"><span class="pre">WegoApi</span></code></a> object.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">WegoApi.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+</div>
+<div class="section" id="module-wego.buttons">
+<span id="buttons-interface"></span><h2>Buttons Interface<a class="headerlink" href="#module-wego.buttons" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="wego.buttons.MatchRule">
+<em class="property">class </em><code class="descclassname">wego.buttons.</code><code class="descname">MatchRule</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wego/buttons.html#MatchRule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.buttons.MatchRule" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="https://mp.weixin.qq.com/wiki/0/c48ccd12b69ae023159b4bfaa7c39c20.html">https://mp.weixin.qq.com/wiki/0/c48ccd12b69ae023159b4bfaa7c39c20.html</a>
+地区表 <a class="reference external" href="https://mp.weixin.qq.com/wiki/static/assets/870a3c2a14e97b3e74fde5e88fa47717.zip">https://mp.weixin.qq.com/wiki/static/assets/870a3c2a14e97b3e74fde5e88fa47717.zip</a></p>
+</dd></dl>
+</div>
+<div class="section" id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="wego.exceptions.InitError">
+<em class="property">exception </em><code class="descclassname">wego.exceptions.</code><code class="descname">InitError</code><a class="reference internal" href="_modules/wego/exceptions.html#InitError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wego.exceptions.InitError" title="Permalink to this definition">¶</a></dt>
+<dd><p>An init error occurred.</p>
+</dd></dl>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="sidebar">
+<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+<div class="sphinxsidebarwrapper">
+<h2>WEGO</h2>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="guide/install.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/hello.html">Hello world</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/menu.html">创建菜单</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/interaction.html">与用户互动</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide/paytime.html">微信支付</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="sample/init.html">初始化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample/user.html">管理用户</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample/buttons.html">创建按钮</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample/pay.html">微信支付</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample/statistics.html">数据统计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample/material.html">素材管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample/custom_helper.html">定制 helper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample/custom_get_token.html">定制 get_global_access_token</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Developer Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-wego.api">Main Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-wego.wechat">Wechat Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-wego.settings">Settings Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-wego.buttons">Buttons Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+</div>
+<div class="footer">
+<img src="static/logo_wego.png" alt="WEGO" class="logo">
+&copy; Copyright 2016, quseit.
+Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.1<!-- .Theme by <a href="http://github.com/vkvn">vkvn</a> -->
+</div>
+</body>
+</html>

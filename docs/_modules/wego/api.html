@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>wego.api &#8212; wego 0.9 documentation</title>
+<link rel="stylesheet" href="../../static/wego.css" type="text/css" />
+<link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+<script type="text/javascript">
+var DOCUMENTATION_OPTIONS = {
+URL_ROOT:    '../../',
+VERSION:     '0.9',
+COLLAPSE_INDEX: false,
+FILE_SUFFIX: '.html',
+HAS_SOURCE:  true,
+SOURCELINK_SUFFIX: '.txt'
+};
+</script>
+<script type="text/javascript" src="../../static/jquery.js"></script>
+<script type="text/javascript" src="../../static/underscore.js"></script>
+<script type="text/javascript" src="../../static/doctools.js"></script>
+<link rel="index" title="Index" href="../../genindex.html" />
+<link rel="search" title="Search" href="../../search.html" />
+<meta charset="UTF-8">
+<title>Wego文档</title>
+</head>
+<body>
+<div class="top_tab_bar">
+<div class="wrapper">
+<a href="./index.html"><img src="../../static/logo_wego_top.png" alt="wego" class="logo_wego_top"></a>
+<div class="top_tab">
+<a href="//wego.quseit.com"><span></span>首页</a>
+<a href="//wego.readthedocs.io"><span class="active"></span>文档</a>
+<a href="https://github.com/wegostudio/wego" target="_blank"><span></span>GitHub</a>
+</div>
+<div class="search">
+<form class="search_form" action="../../search.html" method="get">
+<input type="search" placeholder="快速搜索" name="q" class="search_keyword"/>
+<input type="hidden" name="check_keywords" value="yes" />
+<input type="hidden" name="area" value="default" />
+<input type="submit" value="" class="search_submit">
+</form>
+</div>
+</div>
+</div>
+<div class="content-wrapper">
+<div class="content">
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<h1>Source code for wego.api</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">WegoApiError</span><span class="p">,</span> <span class="n">WeChatUserError</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">reduce</span>
+<span class="kn">import</span> <span class="nn">wego</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<div class="viewcode-block" id="WegoApi"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi">[docs]</a><span class="k">class</span> <span class="nc">WegoApi</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wego api dead simple for humans.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">settings</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">wechat</span> <span class="o">=</span> <span class="n">wego</span><span class="o">.</span><span class="n">WeChatApi</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
+<div class="viewcode-block" id="WegoApi.login_required"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.login_required">[docs]</a>    <span class="k">def</span> <span class="nf">login_required</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Decorator：use for request function, and it will init an independent WegoApi instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">get_wx_user</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Called by login_required, it will set some attributes to function`s first param.</span>
+<span class="sd">            :param request: Function`s first param.</span>
+<span class="sd">            :return: Subject to availability.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+<span class="n">helper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">HELPER</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+<span class="n">code</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_params</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;code&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+<span class="n">openid</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">if</span> <span class="n">code</span><span class="p">:</span>
+<span class="n">openid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_openid</span><span class="p">(</span><span class="n">helper</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
+<span class="n">helper</span><span class="o">.</span><span class="n">set_session</span><span class="p">(</span><span class="s1">&#39;wx_openid&#39;</span><span class="p">,</span> <span class="n">openid</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">openid</span><span class="p">:</span>
+<span class="n">openid</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_session</span><span class="p">(</span><span class="s1">&#39;wx_openid&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">openid</span><span class="p">:</span>
+<span class="n">request</span><span class="o">.</span><span class="n">wego</span> <span class="o">=</span> <span class="bp">self</span>
+<span class="n">request</span><span class="o">.</span><span class="n">wx_openid</span> <span class="o">=</span> <span class="n">openid</span>
+<span class="n">wx_user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_userinfo</span><span class="p">(</span><span class="n">helper</span><span class="p">,</span> <span class="n">openid</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">wx_user</span> <span class="o">!=</span> <span class="s1">&#39;error&#39;</span><span class="p">:</span>
+<span class="n">request</span><span class="o">.</span><span class="n">wx_user</span> <span class="o">=</span> <span class="n">wx_user</span>
+<span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">redirect_for_code</span><span class="p">(</span><span class="n">helper</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">get_wx_user</span></div>
+<div class="viewcode-block" id="WegoApi.redirect_for_code"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.redirect_for_code">[docs]</a>    <span class="k">def</span> <span class="nf">redirect_for_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">helper</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Let user jump to wechat authorization page.</span>
+<span class="sd">        :return: Redirect object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">state</span> <span class="o">=</span> <span class="s1">&#39;WEGO&#39;</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">REDIRECT_PATH</span><span class="p">:</span>
+<span class="n">redirect_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">REDIRECT_PATH</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">REDIRECT_STATE</span><span class="p">:</span>
+<span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">REDIRECT_STATE</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="n">redirect_url</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_current_path</span><span class="p">()</span>
+<span class="n">get_params</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_params</span><span class="p">()</span>
+<span class="k">if</span> <span class="s1">&#39;code&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">get_params</span><span class="p">:</span>
+<span class="n">state</span> <span class="o">=</span> <span class="s1">&#39;&amp;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">get_params</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+<span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_code_url</span><span class="p">(</span><span class="n">redirect_url</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">helper</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
+<div class="viewcode-block" id="WegoApi.get_openid"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.get_openid">[docs]</a>    <span class="k">def</span> <span class="nf">get_openid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">helper</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user openid.</span>
+<span class="sd">        :param code: A code that user redirect back will bring.</span>
+<span class="sd">        :return: openid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_access_token</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_set_user_tokens</span><span class="p">(</span><span class="n">helper</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;openid&#39;</span><span class="p">]</span></div>
+<div class="viewcode-block" id="WegoApi.get_userinfo"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.get_userinfo">[docs]</a>    <span class="k">def</span> <span class="nf">get_userinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">helper</span><span class="p">,</span> <span class="n">openid</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user info.</span>
+<span class="sd">        :return: :class:`WeChatUser &lt;wego.api.WeChatUser&gt;` object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">wechat_user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_userinfo_from_session</span><span class="p">(</span><span class="n">helper</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">wechat_user</span><span class="p">:</span>
+<span class="k">return</span> <span class="n">wechat_user</span>
+<span class="n">wx_access_token_expires_at</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_session</span><span class="p">(</span><span class="s1">&#39;wx_access_token_expires_at&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">wx_access_token_expires_at</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="n">wx_access_token_expires_at</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">():</span>
+<span class="n">refresh_token</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_session</span><span class="p">(</span><span class="s1">&#39;wx_refresh_token&#39;</span><span class="p">)</span>
+<span class="n">new_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">refresh_access_token</span><span class="p">(</span><span class="n">refresh_token</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">new_token</span> <span class="o">==</span> <span class="s1">&#39;error&#39;</span><span class="p">:</span>
+<span class="k">return</span> <span class="s1">&#39;error&#39;</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_set_user_tokens</span><span class="p">(</span><span class="n">helper</span><span class="p">,</span> <span class="n">new_token</span><span class="p">)</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_session</span><span class="p">(</span><span class="s1">&#39;wx_access_token&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_userinfo_by_token</span><span class="p">(</span><span class="n">openid</span><span class="p">,</span> <span class="n">access_token</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_set_userinfo_to_session</span><span class="p">(</span><span class="n">helper</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">WeChatUser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+<span class="k">def</span> <span class="nf">_get_userinfo_from_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">helper</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user info from session.</span>
+<span class="sd">        :return: None or :class:`WeChatUser &lt;wego.api.WeChatUser&gt;` object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">USERINFO_EXPIRE</span><span class="p">:</span>
+<span class="n">wx_userinfo</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_session</span><span class="p">(</span><span class="s1">&#39;wx_userinfo&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">wx_userinfo</span><span class="p">:</span>
+<span class="n">wx_userinfo</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">({</span><span class="s1">&#39;expires_at&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="o">**</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">wx_userinfo</span><span class="p">))</span>
+<span class="k">if</span> <span class="n">wx_userinfo</span><span class="p">[</span><span class="s1">&#39;expires_at&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">():</span>
+<span class="k">return</span> <span class="n">WeChatUser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wx_userinfo</span><span class="p">)</span>
+<span class="k">return</span> <span class="kc">None</span>
+<span class="k">def</span> <span class="nf">_set_userinfo_to_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">helper</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set user info into session.</span>
+<span class="sd">        :param data: user info.</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;expires_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">USERINFO_EXPIRE</span>
+<span class="n">helper</span><span class="o">.</span><span class="n">set_session</span><span class="p">(</span><span class="s1">&#39;wx_userinfo&#39;</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">_set_user_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">helper</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set user all tokens to sessions.</span>
+<span class="sd">        :param data: Tokens.</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">helper</span><span class="o">.</span><span class="n">set_session</span><span class="p">(</span><span class="s1">&#39;wx_access_token&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;access_token&#39;</span><span class="p">])</span>
+<span class="n">helper</span><span class="o">.</span><span class="n">set_session</span><span class="p">(</span><span class="s1">&#39;wx_access_token_expires_at&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;expires_in&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">180</span><span class="p">))</span>
+<span class="n">helper</span><span class="o">.</span><span class="n">set_session</span><span class="p">(</span><span class="s1">&#39;wx_refresh_token&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;refresh_token&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="WegoApi.get_ext_userinfo"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.get_ext_userinfo">[docs]</a>    <span class="k">def</span> <span class="nf">get_ext_userinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">openid</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user extra info, such as subscribe, language, remark and groupid.</span>
+<span class="sd">        :return: :dict: User data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_userinfo</span><span class="p">(</span><span class="n">openid</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">WeChatUser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+<div class="viewcode-block" id="WegoApi.verification_token"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.verification_token">[docs]</a>    <span class="k">def</span> <span class="nf">verification_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">openid</span><span class="p">,</span> <span class="n">access_token</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determine whether the user access token has expired</span>
+<span class="sd">        :param openid: User openid.</span>
+<span class="sd">        :param access_token: function get_access_token returns.</span>
+<span class="sd">        :return: Bool.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">is_access_token_has_expired</span><span class="p">(</span><span class="n">openid</span><span class="p">,</span> <span class="n">access_token</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ok&#39;</span></div>
+<span class="c1"># TODO 看看是否有必要放入一个新的类里面</span>
+<span class="c1"># 统一下单</span>
+<div class="viewcode-block" id="WegoApi.unified_order"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.unified_order">[docs]</a>    <span class="k">def</span> <span class="nf">unified_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        # TODO</span>
+<span class="sd">        Unifiedorder settings, get wechat config at https://api.mch.weixin.qq.com/pay/unifiedorder</span>
+<span class="sd">        You can take return value as wechat api onBridgeReady&#39;s parameters directly</span>
+<span class="sd">        You don&#39;t need to include appid, mch_id, nonce_str and sign because these three parameters set by WeChatApi,</span>
+<span class="sd">        but the following parameters are necessary, you must be included in the kwargs</span>
+<span class="sd">        and you must follow the format below as the parameters&#39;s key</span>
+<span class="sd">        :param openid: User openid.</span>
+<span class="sd">        :param body: Goods are simply described, the field must be in strict accordance with the</span>
+<span class="sd">         specification, specific see parameters</span>
+<span class="sd">        :param out_trade_no: Merchants system internal order number, within 32 characters,</span>
+<span class="sd">         can include letters, other see merchant order number</span>
+<span class="sd">        :param total_fee: Total amount of orders, the unit for points, as shown in the payment amount</span>
+<span class="sd">        :param spbill_create_ip: APP and web payment submitted to client IP, Native fill call</span>
+<span class="sd">         WeChat payment API machine IP.</span>
+<span class="sd">        :param notify_url: (optional) Default is what you set at init.</span>
+<span class="sd">            Receive pay WeChat asynchronous notification callback address,</span>
+<span class="sd">            notify the url must be accessible url directly, cannot carry parameters.</span>
+<span class="sd">        :param trade_type: Values are as follows: the JSAPI, NATIVE APP, details see parameter regulation</span>
+<span class="sd">        :return: {&#39;appId&#39;: string,</span>
+<span class="sd">                &#39;timeStamp&#39;: value,</span>
+<span class="sd">                &#39;nonceStr&#39;: value,</span>
+<span class="sd">                &#39;package&#39;: value,</span>
+<span class="sd">                &#39;signType&#39;: value,</span>
+<span class="sd">                &#39;paySign&#39;: value,}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">default_data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;appid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_ID</span><span class="p">,</span>
+<span class="s1">&#39;mch_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">MCH_ID</span><span class="p">,</span>
+<span class="s1">&#39;nonce_str&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_random_code</span><span class="p">(),</span>
+<span class="s1">&#39;notify_url&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">PAY_NOTIFY_URL</span><span class="p">,</span>
+<span class="s1">&#39;trade_type&#39;</span><span class="p">:</span> <span class="s1">&#39;JSAPI&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">default_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;total_fee&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;sign&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_sign</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_check_params</span><span class="p">(</span>
+<span class="n">data</span><span class="p">,</span>
+<span class="s1">&#39;appid&#39;</span><span class="p">,</span>
+<span class="s1">&#39;mch_id&#39;</span><span class="p">,</span>
+<span class="s1">&#39;nonce_str&#39;</span><span class="p">,</span>
+<span class="s1">&#39;body&#39;</span><span class="p">,</span>
+<span class="s1">&#39;out_trade_no&#39;</span><span class="p">,</span>
+<span class="s1">&#39;total_fee&#39;</span><span class="p">,</span>
+<span class="s1">&#39;spbill_create_ip&#39;</span><span class="p">,</span>
+<span class="s1">&#39;notify_url&#39;</span><span class="p">,</span>
+<span class="s1">&#39;trade_type&#39;</span><span class="p">)</span>
+<span class="n">order_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">unified_order</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;result_code&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">order_info</span> <span class="ow">or</span> <span class="n">order_info</span><span class="p">[</span><span class="s1">&#39;result_code&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;SUCCESS&#39;</span><span class="p">:</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">LOGGER</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;统一下单失败! </span><span class="se">\n</span><span class="s1">传入数据:</span><span class="se">\n</span><span class="si">{}</span><span class="se">\n</span><span class="s1">返回数据:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+<span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+<span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">order_info</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="p">))</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;appId&#39;</span><span class="p">:</span> <span class="n">order_info</span><span class="p">[</span><span class="s1">&#39;appid&#39;</span><span class="p">],</span>
+<span class="s1">&#39;timeStamp&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())),</span>
+<span class="s1">&#39;nonceStr&#39;</span><span class="p">:</span> <span class="n">order_info</span><span class="p">[</span><span class="s1">&#39;nonce_str&#39;</span><span class="p">],</span>
+<span class="s1">&#39;package&#39;</span><span class="p">:</span> <span class="s1">&#39;prepay_id=&#39;</span> <span class="o">+</span> <span class="n">order_info</span><span class="p">[</span><span class="s1">&#39;prepay_id&#39;</span><span class="p">],</span>
+<span class="s1">&#39;signType&#39;</span><span class="p">:</span> <span class="s1">&#39;MD5&#39;</span>
+<span class="p">}</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;paySign&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_sign</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<span class="c1"># 查询订单</span>
+<div class="viewcode-block" id="WegoApi.query_order"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.query_order">[docs]</a>    <span class="k">def</span> <span class="nf">query_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_trade_no</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">transaction_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        # TODO https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_2</span>
+<span class="sd">        Order query setting, get wechat config at https://api.mch.weixin.qq.com/pay/orderquery</span>
+<span class="sd">        Choose one in out_trade_no and transaction_id as parameter pass to this function</span>
+<span class="sd">        :param out_trade_no | transaction_id: WeChat order number, priority in use.</span>
+<span class="sd">            Merchants system internal order number, when didn&#39;t provide transaction_id need to pass this.</span>
+<span class="sd">        :return: {...}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">default_settings</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;appid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_ID</span><span class="p">,</span>
+<span class="s1">&#39;mch_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">MCH_ID</span><span class="p">,</span>
+<span class="s1">&#39;nonce_str&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_random_code</span><span class="p">(),</span>
+<span class="p">}</span>
+<span class="k">if</span> <span class="n">out_trade_no</span><span class="p">:</span>
+<span class="n">default_settings</span><span class="p">[</span><span class="s1">&#39;out_trade_no&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">out_trade_no</span>
+<span class="k">elif</span> <span class="n">transaction_id</span><span class="p">:</span>
+<span class="n">default_settings</span><span class="p">[</span><span class="s1">&#39;transaction_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">transaction_id</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="s1">&#39;Missing required parameters &quot;</span><span class="si">{param}</span><span class="s1">&quot; (缺少必须的参数 &quot;</span><span class="si">{param}</span><span class="s1">&quot;)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+<span class="n">param</span><span class="o">=</span><span class="s1">&#39;out_trade_no|transaction_id&#39;</span>
+<span class="p">))</span>
+<span class="n">default_settings</span><span class="p">[</span><span class="s1">&#39;sign&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_sign</span><span class="p">(</span><span class="n">default_settings</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">query_order</span><span class="p">(</span><span class="n">default_settings</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<span class="c1"># 关闭订单</span>
+<div class="viewcode-block" id="WegoApi.close_order"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.close_order">[docs]</a>    <span class="k">def</span> <span class="nf">close_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_trade_no</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        # TODO return bool?</span>
+<span class="sd">        Close order, get wechat config at https://api.mch.weixin.qq.com/pay/closeorder</span>
+<span class="sd">        :param out_trade_no: Merchant order number within the system</span>
+<span class="sd">        :return: {...}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;appid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_ID</span><span class="p">,</span>
+<span class="s1">&#39;mch_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">MCH_ID</span><span class="p">,</span>
+<span class="s1">&#39;nonce_str&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_random_code</span><span class="p">(),</span>
+<span class="s1">&#39;out_trade_no&#39;</span><span class="p">:</span> <span class="n">out_trade_no</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;sign&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_sign</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">close_order</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<span class="c1"># 申请退款</span>
+<div class="viewcode-block" id="WegoApi.refund_order"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.refund_order">[docs]</a>    <span class="k">def</span> <span class="nf">refund_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Merchant order number within the system, get wechat config at https://api.mch.weixin.qq.com/secapi/pay/refund</span>
+<span class="sd">        Following parameters are necessary, you must be included in the kwargs and you must follow the format below as the parameters&#39;s key</span>
+<span class="sd">        :param out_trade_no or transaction_id: WeChat order number, priority in use. Merchants system internal order number, when didn&#39;t provide transaction_id need to pass this.</span>
+<span class="sd">        :param out_refund_no: Merchants system within the refund number,</span>
+<span class="sd">            merchants within the system, only the same refund order request only a back many times</span>
+<span class="sd">        :param total_fee: Total amount of orders, the unit for points, only as an integer, see the payment amount</span>
+<span class="sd">        :param refund_fee: Refund the total amount, total amount of the order,</span>
+<span class="sd">            the unit for points, only as an integer, see the payment amount</span>
+<span class="sd">        :param op_user_id: Operator account, the default for the merchants</span>
+<span class="sd">        :return: {...}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">default_settings</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;appid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_ID</span><span class="p">,</span>
+<span class="s1">&#39;mch_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">MCH_ID</span><span class="p">,</span>
+<span class="s1">&#39;nonce_str&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_random_code</span><span class="p">(),</span>
+<span class="p">}</span>
+<span class="k">if</span> <span class="s1">&#39;op_user_id&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;op_user_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">MCH_ID</span>
+<span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">default_settings</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;total_fee&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;sign&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_sign</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_check_params</span><span class="p">(</span>
+<span class="n">data</span><span class="p">,</span>
+<span class="s1">&#39;appid&#39;</span><span class="p">,</span>
+<span class="s1">&#39;mch_id&#39;</span><span class="p">,</span>
+<span class="s1">&#39;nonce_str&#39;</span><span class="p">,</span>
+<span class="s1">&#39;sign&#39;</span><span class="p">,</span>
+<span class="s1">&#39;out_refund_no&#39;</span><span class="p">,</span>
+<span class="s1">&#39;total_fee&#39;</span><span class="p">,</span>
+<span class="s1">&#39;refund_fee&#39;</span><span class="p">,</span>
+<span class="s1">&#39;op_user_id&#39;</span>
+<span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;out_trade_no&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s1">&#39;transaction_id&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="s1">&#39;Missing required parameters &quot;</span><span class="si">{param}</span><span class="s1">&quot; (缺少必须的参数 &quot;</span><span class="si">{param}</span><span class="s1">&quot;)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+<span class="n">param</span><span class="o">=</span><span class="s1">&#39;out_trade_on|transaction_id&#39;</span>
+<span class="p">))</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">refund_order</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<span class="c1"># 查询退款</span>
+<div class="viewcode-block" id="WegoApi.query_refund"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.query_refund">[docs]</a>    <span class="k">def</span> <span class="nf">query_refund</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get wechat config at https://api.mch.weixin.qq.com/pay/refundquery</span>
+<span class="sd">        :param transaction_id | out_trade_no | out_refund_no | refund_id: One out of four</span>
+<span class="sd">        :return: dict {...}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">default_settings</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;appid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_ID</span><span class="p">,</span>
+<span class="s1">&#39;mch_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">MCH_ID</span><span class="p">,</span>
+<span class="s1">&#39;nonce_str&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_random_code</span><span class="p">(),</span>
+<span class="p">}</span>
+<span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;transaction_id&#39;</span><span class="p">,</span> <span class="s1">&#39;out_trade_no&#39;</span><span class="p">,</span> <span class="s1">&#39;out_refund_no&#39;</span><span class="p">,</span> <span class="s1">&#39;refund_id&#39;</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+<span class="k">break</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="s1">&#39;Missing required parameters &quot;</span><span class="si">{param}</span><span class="s1">&quot; (缺少必须的参数 &quot;</span><span class="si">{param}</span><span class="s1">&quot;)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+<span class="n">param</span><span class="o">=</span><span class="s1">&#39;out_trade_on|transaction_id|out_refund_no|refund_id&#39;</span>
+<span class="p">))</span>
+<span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">default_settings</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;sign&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_sign</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">query_refund</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<span class="c1"># 下载对账单</span>
+<div class="viewcode-block" id="WegoApi.download_bill"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.download_bill">[docs]</a>    <span class="k">def</span> <span class="nf">download_bill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get wechat config at https://api.mch.weixin.qq.com/pay/downloadbill</span>
+<span class="sd">        :param bill_date:</span>
+<span class="sd">        :param bill_type:</span>
+<span class="sd">        :return: dict {...}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">default_settings</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;appid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_ID</span><span class="p">,</span>
+<span class="s1">&#39;mch_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">MCH_ID</span><span class="p">,</span>
+<span class="s1">&#39;nonce_str&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_random_code</span><span class="p">(),</span>
+<span class="p">}</span>
+<span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">default_settings</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;sign&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_sign</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_check_params</span><span class="p">(</span>
+<span class="n">data</span><span class="p">,</span>
+<span class="s1">&#39;appid&#39;</span><span class="p">,</span>
+<span class="s1">&#39;mch_id&#39;</span><span class="p">,</span>
+<span class="s1">&#39;nonce_str&#39;</span><span class="p">,</span>
+<span class="s1">&#39;sign&#39;</span><span class="p">,</span>
+<span class="s1">&#39;bill_date&#39;</span><span class="p">,</span>
+<span class="s1">&#39;bill_type&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">download_bill</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<span class="c1"># TODO 暂时无需</span>
+<span class="c1"># 交易保障</span>
+<div class="viewcode-block" id="WegoApi.pay_report"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.pay_report">[docs]</a>    <span class="k">def</span> <span class="nf">pay_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get wechat config at https://api.mch.weixin.qq.com/payitil/report</span>
+<span class="sd">        :param interface_url:</span>
+<span class="sd">        :param execute_time:</span>
+<span class="sd">        :param return_code:</span>
+<span class="sd">        :param result_code:</span>
+<span class="sd">        :param user_ip:</span>
+<span class="sd">        :return: dict{...}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">default_settings</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;appid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_ID</span><span class="p">,</span>
+<span class="s1">&#39;mch_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">MCH_ID</span><span class="p">,</span>
+<span class="s1">&#39;nonce_str&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_random_code</span><span class="p">(),</span>
+<span class="p">}</span>
+<span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">default_settings</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;sign&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_sign</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_check_params</span><span class="p">(</span>
+<span class="n">data</span><span class="p">,</span>
+<span class="s1">&#39;appid&#39;</span><span class="p">,</span>
+<span class="s1">&#39;mch_id&#39;</span><span class="p">,</span>
+<span class="s1">&#39;nonce_str&#39;</span><span class="p">,</span>
+<span class="s1">&#39;sign&#39;</span><span class="p">,</span>
+<span class="s1">&#39;interface_url&#39;</span><span class="p">,</span>
+<span class="s1">&#39;execute_time&#39;</span><span class="p">,</span>
+<span class="s1">&#39;return_code&#39;</span><span class="p">,</span>
+<span class="s1">&#39;result_code&#39;</span><span class="p">,</span>
+<span class="s1">&#39;user_ip&#39;</span>
+<span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">pay_report</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<span class="k">def</span> <span class="nf">_check_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if params is available</span>
+<span class="sd">        :param params: a dict.</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">params</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">params</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="s1">&#39;Missing required parameters &quot;</span><span class="si">{param}</span><span class="s1">&quot; (缺少必须的参数 &quot;</span><span class="si">{param}</span><span class="s1">&quot;)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">param</span><span class="o">=</span><span class="n">i</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">_get_random_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get random code</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">,</span> <span class="p">[</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">printable</span><span class="p">[:</span><span class="mi">62</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">32</span><span class="p">)])</span>
+<div class="viewcode-block" id="WegoApi.make_sign"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.make_sign">[docs]</a>    <span class="k">def</span> <span class="nf">make_sign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate wechat pay for signature</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">temp</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+<span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;key=&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">MCH_SECRET</span><span class="p">)</span>
+<span class="n">temp</span> <span class="o">=</span> <span class="s1">&#39;&amp;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+<span class="n">md5</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">()</span>
+<span class="n">md5</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">temp</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+<span class="k">return</span> <span class="n">md5</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span></div>
+<div class="viewcode-block" id="WegoApi.create_group"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.create_group">[docs]</a>    <span class="k">def</span> <span class="nf">create_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new group.</span>
+<span class="sd">        :param name: Group name.</span>
+<span class="sd">        :return: :dict: {&#39;id&#39;: &#39;int&#39;, &#39;name&#39;:&#39;str&#39;}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="n">name</span><span class="p">)[</span><span class="s1">&#39;group&#39;</span><span class="p">]</span></div>
+<div class="viewcode-block" id="WegoApi.get_groups"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.get_groups">[docs]</a>    <span class="k">def</span> <span class="nf">get_groups</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all groups.</span>
+<span class="sd">        :return: :dict: {&#39;your_group_id&#39;: {&#39;name&#39;:&#39;str&#39;, &#39;count&#39;:&#39;int&#39;}}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_all_groups</span><span class="p">()</span>
+<span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">):</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;groups&#39;</span><span class="p">]}</span></div>
+<div class="viewcode-block" id="WegoApi.get_user_groups"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.get_user_groups">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_groups</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">openid</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user groups.</span>
+<span class="sd">        :return: :dict: {&#39;your_group_id&#39;: {&#39;name&#39;:&#39;str&#39;, &#39;count&#39;:&#39;int&#39;}}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_user_groups</span><span class="p">(</span><span class="n">openid</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<span class="k">def</span> <span class="nf">_get_groupid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Input group id or group name and return group id.</span>
+<span class="sd">        :param group: Group name or group id.</span>
+<span class="sd">        :return: group id</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">groups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_groups</span><span class="p">()</span>
+<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">group</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+<span class="n">groupid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="n">group</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">groups</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">group</span><span class="p">:</span>
+<span class="n">groupid</span> <span class="o">=</span> <span class="n">i</span>
+<span class="k">break</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;Without this group(没有这个群组)&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">groupid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;Without this group(没有这个群组)&#39;</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">groupid</span>
+<div class="viewcode-block" id="WegoApi.change_group_name"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.change_group_name">[docs]</a>    <span class="k">def</span> <span class="nf">change_group_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Change group name.</span>
+<span class="sd">        :param group: Group id or group name.</span>
+<span class="sd">        :param name: New group name</span>
+<span class="sd">        :return: :Bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">groupid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_groupid</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">change_group_name</span><span class="p">(</span><span class="n">groupid</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+<span class="k">return</span> <span class="ow">not</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span></div>
+<div class="viewcode-block" id="WegoApi.change_user_group"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.change_user_group">[docs]</a>    <span class="k">def</span> <span class="nf">change_user_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">openid</span><span class="p">,</span> <span class="n">group</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Change user group.</span>
+<span class="sd">        :param group: Group id or group name.</span>
+<span class="sd">        :return: :Bool .</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">groupid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_groupid</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">change_user_group</span><span class="p">(</span><span class="n">openid</span><span class="p">,</span> <span class="n">groupid</span><span class="p">)</span>
+<span class="k">return</span> <span class="ow">not</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span></div>
+<div class="viewcode-block" id="WegoApi.del_group"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.del_group">[docs]</a>    <span class="k">def</span> <span class="nf">del_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete group.</span>
+<span class="sd">        :param group: Group id or group name.</span>
+<span class="sd">        :return: :Bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">groupid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_groupid</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">del_group</span><span class="p">(</span><span class="n">groupid</span><span class="p">)</span>
+<span class="k">return</span> <span class="ow">not</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span></div>
+<div class="viewcode-block" id="WegoApi.create_menu"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.create_menu">[docs]</a>    <span class="k">def</span> <span class="nf">create_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create menu by wego.button</span>
+<span class="sd">        :return: :Bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;button&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">json</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+<span class="p">}</span>
+<span class="k">if</span> <span class="s1">&#39;match&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;matchrule&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;match&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">json</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">create_conditional_menu</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">create_menu</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="k">return</span> <span class="ow">not</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;errcode&#39;</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">else</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;menuid&#39;</span><span class="p">]</span></div>
+<span class="k">def</span> <span class="nf">get_menus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_menus</span><span class="p">()</span>
+<span class="k">if</span> <span class="s1">&#39;errcode&#39;</span> <span class="ow">in</span> <span class="n">data</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">46003</span><span class="p">:</span>
+<span class="k">return</span> <span class="p">{</span><span class="s1">&#39;menu&#39;</span><span class="p">:</span> <span class="p">{}}</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">del_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">):</span>
+<span class="k">if</span> <span class="n">target</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+<span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">del_all_menus</span><span class="p">()[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span>
+<span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">del_conditional_menu</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">target</span><span class="p">))[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span>
+<div class="viewcode-block" id="WegoApi.analysis_push"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.analysis_push">[docs]</a>    <span class="k">def</span> <span class="nf">analysis_push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Analysis xml to dict and set wego push type.</span>
+<span class="sd">        Wego defind WeChatPush type (which can reply has checked):</span>
+<span class="sd">            -- pay --</span>
+<span class="sd">            all ✓</span>
+<span class="sd">            -- msg --</span>
+<span class="sd">            text ✓</span>
+<span class="sd">            image ✓</span>
+<span class="sd">            voice ✓</span>
+<span class="sd">            video ✓</span>
+<span class="sd">            shortvideo ✓</span>
+<span class="sd">            location ✓</span>
+<span class="sd">            link ✓</span>
+<span class="sd">            -- event --</span>
+<span class="sd">            subscribe ✓&#39;</span>
+<span class="sd">            unsubscribe</span>
+<span class="sd">            scancode_push</span>
+<span class="sd">            scancode_waitmsg ✓</span>
+<span class="sd">            scan</span>
+<span class="sd">            scan_subscribe</span>
+<span class="sd">            user_location ✓</span>
+<span class="sd">            click ✓</span>
+<span class="sd">            view</span>
+<span class="sd">        :param raw_xml: Raw xml.</span>
+<span class="sd">        :return: :class:`WeChatPush &lt;wego.api.WeChatPush&gt;` object.</span>
+<span class="sd">        :rtype: WeChatPush.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">helper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">HELPER</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+<span class="n">raw_xml</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_body</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">raw_xml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;return_code&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+<span class="c1"># TODO 通知验证</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">_analysis_xml</span><span class="p">(</span><span class="n">raw_xml</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">WeChatPay</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">crypto</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">nonce</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">PUSH_TOKEN</span><span class="p">:</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;push_crypto&#39;</span><span class="p">):</span>
+<span class="kn">from</span> <span class="nn">.lib.WEGOBizMsgCrypt</span> <span class="k">import</span> <span class="n">WXBizMsgCrypt</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">push_crypto</span> <span class="o">=</span> <span class="n">WXBizMsgCrypt</span><span class="p">(</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">PUSH_TOKEN</span><span class="p">,</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">PUSH_ENCODING_AES_KEY</span><span class="p">,</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_ID</span>
+<span class="p">)</span>
+<span class="n">crypto</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">push_crypto</span>
+<span class="n">msg_sign</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_params</span><span class="p">()[</span><span class="s1">&#39;msg_signature&#39;</span><span class="p">]</span>
+<span class="n">timestamp</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_params</span><span class="p">()[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]</span>
+<span class="n">nonce</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_params</span><span class="p">()[</span><span class="s1">&#39;nonce&#39;</span><span class="p">]</span>
+<span class="n">ret</span><span class="p">,</span> <span class="n">raw_xml</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">push_crypto</span><span class="o">.</span><span class="n">DecryptMsg</span><span class="p">(</span><span class="n">raw_xml</span><span class="p">,</span> <span class="n">msg_sign</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">nonce</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">_analysis_xml</span><span class="p">(</span><span class="n">raw_xml</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">WeChatPush</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">crypto</span><span class="p">,</span> <span class="n">nonce</span><span class="p">)</span></div>
+<span class="k">def</span> <span class="nf">add_temporary_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">add_temporary_material</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">get_temporary_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">media_id</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_temporary_material</span><span class="p">(</span><span class="n">media_id</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">add_permanent_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">articles</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">add_permanent_material</span><span class="p">(</span><span class="n">articles</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">upload_content_picture</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">media</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">upload_content_picture</span><span class="p">(</span><span class="n">media</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">add_other_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">add_other_material</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">get_permanent_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">media_id</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_permanent_material</span><span class="p">(</span><span class="n">media_id</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">delete_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">media_id</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">delete_material</span><span class="p">(</span><span class="n">media_id</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">update_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">update_material</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">get_materials_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_materials_count</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">get_materials_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_type</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_materials_list</span><span class="p">(</span><span class="n">material_type</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">create_qrcode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">expire</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">if</span> <span class="n">expire</span><span class="p">:</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">create_scene_qrcode</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">expire</span><span class="p">)</span>
+<span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">create_limit_scene_qrcode</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">create_limit_str_scene_qrcode</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<span class="c1"># TODO 容错</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;code_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=&#39;</span> <span class="o">+</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;ticket&#39;</span><span class="p">]</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">create_short_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">create_short_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+<span class="c1"># TODO 容错</span>
+<span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;short_url&#39;</span><span class="p">]</span>
+<div class="viewcode-block" id="WegoApi.get_wechat_servers_list"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.get_wechat_servers_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_wechat_servers_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get wechat servers list</span>
+<span class="sd">        :return: :list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_wechat_servers_list</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WegoApi.check_personalized_menu_match"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.check_personalized_menu_match">[docs]</a>    <span class="k">def</span> <span class="nf">check_personalized_menu_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check whether personalized menu match is correct.</span>
+<span class="sd">        :param data:user_id</span>
+<span class="sd">        :return: :dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">check_personalized_menu_match</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WegoApi.get_variation_number_of_user"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.get_variation_number_of_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_variation_number_of_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get Variation on number of user</span>
+<span class="sd">        :param data:begin_date, end_date</span>
+<span class="sd">        :return: :dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_variation_number_of_user</span><span class="p">(</span><span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;errcode&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61501</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数跨度异常。)&#39;</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61500</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数格式异常。)&#39;</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WegoApi.get_user_cumulate"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.get_user_cumulate">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_cumulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        GET accumulation of user</span>
+<span class="sd">        :param date:begin_date, end_date</span>
+<span class="sd">        :return: :dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_user_cumulate</span><span class="p">(</span><span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;errcode&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61501</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数跨度异常。)&#39;</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61500</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数格式异常。)&#39;</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WegoApi.get_article_summary"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.get_article_summary">[docs]</a>    <span class="k">def</span> <span class="nf">get_article_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get article summary</span>
+<span class="sd">        :param date:begin_date, end_date</span>
+<span class="sd">        :return: :dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_article_summary</span><span class="p">(</span><span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;errcode&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61501</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数跨度异常。)&#39;</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61500</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数格式异常。)&#39;</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WegoApi.get_article_total"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.get_article_total">[docs]</a>    <span class="k">def</span> <span class="nf">get_article_total</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get article total</span>
+<span class="sd">        :param data: begin_date, end_date</span>
+<span class="sd">        :return: :dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_article_total</span><span class="p">(</span><span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;errcode&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61501</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数跨度异常。)&#39;</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61500</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数格式异常。)&#39;</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WegoApi.get_user_read"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.get_user_read">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user read</span>
+<span class="sd">        :param data:begin_date, end_date</span>
+<span class="sd">        :return : :dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_user_read</span><span class="p">(</span><span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;errcode&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61501</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数跨度异常。)&#39;</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61500</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数格式异常。)&#39;</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WegoApi.get_user_read_hour"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.get_user_read_hour">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_read_hour</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user read hour</span>
+<span class="sd">        param data:begin_date, end_date</span>
+<span class="sd">        return : :dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_user_read_hour</span><span class="p">(</span><span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;errcode&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61501</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数跨度异常。)&#39;</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61500</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数格式异常。)&#39;</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WegoApi.get_user_share"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.get_user_share">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_share</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user share</span>
+<span class="sd">        param data:begin_data,end_date</span>
+<span class="sd">        return : :dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_user_share</span><span class="p">(</span><span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;errcode&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61501</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数跨度异常。)&#39;</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61500</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数格式异常。)&#39;</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WegoApi.get_user_share_hour"><a class="viewcode-back" href="../../api.html#wego.api.WegoApi.get_user_share_hour">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_share_hour</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user share</span>
+<span class="sd">        param data:begin_date, end_date</span>
+<span class="sd">        retur : :dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_user_share_hour</span><span class="p">(</span><span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;errcode&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61501</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数跨度异常。)&#39;</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">61500</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WegoApiError</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;(错误返回码：&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="sa">u</span><span class="s1">&#39;，时间参数格式异常。)&#39;</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">data</span></div></div>
+<span class="k">class</span> <span class="nc">WeChatPay</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">is_pay</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">return_tpl</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;&lt;xml&gt;&#39;</span> <span class="o">+</span>
+<span class="s1">&#39;&lt;return_code&gt;&lt;![CDATA[SUCCESS]]&gt;&lt;/return_code&gt;&#39;</span> <span class="o">+</span>
+<span class="s1">&#39;&lt;return_msg&gt;&lt;![CDATA[</span><span class="si">%s</span><span class="s1">]]&gt;&lt;/return_msg&gt;&#39;</span> <span class="o">+</span>
+<span class="s1">&#39;&lt;/xml&gt;&#39;</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_tpl</span> <span class="o">%</span> <span class="s1">&#39;OK&#39;</span>
+<span class="k">def</span> <span class="nf">fail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_tpl</span> <span class="o">%</span> <span class="n">text</span>
+<span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+<span class="k">return</span> <span class="s1">&#39;&#39;</span>
+<div class="viewcode-block" id="WeChatPush"><a class="viewcode-back" href="../../api.html#wego.api.WeChatPush">[docs]</a><span class="k">class</span> <span class="nc">WeChatPush</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">crypto</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nonce</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">crypto</span> <span class="o">=</span> <span class="n">crypto</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">nonce</span> <span class="o">=</span> <span class="n">nonce</span>
+<span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;MsgType&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;event&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Event&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;subscribe&#39;</span> <span class="ow">and</span> <span class="s1">&#39;Ticket&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s1">&#39;scan_subcribe&#39;</span>
+<span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Event&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;LOCATION&#39;</span><span class="p">:</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s1">&#39;user_location&#39;</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Event&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;MsgType&#39;</span><span class="p">]</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">from_user</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;FromUserName&#39;</span><span class="p">]</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">to_user</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;ToUserName&#39;</span><span class="p">]</span>
+<span class="k">def</span> <span class="nf">return_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;ToUserName&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_user</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;FromUserName&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_user</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;CreateTime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+<span class="n">xml</span> <span class="o">=</span> <span class="n">wego</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">WeChatApi</span><span class="o">.</span><span class="n">_make_xml</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nonce</span><span class="p">:</span>
+<span class="n">ret</span><span class="p">,</span> <span class="n">xml</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">EncryptMsg</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nonce</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">xml</span>
+<span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+<span class="k">return</span> <span class="s1">&#39;&#39;</span>
+<span class="k">def</span> <span class="nf">reply_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_xml</span><span class="p">({</span>
+<span class="s1">&#39;MsgType&#39;</span><span class="p">:</span> <span class="s1">&#39;text&#39;</span><span class="p">,</span>
+<span class="s1">&#39;Content&#39;</span><span class="p">:</span> <span class="n">text</span>
+<span class="p">})</span>
+<span class="k">def</span> <span class="nf">reply_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_xml</span><span class="p">({</span>
+<span class="s1">&#39;MsgType&#39;</span><span class="p">:</span> <span class="s1">&#39;image&#39;</span><span class="p">,</span>
+<span class="s1">&#39;Image&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;MediaId&#39;</span><span class="p">:</span> <span class="n">image</span><span class="p">}</span>
+<span class="p">})</span>
+<span class="k">def</span> <span class="nf">reply_voice</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">voice</span><span class="p">):</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_xml</span><span class="p">({</span>
+<span class="s1">&#39;MsgType&#39;</span><span class="p">:</span> <span class="s1">&#39;voice&#39;</span><span class="p">,</span>
+<span class="s1">&#39;Voice&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;MediaId&#39;</span><span class="p">:</span> <span class="n">voice</span><span class="p">}</span>
+<span class="p">})</span>
+<span class="k">def</span> <span class="nf">reply_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">video</span><span class="p">):</span>
+<span class="c1"># TODO 视频要等审核通过才能用, 或者是永久素材</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;MediaId&#39;</span><span class="p">:</span> <span class="n">video</span><span class="p">[</span><span class="s1">&#39;media_id&#39;</span><span class="p">]</span>
+<span class="p">}</span>
+<span class="k">if</span> <span class="s1">&#39;title&#39;</span> <span class="ow">in</span> <span class="n">video</span><span class="p">:</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;Title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">video</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span>
+<span class="k">if</span> <span class="s1">&#39;description&#39;</span> <span class="ow">in</span> <span class="n">video</span><span class="p">:</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;Description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">video</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_xml</span><span class="p">({</span>
+<span class="s1">&#39;MsgType&#39;</span><span class="p">:</span> <span class="s1">&#39;video&#39;</span><span class="p">,</span>
+<span class="s1">&#39;Video&#39;</span><span class="p">:</span> <span class="n">data</span>
+<span class="p">})</span>
+<span class="k">def</span> <span class="nf">reply_music</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">music</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;Title&#39;</span><span class="p">:</span> <span class="n">music</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">],</span>
+<span class="s1">&#39;Description&#39;</span><span class="p">:</span> <span class="n">music</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">],</span>
+<span class="s1">&#39;MusicUrl&#39;</span><span class="p">:</span> <span class="n">music</span><span class="p">[</span><span class="s1">&#39;music_url&#39;</span><span class="p">],</span>
+<span class="s1">&#39;HQMusicUrl&#39;</span><span class="p">:</span> <span class="n">music</span><span class="p">[</span><span class="s1">&#39;hq_music_url&#39;</span><span class="p">],</span>
+<span class="p">}</span>
+<span class="k">if</span> <span class="s1">&#39;thumb_media_id&#39;</span> <span class="ow">in</span> <span class="n">music</span><span class="p">:</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;ThumbMediaId&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">music</span><span class="p">[</span><span class="s1">&#39;thumb_media_id&#39;</span><span class="p">]</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_xml</span><span class="p">({</span>
+<span class="s1">&#39;MsgType&#39;</span><span class="p">:</span> <span class="s1">&#39;music&#39;</span><span class="p">,</span>
+<span class="s1">&#39;Music&#39;</span><span class="p">:</span> <span class="n">data</span>
+<span class="p">})</span>
+<span class="k">def</span> <span class="nf">reply_news</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">news</span><span class="p">):</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">news</span><span class="p">:</span>
+<span class="n">new_dict</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">if</span> <span class="s1">&#39;title&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">:</span>
+<span class="n">new_dict</span><span class="p">[</span><span class="s1">&#39;Title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span>
+<span class="k">if</span> <span class="s1">&#39;description&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">:</span>
+<span class="n">new_dict</span><span class="p">[</span><span class="s1">&#39;Description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
+<span class="k">if</span> <span class="s1">&#39;pic_url&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">:</span>
+<span class="n">new_dict</span><span class="p">[</span><span class="s1">&#39;PicUrl&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;pic_url&#39;</span><span class="p">]</span>
+<span class="k">if</span> <span class="s1">&#39;url&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">:</span>
+<span class="n">new_dict</span><span class="p">[</span><span class="s1">&#39;Url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">]</span>
+<span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_dict</span><span class="p">)</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_xml</span><span class="p">({</span>
+<span class="s1">&#39;MsgType&#39;</span><span class="p">:</span> <span class="s1">&#39;news&#39;</span><span class="p">,</span>
+<span class="s1">&#39;ArticleCount&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">news</span><span class="p">),</span>
+<span class="s1">&#39;Articles&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="s1">&#39;item&#39;</span><span class="p">:</span> <span class="n">data</span>
+<span class="p">}</span>
+<span class="p">})</span></div>
+<div class="viewcode-block" id="WeChatUser"><a class="viewcode-back" href="../../api.html#wego.api.WeChatUser">[docs]</a><span class="k">class</span> <span class="nc">WeChatUser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A lazy and smart wechat user object. You can set user remark, group, groupid direct,</span>
+<span class="sd">    because of group name can be repeated, so if you set the group by group name, it may not be accurate.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wego</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">wego</span> <span class="o">=</span> <span class="n">wego</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">is_upgrade</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="n">ext_userinfo</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;subscribe&#39;</span><span class="p">,</span> <span class="s1">&#39;language&#39;</span><span class="p">,</span> <span class="s1">&#39;remark&#39;</span><span class="p">,</span> <span class="s1">&#39;groupid&#39;</span><span class="p">]</span>
+<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ext_userinfo</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_upgrade</span><span class="p">:</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">get_ext_userinfo</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;group&#39;</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;group&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wego</span><span class="o">.</span><span class="n">get_groups</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">groupid</span><span class="p">]</span>
+<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+<span class="k">return</span> <span class="s1">&#39;&#39;</span>
+<span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;remark&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subscribe</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WeChatUserError</span><span class="p">(</span><span class="s1">&#39;The user does not subscribe you&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;remark&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">value</span><span class="p">:</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">wego</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">set_user_remark</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;openid&#39;</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;group&#39;</span><span class="p">,</span> <span class="s1">&#39;groupid&#39;</span><span class="p">]:</span>
+<span class="n">groups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wego</span><span class="o">.</span><span class="n">get_groups</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;group&#39;</span><span class="p">:</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">groups</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">value</span><span class="p">:</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">i</span>
+<span class="k">break</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WeChatUserError</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;Without this group(没有这个群组)&#39;</span><span class="p">)</span>
+<span class="n">groupid</span> <span class="o">=</span> <span class="n">value</span>
+<span class="k">if</span> <span class="n">groupid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WeChatUserError</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;Without this group(没有这个群组)&#39;</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">wego</span><span class="o">.</span><span class="n">change_user_group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;openid&#39;</span><span class="p">],</span> <span class="n">groupid</span><span class="p">)</span>
+<span class="nb">super</span><span class="p">(</span><span class="n">WeChatUser</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+<div class="viewcode-block" id="WeChatUser.get_ext_userinfo"><a class="viewcode-back" href="../../api.html#wego.api.WeChatUser.get_ext_userinfo">[docs]</a>    <span class="k">def</span> <span class="nf">get_ext_userinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user extra info, such as subscribe, language, remark and groupid.</span>
+<span class="sd">        :return: :dict: User data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;remark&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;groupid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wego</span><span class="o">.</span><span class="n">wechat</span><span class="o">.</span><span class="n">get_userinfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;openid&#39;</span><span class="p">])</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">is_upgrade</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span></div></div>
+<span class="c1"># TODO 更方便定制</span>
+<div class="viewcode-block" id="official_get_global_access_token"><a class="viewcode-back" href="../../api.html#wego.api.official_get_global_access_token">[docs]</a><span class="k">def</span> <span class="nf">official_get_global_access_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get global access token.</span>
+<span class="sd">    :param self: Call self.get_global_access_token() for get global access token.</span>
+<span class="sd">    :return: :str: Global access token</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_access_token</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_access_token</span><span class="p">[</span><span class="s1">&#39;expires_at&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">global_access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_global_access_token</span><span class="p">()</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">global_access_token</span><span class="p">[</span><span class="s1">&#39;expires_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_access_token</span><span class="p">[</span><span class="s1">&#39;expires_in&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span> <span class="o">-</span> <span class="mi">180</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_access_token</span><span class="p">[</span><span class="s1">&#39;access_token&#39;</span><span class="p">]</span></div>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div id="sidebar">
+<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+<div class="sphinxsidebarwrapper">
+<h2>WEGO</h2>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/hello.html">Hello world</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/menu.html">创建菜单</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/interaction.html">与用户互动</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/paytime.html">微信支付</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/init.html">初始化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/user.html">管理用户</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/buttons.html">创建按钮</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/pay.html">微信支付</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/statistics.html">数据统计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/material.html">素材管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/custom_helper.html">定制 helper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/custom_get_token.html">定制 get_global_access_token</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">Developer Interface</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+</div>
+<div class="footer">
+<img src="../../static/logo_wego.png" alt="WEGO" class="logo">
+&copy; Copyright 2016, quseit.
+Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.1<!-- .Theme by <a href="http://github.com/vkvn">vkvn</a> -->
+</div>
+</body>
+</html>

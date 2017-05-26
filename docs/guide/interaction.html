@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>与用户互动 &#8212; wego 0.9 documentation</title>
+<link rel="stylesheet" href="../static/wego.css" type="text/css" />
+<link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+<script type="text/javascript">
+var DOCUMENTATION_OPTIONS = {
+URL_ROOT:    '../',
+VERSION:     '0.9',
+COLLAPSE_INDEX: false,
+FILE_SUFFIX: '.html',
+HAS_SOURCE:  true,
+SOURCELINK_SUFFIX: '.txt'
+};
+</script>
+<script type="text/javascript" src="../static/jquery.js"></script>
+<script type="text/javascript" src="../static/underscore.js"></script>
+<script type="text/javascript" src="../static/doctools.js"></script>
+<link rel="index" title="Index" href="../genindex.html" />
+<link rel="search" title="Search" href="../search.html" />
+<link rel="next" title="微信支付" href="paytime.html" />
+<link rel="prev" title="创建菜单" href="menu.html" />
+<meta charset="UTF-8">
+<title>Wego文档</title>
+</head>
+<body>
+<div class="top_tab_bar">
+<div class="wrapper">
+<a href="./index.html"><img src="../static/logo_wego_top.png" alt="wego" class="logo_wego_top"></a>
+<div class="top_tab">
+<a href="//wego.quseit.com"><span></span>首页</a>
+<a href="//wego.readthedocs.io"><span class="active"></span>文档</a>
+<a href="https://github.com/wegostudio/wego" target="_blank"><span></span>GitHub</a>
+</div>
+<div class="search">
+<form class="search_form" action="../search.html" method="get">
+<input type="search" placeholder="快速搜索" name="q" class="search_keyword"/>
+<input type="hidden" name="check_keywords" value="yes" />
+<input type="hidden" name="area" value="default" />
+<input type="submit" value="" class="search_submit">
+</form>
+</div>
+</div>
+</div>
+<div class="content-wrapper">
+<div class="content">
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="interaction">
+<span id="id1"></span><h1>与用户互动<a class="headerlink" href="#interaction" title="Permalink to this headline">¶</a></h1>
+<p>大部分按钮都有自己的功能，当启用服务器事件推送后，被点击的按钮会推送对应的事件到服务器，我们可以对这些事件进行回复，从而实现与用户互动。</p>
+<div class="section" id="id2">
+<h2>启用服务器推送<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>在微信公众平台的基本配置中启用服务器配置，启用时有一个简单的服务器验证过程，大部分情况下不需要进行安全验证，直接返回验证请求的 GET 参数 echostr 即可，启用后记得将对应的 token、aeskey 填入 wego.init 中。</p>
+</div>
+<div class="section" id="id3">
+<h2>响应服务器推送事件<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>每当用户操作了功能按钮，服务器就会收到来自微信的事件推送，我们得解析事件然后响应事件，如果启用了加密，我们还需要先解密，好在有 wego 这个过程会十分简单。</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@csrf_exempt</span>
+<span class="k">def</span> <span class="nf">wechat_push</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="n">push</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">analysis_push</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+<span class="n">user</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">get_ext_userinfo</span><span class="p">(</span><span class="n">push</span><span class="o">.</span><span class="n">from_user</span><span class="p">)</span>
+<span class="n">reply</span> <span class="o">=</span> <span class="n">push</span><span class="o">.</span><span class="n">reply_text</span><span class="p">(</span><span class="s1">&#39;hello &#39;</span> <span class="o">+</span> <span class="n">user</span><span class="o">.</span><span class="n">nickname</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">reply</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>wego 能解析所有的事件，由于一些事件微信命名重复，WeChatPush 包含了一个 type 属性进行严格的区分，当然，并不是所有类型的事件都能返回消息给用户，wego 的所有 type 都在 <a class="reference internal" href="../api.html#wego.api.WegoApi.analysis_push" title="wego.api.WegoApi.analysis_push"><code class="xref py py-class docutils literal"><span class="pre">analysis_push</span></code></a> 内一一列出来，在这里我们只关注按 msg 和 event 两类 type，可以与用户交互的 type 在后面都有一个小勾。</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="sidebar">
+<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+<div class="sphinxsidebarwrapper">
+<h2>WEGO</h2>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hello.html">Hello world</a></li>
+<li class="toctree-l1"><a class="reference internal" href="menu.html">创建菜单</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">与用户互动</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">启用服务器推送</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">响应服务器推送事件</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="paytime.html">微信支付</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../sample/init.html">初始化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sample/user.html">管理用户</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sample/buttons.html">创建按钮</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sample/pay.html">微信支付</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sample/statistics.html">数据统计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sample/material.html">素材管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sample/custom_helper.html">定制 helper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sample/custom_get_token.html">定制 get_global_access_token</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Developer Interface</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+</div>
+<div class="footer">
+<img src="../static/logo_wego.png" alt="WEGO" class="logo">
+&copy; Copyright 2016, quseit.
+Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.1<!-- .Theme by <a href="http://github.com/vkvn">vkvn</a> -->
+</div>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>初始化 &#8212; wego 0.9 documentation</title>
+<link rel="stylesheet" href="../static/wego.css" type="text/css" />
+<link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+<script type="text/javascript">
+var DOCUMENTATION_OPTIONS = {
+URL_ROOT:    '../',
+VERSION:     '0.9',
+COLLAPSE_INDEX: false,
+FILE_SUFFIX: '.html',
+HAS_SOURCE:  true,
+SOURCELINK_SUFFIX: '.txt'
+};
+</script>
+<script type="text/javascript" src="../static/jquery.js"></script>
+<script type="text/javascript" src="../static/underscore.js"></script>
+<script type="text/javascript" src="../static/doctools.js"></script>
+<link rel="index" title="Index" href="../genindex.html" />
+<link rel="search" title="Search" href="../search.html" />
+<link rel="next" title="管理用户" href="user.html" />
+<link rel="prev" title="微信支付" href="../guide/paytime.html" />
+<meta charset="UTF-8">
+<title>Wego文档</title>
+</head>
+<body>
+<div class="top_tab_bar">
+<div class="wrapper">
+<a href="./index.html"><img src="../static/logo_wego_top.png" alt="wego" class="logo_wego_top"></a>
+<div class="top_tab">
+<a href="//wego.quseit.com"><span></span>首页</a>
+<a href="//wego.readthedocs.io"><span class="active"></span>文档</a>
+<a href="https://github.com/wegostudio/wego" target="_blank"><span></span>GitHub</a>
+</div>
+<div class="search">
+<form class="search_form" action="../search.html" method="get">
+<input type="search" placeholder="快速搜索" name="q" class="search_keyword"/>
+<input type="hidden" name="check_keywords" value="yes" />
+<input type="hidden" name="area" value="default" />
+<input type="submit" value="" class="search_submit">
+</form>
+</div>
+</div>
+</div>
+<div class="content-wrapper">
+<div class="content">
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<div class="section" id="init">
+<span id="id1"></span><h1>初始化<a class="headerlink" href="#init" title="Permalink to this headline">¶</a></h1>
+<p>初始化的每个可选参数都做了详细说明</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># wego 初始化, 对应信息可以登录微信公众平台获取</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">wego</span><span class="o">.</span><span class="n">init</span><span class="p">(</span>
+<span class="c1"># 应用ID</span>
+<span class="n">APP_ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+<span class="c1"># 应用密钥</span>
+<span class="n">APP_SECRET</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+<span class="c1"># 注册域名</span>
+<span class="n">REGISTER_URL</span><span class="o">=</span><span class="s1">&#39;http://www.example.com/&#39;</span><span class="p">,</span>
+<span class="c1"># WEGO 助手</span>
+<span class="n">HELPER</span><span class="o">=</span><span class="s1">&#39;wego.helpers.official.DjangoHelper&#39;</span><span class="p">,</span>
+<span class="c1"># -- 使用微信支付时才填以下参数 --</span>
+<span class="c1"># 商户号</span>
+<span class="n">MCH_ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+<span class="c1"># 商户密钥</span>
+<span class="n">MCH_SECRET</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+<span class="c1"># apiclient_cert.pem 证书路径</span>
+<span class="n">CERT_PEM_PATH</span><span class="o">=</span><span class="s1">&#39;/path/to/apiclient_cert.pem&#39;</span><span class="p">,</span>
+<span class="c1"># apiclient_key.pem 证书路径</span>
+<span class="n">KEY_PEM_PATH</span><span class="o">=</span><span class="s1">&#39;/path/to/apiclient_key.pem&#39;</span><span class="p">,</span>
+<span class="c1"># 微信支付服务器回调路径</span>
+<span class="n">PAY_NOTIFY_PATH</span><span class="o">=</span><span class="s1">&#39;/a/&#39;</span><span class="p">,</span>
+<span class="c1"># -- 使用服务器消息推送的加解密方式为安全模式才填以下参数 --</span>
+<span class="c1"># 推送 Token (开发 -&gt; 基本配置)</span>
+<span class="n">PUSH_TOKEN</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+<span class="c1"># 推送 EncodingAESKey (开发 -&gt; 基本配置)</span>
+<span class="n">PUSH_ENCODING_AES_KEY</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+<span class="c1"># 选填，微信用户授权登录强制跳转路径, 如 &#39;/&#39;、&#39;/jump&#39;、&#39;/redirect&#39;</span>
+<span class="n">REDIRECT_PATH</span><span class="o">=</span><span class="s1">&#39;/&#39;</span><span class="p">,</span>
+<span class="c1"># 选填，微信用户授权跳转回来 state 参数的值</span>
+<span class="n">REDIRECT_STATE</span><span class="o">=</span><span class="s1">&#39;/&#39;</span><span class="p">,</span>
+<span class="c1"># 选填, 用户信息缓存过期时间, 单位秒, 不填则不缓存用户数据</span>
+<span class="n">USERINFO_EXPIRE</span><span class="o">=</span><span class="mi">60</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span>
+<span class="c1"># 选填, DEBUG 模式下, 微信支付为 1 分钱</span>
+<span class="n">DEBUG</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="id2">
+<h2>必填参数说明<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">APP_ID:</th><td class="field-body">应用ID，微信公众平台 -&gt; 开发 -&gt; 基本配置 处获取。</td>
+</tr>
+<tr class="field-even field"><th class="field-name">APP_SECRET:</th><td class="field-body">应用密钥，微信公众平台 -&gt; 开发 -&gt; 基本配置 处获取。</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">REGISTER_URL:</th><td class="field-body">注册域名, 微信公众平台 -&gt; 接口权限-&gt; 网页授权获取用户基本信息 处填写，在填写域名的基础上需加上 http(s):// 以 / 结尾。</td>
+</tr>
+<tr class="field-even field"><th class="field-name">HELPER:</th><td class="field-body">WEGO 助手，官方助手有：’wego.helpers.DjangoHelper’、’wego.helpers.TornadoHelper’ 你也可以参考教程进行自定义：<a class="reference external" href="http://wego.quseit.com/customized/helper(building">http://wego.quseit.com/customized/helper(building</a>).</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="pay-options">
+<span id="id3"></span><h2>微信支付参数说明<a class="headerlink" href="#pay-options" title="Permalink to this headline">¶</a></h2>
+<p>当需要使用微信参数时，以下参数必填。</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">MCH_ID:</th><td class="field-body">商户号，微信支付|商户平台 -&gt; 账户中心 -&gt; 商户信息 -&gt; 微信支付商户号 处获取。</td>
+</tr>
+<tr class="field-even field"><th class="field-name">MCH_SECRET:</th><td class="field-body">API，密钥 微信支付|商户平台 -&gt; 账户中心 -&gt; 商户信息 -&gt; API 安全 处设置。</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">PAY_NOTIFY_PATH:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">默认的微信支付通知回调路径，以 / 开头。</td>
+</tr>
+<tr class="field-even field"><th class="field-name">CERT_PEM_PATH:</th><td class="field-body">(可选) 证书 apiclient_cert.pem 的路径(建议绝对路径)，需要退款功能时必填，微信支付|商户平台 -&gt; 账户中心 -&gt; 商户信息 -&gt; API 安全 处下载。</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">KEY_PEM_PATH:</th><td class="field-body">(可选) 证书 apiclient_key.pem 的路径，需要退款功能时必填，下载处同上。</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id4">
+<h2>事件推送参数说明<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>当在微信公众平台启用了服务器配置消息加解密方式为安全模式时，以下参数必填。</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">PUSH_TOKEN:</th><td class="field-body">推送令牌 微信公众平台 -&gt; 开发 -&gt; 基本配置 处填写。</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">PUSH_ENCODING_AES_KEY:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body">消息加解密密钥 微信公众平台 -&gt; 开发 -&gt; 基本配置 处填写，注意 WEGO 只支持明文模式或加密模式，填写此参数默认为加密模式。</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id5">
+<h2>可选参数说明<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>以下参数根据项目需要填写。</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">REDIRECT_PATH:</th><td class="field-body">(可选) 强制授权后回跳路径，设置后所有用户授权后都跳转至此。</td>
+</tr>
+<tr class="field-even field"><th class="field-name">REDIRECT_STATE:</th><td class="field-body">(可选) 强制授权后回跳 STATE 值，回跳时固定带上的参数值。</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">GET_GLOBAL_ACCESS_TOKEN:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">(可选) 定制获取全局 access token 函数，只有分布式系统才需要定制，定制方法：<a class="reference external" href="http://wego.quseit.com/customized/GET_GLOBAL_ACCESS_TOKEN(building">http://wego.quseit.com/customized/GET_GLOBAL_ACCESS_TOKEN(building</a>)。</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">USERINFO_EXPIRE:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body">(可选) 用户信息缓存过期时间，单位秒，默认为 0，subscribe、language、remark 和 groupid 不会被缓存，每次获取仍然会调用 API。</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">DEBUG:</th><td class="field-body">(可选) 调试模式，默认为 False，为 True 时所有微信支付所需金额为 1 分钱。</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="id6">
+<h2>返回对象<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">return:</th><td class="field-body"><a class="reference internal" href="../api.html#wego.api.WegoApi" title="wego.api.WegoApi"><code class="xref py py-class docutils literal"><span class="pre">WegoApi</span></code></a> object.</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="sidebar">
+<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+<div class="sphinxsidebarwrapper">
+<h2>WEGO</h2>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/install.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/hello.html">Hello world</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/menu.html">创建菜单</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/interaction.html">与用户互动</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/paytime.html">微信支付</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">初始化</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">必填参数说明</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pay-options">微信支付参数说明</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">事件推送参数说明</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">可选参数说明</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id6">返回对象</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user.html">管理用户</a></li>
+<li class="toctree-l1"><a class="reference internal" href="buttons.html">创建按钮</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pay.html">微信支付</a></li>
+<li class="toctree-l1"><a class="reference internal" href="statistics.html">数据统计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="material.html">素材管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom_helper.html">定制 helper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom_get_token.html">定制 get_global_access_token</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Developer Interface</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+</div>
+<div class="footer">
+<img src="../static/logo_wego.png" alt="WEGO" class="logo">
+&copy; Copyright 2016, quseit.
+Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.1<!-- .Theme by <a href="http://github.com/vkvn">vkvn</a> -->
+</div>
+</body>
+</html>

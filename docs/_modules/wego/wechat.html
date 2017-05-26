@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>wego.wechat &#8212; wego 0.9 documentation</title>
+<link rel="stylesheet" href="../../static/wego.css" type="text/css" />
+<link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+<script type="text/javascript">
+var DOCUMENTATION_OPTIONS = {
+URL_ROOT:    '../../',
+VERSION:     '0.9',
+COLLAPSE_INDEX: false,
+FILE_SUFFIX: '.html',
+HAS_SOURCE:  true,
+SOURCELINK_SUFFIX: '.txt'
+};
+</script>
+<script type="text/javascript" src="../../static/jquery.js"></script>
+<script type="text/javascript" src="../../static/underscore.js"></script>
+<script type="text/javascript" src="../../static/doctools.js"></script>
+<link rel="index" title="Index" href="../../genindex.html" />
+<link rel="search" title="Search" href="../../search.html" />
+<meta charset="UTF-8">
+<title>Wego文档</title>
+</head>
+<body>
+<div class="top_tab_bar">
+<div class="wrapper">
+<a href="./index.html"><img src="../../static/logo_wego_top.png" alt="wego" class="logo_wego_top"></a>
+<div class="top_tab">
+<a href="//wego.quseit.com"><span></span>首页</a>
+<a href="//wego.readthedocs.io"><span class="active"></span>文档</a>
+<a href="https://github.com/wegostudio/wego" target="_blank"><span></span>GitHub</a>
+</div>
+<div class="search">
+<form class="search_form" action="../../search.html" method="get">
+<input type="search" placeholder="快速搜索" name="q" class="search_keyword"/>
+<input type="hidden" name="check_keywords" value="yes" />
+<input type="hidden" name="area" value="default" />
+<input type="submit" value="" class="search_submit">
+</form>
+</div>
+</div>
+</div>
+<div class="content-wrapper">
+<div class="content">
+<div class="document">
+<div class="documentwrapper">
+<div class="bodywrapper">
+<div class="body" role="main">
+<h1>Source code for wego.wechat</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">WeChatApiError</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="k">try</span><span class="p">:</span>
+<span class="kn">from</span> <span class="nn">urllib</span> <span class="k">import</span> <span class="n">quote</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="k">import</span> <span class="n">quote</span>
+<div class="viewcode-block" id="WeChatApi"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi">[docs]</a><span class="k">class</span> <span class="nc">WeChatApi</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    WeChat Api just do one thing: give params to wechat and get the data what wechat return.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">settings</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">global_access_token</span> <span class="o">=</span> <span class="p">{}</span>
+<div class="viewcode-block" id="WeChatApi.get_code_url"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_code_url">[docs]</a>    <span class="k">def</span> <span class="nf">get_code_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">redirect_url</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the url which 302 jump back and bring a code.</span>
+<span class="sd">        :param redirect_url: Jump back url</span>
+<span class="sd">        :param state: Jump back state</span>
+<span class="sd">        :return: url</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">quote</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+<span class="n">redirect_url</span> <span class="o">=</span> <span class="n">quote</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">REGISTER_URL</span> <span class="o">+</span> <span class="n">redirect_url</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+<span class="n">url</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;https://open.weixin.qq.com/connect/oauth2/authorize?&#39;</span> <span class="o">+</span>
+<span class="s1">&#39;appid=</span><span class="si">%s</span><span class="s1">&amp;redirect_uri=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">+</span>
+<span class="s1">&#39;&amp;response_type=code&#39;</span> <span class="o">+</span>
+<span class="s1">&#39;&amp;scope=snsapi_userinfo&#39;</span> <span class="o">+</span>
+<span class="s1">&#39;&amp;state=</span><span class="si">%s</span><span class="s1">#wechat_redirect&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_ID</span><span class="p">,</span> <span class="n">redirect_url</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">url</span></div>
+<div class="viewcode-block" id="WeChatApi.get_access_token"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_access_token">[docs]</a>    <span class="k">def</span> <span class="nf">get_access_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use code for get access token, refresh token, openid etc.</span>
+<span class="sd">        :param code: A code see function get_code_url.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;https://api.weixin.qq.com/sns/oauth2/access_token&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span>
+<span class="s1">&#39;appid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_ID</span><span class="p">,</span>
+<span class="s1">&#39;secret&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_SECRET</span><span class="p">,</span>
+<span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="n">code</span><span class="p">,</span>
+<span class="s1">&#39;grant_type&#39;</span><span class="p">:</span> <span class="s1">&#39;authorization_code&#39;</span>
+<span class="p">})</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.refresh_access_token"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.refresh_access_token">[docs]</a>    <span class="k">def</span> <span class="nf">refresh_access_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">refresh_token</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Refresh user access token by refresh token.</span>
+<span class="sd">        :param refresh_token: function get_access_token returns.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;https://api.weixin.qq.com/sns/oauth2/refresh_token&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span>
+<span class="s1">&#39;appid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_ID</span><span class="p">,</span>
+<span class="s1">&#39;grant_type&#39;</span><span class="p">:</span> <span class="s1">&#39;refresh_token&#39;</span><span class="p">,</span>
+<span class="s1">&#39;refresh_token&#39;</span><span class="p">:</span> <span class="n">refresh_token</span>
+<span class="p">})</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">if</span> <span class="s1">&#39;errcode&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+<span class="k">return</span> <span class="s1">&#39;error&#39;</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.get_userinfo"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_userinfo">[docs]</a>    <span class="k">def</span> <span class="nf">get_userinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">openid</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user info with global access token (content subscribe, language, remark and groupid).</span>
+<span class="sd">        :param openid: User openid.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;access_token&#39;</span><span class="p">:</span> <span class="n">access_token</span><span class="p">,</span>
+<span class="s1">&#39;openid&#39;</span><span class="p">:</span> <span class="n">openid</span><span class="p">,</span>
+<span class="s1">&#39;lang&#39;</span><span class="p">:</span> <span class="s1">&#39;zh_CN&#39;</span>
+<span class="p">}</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/user/info&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">if</span> <span class="s1">&#39;errcode&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+<span class="k">raise</span> <span class="n">WeChatApiError</span><span class="p">(</span><span class="s1">&#39;errcode: </span><span class="si">{}</span><span class="s1">, msg: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]))</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.set_user_remark"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.set_user_remark">[docs]</a>    <span class="k">def</span> <span class="nf">set_user_remark</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">openid</span><span class="p">,</span> <span class="n">remark</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set user remark.</span>
+<span class="sd">        :param openid: User openid.</span>
+<span class="sd">        :param remark: The remark you want to set.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;openid&#39;</span><span class="p">:</span> <span class="n">openid</span><span class="p">,</span>
+<span class="s1">&#39;remark&#39;</span><span class="p">:</span> <span class="n">remark</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/user/info/updateremark?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">if</span> <span class="s1">&#39;errcode&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+<span class="k">raise</span> <span class="n">WeChatApiError</span><span class="p">(</span><span class="s1">&#39;errcode: </span><span class="si">{}</span><span class="s1">, msg: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errcode&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errmsg&#39;</span><span class="p">]))</span></div>
+<div class="viewcode-block" id="WeChatApi.is_access_token_has_expired"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.is_access_token_has_expired">[docs]</a>    <span class="k">def</span> <span class="nf">is_access_token_has_expired</span><span class="p">(</span><span class="n">sele</span><span class="p">,</span> <span class="n">openid</span><span class="p">,</span> <span class="n">access_token</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determine whether the user access token has expired</span>
+<span class="sd">        :param openid: User openid.</span>
+<span class="sd">        :param access_token: function get_access_token returns.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;access_token&#39;</span><span class="p">:</span> <span class="n">access_token</span><span class="p">,</span>
+<span class="s1">&#39;openid&#39;</span><span class="p">:</span> <span class="n">openid</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/sns/auth&#39;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.get_userinfo_by_token"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_userinfo_by_token">[docs]</a>    <span class="k">def</span> <span class="nf">get_userinfo_by_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">openid</span><span class="p">,</span> <span class="n">access_token</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user info with user access token (without subscribe, language, remark and groupid).</span>
+<span class="sd">        :param openid: User openid.</span>
+<span class="sd">        :param access_token: function get_access_token returns.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;https://api.weixin.qq.com/sns/userinfo&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span>
+<span class="s1">&#39;access_token&#39;</span><span class="p">:</span> <span class="n">access_token</span><span class="p">,</span>
+<span class="s1">&#39;openid&#39;</span><span class="p">:</span> <span class="n">openid</span><span class="p">,</span>
+<span class="s1">&#39;lang&#39;</span><span class="p">:</span> <span class="s1">&#39;zh_CN&#39;</span>
+<span class="p">})</span>
+<span class="n">data</span><span class="o">.</span><span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;utf-8&#39;</span>
+<span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">json</span><span class="p">()</span></div>
+<div class="viewcode-block" id="WeChatApi.get_global_access_token"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_global_access_token">[docs]</a>    <span class="k">def</span> <span class="nf">get_global_access_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get global access token.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://api.weixin.qq.com/cgi-bin/token&quot;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span>
+<span class="s1">&#39;grant_type&#39;</span><span class="p">:</span> <span class="s1">&#39;client_credential&#39;</span><span class="p">,</span>
+<span class="s1">&#39;appid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_ID</span><span class="p">,</span>
+<span class="s1">&#39;secret&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_SECRET</span>
+<span class="p">})</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_make_xml</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recursive generate XML</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">v</span><span class="p">:</span>
+<span class="n">v</span> <span class="o">=</span> <span class="n">k</span>
+<span class="n">k</span> <span class="o">=</span> <span class="s1">&#39;xml&#39;</span>
+<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="n">v</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">WeChatApi</span><span class="o">.</span><span class="n">_make_xml</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+<span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+<span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span>
+<span class="n">v</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">WeChatApi</span><span class="o">.</span><span class="n">_make_xml</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">v</span><span class="p">])[</span><span class="n">length</span><span class="p">:(</span><span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="c1"># TODO elif type(v) in [str, unicode]:</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="k">return</span> <span class="s1">&#39;&lt;</span><span class="si">%s</span><span class="s1">&gt;&lt;![CDATA[</span><span class="si">%s</span><span class="s1">]]&gt;&lt;/</span><span class="si">%s</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+<span class="k">return</span> <span class="s1">&#39;&lt;</span><span class="si">%s</span><span class="s1">&gt;</span><span class="si">%s</span><span class="s1">&lt;/</span><span class="si">%s</span><span class="s1">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_analysis_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert the XML to dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">xml</span><span class="p">:</span>
+<span class="k">return</span> <span class="p">{}</span>
+<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="n">xml</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span>
+<span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;\&lt;.*?\&gt;\&lt;\!\[CDATA\[(.*?)\]\]\&gt;\&lt;\/(.*?)\&gt;&#39;</span><span class="p">,</span> <span class="n">xml</span><span class="p">)}</span>
+<span class="c1"># 统一下单</span>
+<span class="k">def</span> <span class="nf">unified_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="n">xml</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_xml</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;https://api.mch.weixin.qq.com/pay/unifiedorder&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">xml</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis_xml</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="c1"># 查询订单</span>
+<div class="viewcode-block" id="WeChatApi.query_order"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.query_order">[docs]</a>    <span class="k">def</span> <span class="nf">query_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get order query.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">xml</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_xml</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;https://api.mch.weixin.qq.com/pay/orderquery&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">xml</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis_xml</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+<span class="c1"># 关闭订单</span>
+<div class="viewcode-block" id="WeChatApi.close_order"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.close_order">[docs]</a>    <span class="k">def</span> <span class="nf">close_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get close_order info.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">xml</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_xml</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;https://api.mch.weixin.qq.com/pay/closeorder&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">xml</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis_xml</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+<span class="c1"># 申请退款</span>
+<div class="viewcode-block" id="WeChatApi.refund_order"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.refund_order">[docs]</a>    <span class="k">def</span> <span class="nf">refund_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        refund.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">xml</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_xml</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+<span class="s1">&#39;https://api.mch.weixin.qq.com/secapi/pay/refund&#39;</span><span class="p">,</span>
+<span class="n">data</span><span class="o">=</span><span class="n">xml</span><span class="p">,</span>
+<span class="n">cert</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">CERT_PEM_PATH</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">KEY_PEM_PATH</span><span class="p">)</span>
+<span class="p">)</span><span class="o">.</span><span class="n">content</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis_xml</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+<span class="c1"># 查询退款</span>
+<div class="viewcode-block" id="WeChatApi.query_refund"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.query_refund">[docs]</a>    <span class="k">def</span> <span class="nf">query_refund</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        refund query</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">xml</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_xml</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;https://api.mch.weixin.qq.com/pay/refundquery&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">xml</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis_xml</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+<span class="c1"># 下载对账单</span>
+<div class="viewcode-block" id="WeChatApi.download_bill"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.download_bill">[docs]</a>    <span class="k">def</span> <span class="nf">download_bill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        download bill</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">xml</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_xml</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;https://api.mch.weixin.qq.com/pay/downloadbill&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">xml</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;content-type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;text/plain&#39;</span><span class="p">:</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis_xml</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+<span class="k">return</span> <span class="p">{</span>
+<span class="s1">&#39;return_code&#39;</span><span class="p">:</span> <span class="s1">&#39;SUCCESS&#39;</span><span class="p">,</span>
+<span class="s1">&#39;content&#39;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">content</span>
+<span class="p">}</span></div>
+<span class="c1"># 交易保障</span>
+<div class="viewcode-block" id="WeChatApi.pay_report"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.pay_report">[docs]</a>    <span class="k">def</span> <span class="nf">pay_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        report</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">xml</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_xml</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;https://api.mch.weixin.qq.com/payitil/report&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">xml</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis_xml</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+<div class="viewcode-block" id="WeChatApi.create_group"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.create_group">[docs]</a>    <span class="k">def</span> <span class="nf">create_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a user group.</span>
+<span class="sd">        :param name: Group name.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;group&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span>
+<span class="p">}</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/groups/create?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.get_all_groups"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_all_groups">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_groups</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all user groups.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/cgi-bin/groups/get?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">req</span><span class="o">.</span><span class="n">json</span><span class="p">()</span></div>
+<div class="viewcode-block" id="WeChatApi.get_user_groups"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_user_groups">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_groups</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">openid</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all a user groups.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;openid&#39;</span><span class="p">:</span> <span class="n">openid</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/cgi-bin/groups/getid?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.change_group_name"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.change_group_name">[docs]</a>    <span class="k">def</span> <span class="nf">change_group_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">groupid</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Change group name.</span>
+<span class="sd">        :param groupid: Group ID.</span>
+<span class="sd">        :param name: New name.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;group&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">groupid</span><span class="p">,</span>
+<span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span>
+<span class="p">}</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/groups/update?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.change_user_group"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.change_user_group">[docs]</a>    <span class="k">def</span> <span class="nf">change_user_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">openid</span><span class="p">,</span> <span class="n">groupid</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Move user to a new group.</span>
+<span class="sd">        :param openid: User openid.</span>
+<span class="sd">        :param groupid: Group ID.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;openid&#39;</span><span class="p">:</span> <span class="n">openid</span><span class="p">,</span>
+<span class="s1">&#39;to_groupid&#39;</span><span class="p">:</span> <span class="n">groupid</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/groups/members/update?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.del_group"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.del_group">[docs]</a>    <span class="k">def</span> <span class="nf">del_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">groupid</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete a group.</span>
+<span class="sd">        :param groupid: Group id.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;group&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">groupid</span>
+<span class="p">}</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/groups/delete?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.create_menu"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.create_menu">[docs]</a>    <span class="k">def</span> <span class="nf">create_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a menu.</span>
+<span class="sd">        :param data: Menu data.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/cgi-bin/menu/create?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.create_conditional_menu"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.create_conditional_menu">[docs]</a>    <span class="k">def</span> <span class="nf">create_conditional_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a conditional menu.</span>
+<span class="sd">        :param data: Menu data.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/cgi-bin/menu/addconditional?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.get_menus"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_menus">[docs]</a>    <span class="k">def</span> <span class="nf">get_menus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all menus.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/cgi-bin/menu/get?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.del_all_menus"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.del_all_menus">[docs]</a>    <span class="k">def</span> <span class="nf">del_all_menus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete all menus, contain conditional menu.</span>
+<span class="sd">        ::return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.del_conditional_menu"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.del_conditional_menu">[docs]</a>    <span class="k">def</span> <span class="nf">del_conditional_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">menu_id</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete conditional menus, contain conditional menu.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;menuid&#39;</span><span class="p">:</span> <span class="n">menu_id</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/menu/delconditional?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<span class="k">def</span> <span class="nf">add_temporary_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/media/upload?access_token=</span><span class="si">%s</span><span class="s1">&amp;type=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">access_token</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">])</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;media&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;media&#39;</span><span class="p">]})</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">get_temporary_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">media_id</span><span class="p">):</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/media/get?access_token=</span><span class="si">{access_token}</span><span class="s1">&amp;media_id=</span><span class="si">{media_id}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+<span class="n">access_token</span><span class="o">=</span><span class="n">access_token</span><span class="p">,</span>
+<span class="n">media_id</span><span class="o">=</span><span class="n">media_id</span>
+<span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+<span class="k">except</span><span class="p">:</span>
+<span class="n">data</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">add_permanent_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">articles</span><span class="p">):</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/material/add_news?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;articles&#39;</span><span class="p">:</span> <span class="n">articles</span><span class="p">}</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">upload_content_picture</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">media</span><span class="p">):</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;media&#39;</span><span class="p">:</span> <span class="n">media</span><span class="p">})</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">add_other_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="k">if</span> <span class="s1">&#39;title&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s1">&#39;introduction&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span>
+<span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">],</span>
+<span class="s1">&#39;introduction&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;introduction&#39;</span><span class="p">]</span>
+<span class="p">}</span>
+<span class="p">}</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;media&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;media&#39;</span><span class="p">]})</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">get_permanent_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">media_id</span><span class="p">):</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;media_id&quot;</span><span class="p">:</span> <span class="n">media_id</span><span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/material/get_material?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">delete_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">media_id</span><span class="p">):</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;media_id&quot;</span><span class="p">:</span> <span class="n">media_id</span><span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/material/del_material?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">update_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;media_id&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;media_id&#39;</span><span class="p">],</span>
+<span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">],</span>
+<span class="s1">&#39;articles&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">],</span>
+<span class="s1">&#39;thumb_media_id&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;thumb_media_id&#39;</span><span class="p">],</span>
+<span class="s1">&#39;author&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;author&#39;</span><span class="p">],</span>
+<span class="s1">&#39;digest&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;digest&#39;</span><span class="p">],</span>
+<span class="s1">&#39;show_cover_pic&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;show_cover_pic&#39;</span><span class="p">],</span>
+<span class="s1">&#39;content&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">],</span>
+<span class="s1">&#39;content_source_url&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;content_source_url&#39;</span><span class="p">]</span>
+<span class="p">}</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/material/update_news?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">get_materials_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/material/get_materialcount?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">get_materials_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_type</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">material_type</span><span class="p">,</span>
+<span class="s2">&quot;offset&quot;</span><span class="p">:</span> <span class="n">offset</span><span class="p">,</span>
+<span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="n">count</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">create_scene_qrcode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene_id</span><span class="p">,</span> <span class="n">expire</span><span class="p">):</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;expire_seconds&#39;</span><span class="p">:</span> <span class="n">expire</span><span class="p">,</span>
+<span class="s1">&#39;action_name&#39;</span><span class="p">:</span> <span class="s1">&#39;QR_SCENE&#39;</span><span class="p">,</span>
+<span class="s1">&#39;action_info&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="s1">&#39;scene&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="s1">&#39;scene_id&#39;</span><span class="p">:</span> <span class="n">scene_id</span>
+<span class="p">}</span>
+<span class="p">}</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">create_limit_scene_qrcode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene_id</span><span class="p">):</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;action_name&#39;</span><span class="p">:</span> <span class="s1">&#39;QR_LIMIT_SCENE&#39;</span><span class="p">,</span>
+<span class="s1">&#39;action_info&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="s1">&#39;scene&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="s1">&#39;scene_id&#39;</span><span class="p">:</span> <span class="n">scene_id</span>
+<span class="p">}</span>
+<span class="p">}</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">create_limit_str_scene_qrcode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene_str</span><span class="p">):</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;action_name&#39;</span><span class="p">:</span> <span class="s1">&#39;QR_LIMIT_SCENE&#39;</span><span class="p">,</span>
+<span class="s1">&#39;action_info&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="s1">&#39;scene&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="s1">&#39;scene_str&#39;</span><span class="p">:</span> <span class="n">scene_str</span>
+<span class="p">}</span>
+<span class="p">}</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+<span class="k">def</span> <span class="nf">create_short_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="s1">&#39;long2short&#39;</span><span class="p">,</span>
+<span class="s1">&#39;long_url&#39;</span><span class="p">:</span> <span class="n">url</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/shorturl?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span>
+<div class="viewcode-block" id="WeChatApi.get_wechat_servers_list"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_wechat_servers_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_wechat_servers_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get wechat servers list</span>
+<span class="sd">        :param data:</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/cgi-bin/getcallbackip?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.check_personalized_menu_match"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.check_personalized_menu_match">[docs]</a>    <span class="k">def</span> <span class="nf">check_personalized_menu_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check whether personalized menu match is correct.</span>
+<span class="sd">        :param data:user_id</span>
+<span class="sd">        :return:Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user_id</span>
+<span class="p">}</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/cgi-bin/menu/trymatch?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.get_variation_number_of_user"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_variation_number_of_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_variation_number_of_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get variation in number od user</span>
+<span class="sd">        :param data:begin_date, end_date</span>
+<span class="sd">        :return:Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s2">&quot;begin_date&quot;</span><span class="p">:</span> <span class="n">begin_date</span><span class="p">,</span>
+<span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="n">end_date</span>
+<span class="p">}</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/datacube/getusersummary?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.get_user_cumulate"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_user_cumulate">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_cumulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        GET accumulation of user</span>
+<span class="sd">        :param date:begin_date, end_date</span>
+<span class="sd">        :return:Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s2">&quot;begin_date&quot;</span><span class="p">:</span> <span class="n">begin_date</span><span class="p">,</span>
+<span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="n">end_date</span>
+<span class="p">}</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/datacube/getusercumulate?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.get_article_summary"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_article_summary">[docs]</a>    <span class="k">def</span> <span class="nf">get_article_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get article summary</span>
+<span class="sd">        :param data:begin_date, end_date</span>
+<span class="sd">        :return :Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s2">&quot;begin_date&quot;</span><span class="p">:</span> <span class="n">begin_date</span><span class="p">,</span>
+<span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="n">end_date</span>
+<span class="p">}</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/datacube/getarticlesummary?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.get_article_total"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_article_total">[docs]</a>    <span class="k">def</span> <span class="nf">get_article_total</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get article total</span>
+<span class="sd">        :param data:begin_date, end_date</span>
+<span class="sd">        :return :Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s2">&quot;begin_date&quot;</span><span class="p">:</span> <span class="n">begin_date</span><span class="p">,</span>
+<span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="n">end_date</span>
+<span class="p">}</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/datacube/getarticletotal?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.get_user_read"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_user_read">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user read</span>
+<span class="sd">        :param data:begin_date, end_date</span>
+<span class="sd">        :return :Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s2">&quot;begin_date&quot;</span><span class="p">:</span> <span class="n">begin_date</span><span class="p">,</span>
+<span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="n">end_date</span>
+<span class="p">}</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/datacube/getuserread?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.get_user_read_hour"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_user_read_hour">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_read_hour</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user read hour</span>
+<span class="sd">        param data:begin_date, end_date</span>
+<span class="sd">        return :Raw data that wechat return.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s2">&quot;begin_date&quot;</span><span class="p">:</span> <span class="n">begin_date</span><span class="p">,</span>
+<span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="n">end_date</span>
+<span class="p">}</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/datacube/getuserreadhour?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.get_user_share"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_user_share">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_share</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user share</span>
+<span class="sd">        param data:begin_data,end_date</span>
+<span class="sd">        return :Raw data that wechat return.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s2">&quot;begin_date&quot;</span><span class="p">:</span> <span class="n">begin_date</span><span class="p">,</span>
+<span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="n">end_date</span>
+<span class="p">}</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/datacube/getusershare?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+<div class="viewcode-block" id="WeChatApi.get_user_share_hour"><a class="viewcode-back" href="../../api.html#wego.wechat.WeChatApi.get_user_share_hour">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_share_hour</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get user share</span>
+<span class="sd">        param data:begin_date, end_date</span>
+<span class="sd">        retur :Raw data that wechat return.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s2">&quot;begin_date&quot;</span><span class="p">:</span> <span class="n">begin_date</span><span class="p">,</span>
+<span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="n">end_date</span>
+<span class="p">}</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://api.weixin.qq.com/datacube/getusersharehour?access_token=&quot;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div></div>
+<span class="c1"># TODO 更方便定制</span>
+<div class="viewcode-block" id="get_global_access_token"><a class="viewcode-back" href="../../api.html#wego.wechat.get_global_access_token">[docs]</a><span class="k">def</span> <span class="nf">get_global_access_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    获取全局 access token</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">create_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a user group.</span>
+<span class="sd">        :param name: Group name.</span>
+<span class="sd">        :return: Raw data that wechat returns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">GET_GLOBAL_ACCESS_TOKEN</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s1">&#39;group&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span>
+<span class="p">}</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.weixin.qq.com/cgi-bin/groups/create?access_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">access_token</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">data</span></div>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div id="sidebar">
+<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+<div class="sphinxsidebarwrapper">
+<h2>WEGO</h2>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/install.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/hello.html">Hello world</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/menu.html">创建菜单</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/interaction.html">与用户互动</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/paytime.html">微信支付</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/init.html">初始化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/user.html">管理用户</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/buttons.html">创建按钮</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/pay.html">微信支付</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/statistics.html">数据统计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/material.html">素材管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/custom_helper.html">定制 helper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample/custom_get_token.html">定制 get_global_access_token</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">Developer Interface</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+</div>
+<div class="footer">
+<img src="../../static/logo_wego.png" alt="WEGO" class="logo">
+&copy; Copyright 2016, quseit.
+Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.6.1<!-- .Theme by <a href="http://github.com/vkvn">vkvn</a> -->
+</div>
+</body>
+</html>
