@@ -3,6 +3,8 @@ from .exceptions import WeChatApiError
 import requests
 import json
 import re
+import os
+import time
 
 try:
     from urllib import quote
@@ -834,6 +836,48 @@ class WeChatApi(object):
 
         return data
 
+    '''
+        新增网页开发接口 @author tang
+    '''
+    def _get_jsapi_ticket_by_wx(self, path):
+        """
+        微信端获取jsapi_ticket网页票据
+        jsapi_ticket 获取非常有限！这里默认以文件形式存储，欢迎重新定制
+        请保证lib目录下的jsapi_ticket.json文件766权限
+        """
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = "https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%s&type=jsapi"% access_token
+        data = requests.get(url).json()
+        _data = {
+            'ticket': data['ticket'],
+            'expires_time': int(time.time()) + int(data['expires_in']) - 180
+        }
+        with open(path, 'w') as fp:
+            json.dump(json.dumps(_data), fp)
+        return _data['ticket']
+
+    def get_jsapi_ticket(self):
+        """
+        本地获取jsapi_ticket网页票据
+        """
+        _p = os.path.dirname(os.path.abspath(__file__)) + '/lib/jsapi_ticket.json'
+        with open(_p, 'r') as f:
+            result = json.loads(json.load(f))
+        if result['ticket'] and result['expires_time'] > int(time.time()):
+            return result['ticket']
+        else:
+            return self._get_jsapi_ticket_by_wx(_p)
+
+    def send_wx_tpl_msg(self, data):
+        '''
+        发送模板消息
+        '''
+        access_token = self.settings.GET_GLOBAL_ACCESS_TOKEN(self)
+        url = 'https://api.weixin.qq.com/cgi-bin/message/template/send?access_token='+access_token
+        ret = requests.post(url, json.dumps(data)).json()
+        if ret['errcode'] == 0:
+            return True, ret['errmsg']
+        return False, ret['errmsg']
 
 # TODO 更方便定制
 def get_global_access_token(self):

@@ -52,23 +52,22 @@ class WegoApi(object):
                 if wx_user != 'error':
                     request.wx_user = wx_user
                     return func(request, *args, **kwargs)
-
-            return self.redirect_for_code(helper)
+            state = request.GET.get('state', '')
+            if not state:
+                state = self.settings.REDIRECT_STATE if self.settings.REDIRECT_STATE else 'wego'
+            return self.redirect_for_code(helper, state)
 
         return get_wx_user
 
-    def redirect_for_code(self, helper):
+    def redirect_for_code(self, helper, state):
         """
         Let user jump to wechat authorization page.
 
         :return: Redirect object
         """
 
-        state = 'WEGO'
         if self.settings.REDIRECT_PATH:
             redirect_url = self.settings.REDIRECT_PATH
-            if self.settings.REDIRECT_STATE:
-                state = self.settings.REDIRECT_STATE
         else:
             redirect_url = helper.get_current_path()
             get_params = helper.get_params()
@@ -473,6 +472,7 @@ class WegoApi(object):
         data = self.wechat.pay_report(data)
 
         return data
+
 
     def _check_params(self, params, *args):
         """
@@ -948,6 +948,36 @@ class WegoApi(object):
 
         return data
 
+    '''
+        2017年11月 新增
+    '''
+    def get_jssdk_conf(self, url):
+        '''
+        获取jssdk网页配置
+        '''
+        ret = {
+            'nonceStr': self._get_random_code(),
+            'jsapi_ticket': self.wechat.get_jsapi_ticket(),
+            'timestamp': int(time.time()),
+            'url': url
+        }
+        string = '&'.join(['%s=%s' % (key.lower(), ret[key]) for key in sorted(ret)])
+        ret['signature'] = hashlib.sha1(string).hexdigest()
+        return ret
+
+    def send_template_msg(self, data):
+        '''
+        发送模板消息
+        '''
+        return self.wechat.send_wx_tpl_msg(data)
+
+    #支付消息消息同步返回给微信
+    def call_wx_pay_msg(self, data=[{'return_code': 'SUCCESS'}, {'return_msg': 'OK'}]):
+        return wego.wechat.WeChatApi._make_xml(data)
+
+    #解析支付成功微信回调消息
+    def get_pay_ok_msg(self, data):
+        return self.wechat._analysis_xml(data)
 
 class WeChatPay(object):
 
