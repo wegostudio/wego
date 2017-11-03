@@ -38,6 +38,13 @@ class IndexHandler(tornado.web.RequestHandler):
 
 未完成，持续更新中: [wego.quseit.com](http://wego.quseit.com/document)
 
+
+## New features
+- 获取jssdk网页配置
+- 发送模板消息
+- 支付消息获取与回调
+- 引导登录状态码支持
+
 ## Discuss
 
 <table>
