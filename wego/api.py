@@ -683,10 +683,8 @@ class WegoApi(object):
 
         helper = self.settings.HELPER(request)
         raw_xml = helper.get_body()
-        
-        print(raw_xml)
 
-        if raw_xml.find('return_code') != -1:
+        if raw_xml.find(b'return_code') != -1:
             # TODO 通知验证
             data = self.wechat._analysis_xml(raw_xml)
             return WeChatPay(data)
