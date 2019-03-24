@@ -22,7 +22,7 @@ class WeChatApi(object):
         self.settings = settings
         self.global_access_token = {}
 
-    def get_code_url(self, redirect_url, state):
+    def get_code_url(self, redirect_url, state, scope='snsapi_userinfo'):
         """
         Get the url which 302 jump back and bring a code.
 
@@ -37,8 +37,8 @@ class WeChatApi(object):
         url = ('https://open.weixin.qq.com/connect/oauth2/authorize?' +
                'appid=%s&redirect_uri=%s' +
                '&response_type=code' +
-               '&scope=snsapi_userinfo' +
-               '&state=%s#wechat_redirect') % (self.settings.APP_ID, redirect_url, state)
+               '&scope=%s' +
+               '&state=%s#wechat_redirect') % (self.settings.APP_ID, redirect_url, scope, state)
 
         return url
 

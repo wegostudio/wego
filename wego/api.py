@@ -59,7 +59,22 @@ class WegoApi(object):
 
         return get_wx_user
 
-    def redirect_for_code(self, helper, state):
+    def openid_decorator(self, func):
+        def get_openid(request, *args, **kwargs):
+            helper = self.settings.HELPER(request)
+            code = helper.get_params().get('code', '')
+            if code:
+                openid = self.get_openid(helper, code)
+                request.wx_openid = openid
+                return func(request, *args, **kwargs)
+            state = request.GET.get('state', '')
+            if not state:
+                state = self.settings.REDIRECT_STATE if self.settings.REDIRECT_STATE else 'wego'
+            return self.redirect_for_code(helper, state, scope='snsapi_base')
+
+        return get_openid
+
+    def redirect_for_code(self, helper, state, scope='snsapi_userinfo'):
         """
         Let user jump to wechat authorization page.
 
@@ -73,7 +88,7 @@ class WegoApi(object):
             get_params = helper.get_params()
             if 'code' not in get_params:
                 state = '&'.join(['%s=%s' % (i, j) for i, j in get_params.items()])
-        url = self.wechat.get_code_url(redirect_url, state)
+        url = self.wechat.get_code_url(redirect_url, state, scope)
 
         return helper.redirect(url)
 
